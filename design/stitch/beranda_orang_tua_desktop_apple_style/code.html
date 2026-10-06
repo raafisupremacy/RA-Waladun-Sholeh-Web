@@ -1,0 +1,355 @@
+<!DOCTYPE html><html lang="id"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beranda Orang Tua - Desktop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            page: '#FFFFFF',
+            surfaceGray: '#F5F5F7',
+            textMain: '#1D1D1F',
+            textSec: '#6E6E73',
+            appleBlue: '#0071E3',
+            lightBlue: '#E8F1FD',
+            hairline: '#E5E5EA',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #FFFFFF;
+      color: #1D1D1F;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-page flex flex-col justify-between selection:bg-[#E8F1FD] selection:text-[#0071E3]">
+
+  <!-- 1. TOP NAV -->
+  <header class="w-full h-[44px] bg-white border-b border-hairline sticky top-0 z-50 flex items-center justify-center px-8">
+    <div class="w-full max-w-[1100px] flex items-center justify-between">
+      <!-- Left: SKMS Wordmark -->
+      <div class="text-[17px] font-semibold tracking-tight text-textMain">
+        SKMS
+      </div>
+
+      <!-- Center: Navigation Links -->
+      <nav class="flex items-center gap-[40px]">
+        <a href="#beranda" class="text-[14px] font-semibold text-textMain tracking-normal">Beranda</a>
+        <a href="#tagihan" class="text-[14px] font-normal text-textSec hover:text-textMain transition-colors">Tagihan</a>
+        <a href="#perkembangan" class="text-[14px] font-normal text-textSec hover:text-textMain transition-colors">Perkembangan</a>
+        <a href="#profil" class="text-[14px] font-normal text-textSec hover:text-textMain transition-colors">Profil</a>
+      </nav>
+
+      <!-- Right: User Identity -->
+      <div class="text-[14px] font-normal text-textMain cursor-default select-none">
+        Ibu Rina
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="w-full flex-1">
+    
+    <!-- 2. HERO SECTION -->
+    <section class="w-full bg-white pt-[80px] pb-[64px] px-8 flex justify-center">
+      <div class="w-full max-w-[1100px] flex flex-col items-start">
+        
+        <!-- Avatar 72px -->
+        <div class="w-[72px] h-[72px] rounded-full bg-lightBlue flex items-center justify-center text-appleBlue text-[24px] font-semibold select-none">
+          AP
+        </div>
+
+        <!-- Name -->
+        <h1 class="text-[56px] font-semibold text-textMain tracking-[-0.02em] leading-[1.08] mt-[20px]">
+          Aisyah Putri R.
+        </h1>
+
+        <!-- Class & Academic Term -->
+        <p class="text-[21px] font-normal text-textSec mt-[8px]">
+          Kelompok A · Tahun Ajaran 2026/2027 · Semester 1
+        </p>
+
+        <!-- Change Child Link -->
+        <div class="mt-[12px]">
+          <a href="#ganti-anak" class="text-[17px] font-normal text-appleBlue hover:underline inline-flex items-center">
+            Ganti anak &gt;
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. TILES SECTION -->
+    <section class="w-full bg-surfaceGray py-[80px] px-8 flex justify-center">
+      <div class="w-full max-w-[1100px] grid grid-cols-2 gap-[24px] items-stretch">
+        
+        <!-- LEFT TILE: BILL TILE -->
+        <div class="bg-lightBlue rounded-[28px] p-[48px] flex flex-col justify-between h-full border border-[#D3E4FA]">
+          <div>
+            <!-- Header Tagihan -->
+            <p class="text-[21px] font-normal text-textSec leading-snug">
+              SPP Oktober 2026
+            </p>
+
+            <!-- Big Number -->
+            <div class="text-[72px] font-semibold text-textMain tracking-tight leading-[1] mt-[12px] tabular-nums">
+              Rp 350.000
+            </div>
+
+            <!-- Jatuh Tempo & Status Capsule -->
+            <div class="flex items-center justify-between mt-[24px] flex-wrap gap-3">
+              <span class="text-[17px] font-normal text-textSec">
+                Jatuh tempo 10 Okt 2026
+              </span>
+              <span class="inline-flex items-center justify-center h-[32px] px-[16px] rounded-full bg-[#FFF1D6] text-[#A15C00] text-[14px] font-medium">
+                Menunggu Verifikasi
+              </span>
+            </div>
+
+            <!-- Divider Line -->
+            <div class="w-full h-[1px] bg-hairline my-[32px]"></div>
+
+            <!-- Progress Line with Three Steps -->
+            <div>
+              <div class="relative flex items-center justify-between mb-[10px]">
+                <!-- Background Connection Line -->
+                <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-appleBlue z-0"></div>
+
+                <!-- Step 1: Diajukan (filled dot) -->
+                <div class="relative z-10 w-[14px] h-[14px] rounded-full bg-appleBlue border-2 border-lightBlue"></div>
+
+                <!-- Step 2: Verifikasi (ringed dot - current) -->
+                <div class="relative z-10 w-[18px] h-[18px] rounded-full bg-white border-[4px] border-appleBlue shadow-sm"></div>
+
+                <!-- Step 3: Selesai (empty/inactive dot) -->
+                <div class="relative z-10 w-[14px] h-[14px] rounded-full bg-white border-2 border-appleBlue"></div>
+              </div>
+
+              <!-- Step Labels -->
+              <div class="flex justify-between text-[14px] font-normal text-textMain">
+                <span class="w-[80px] text-left">Diajukan</span>
+                <span class="w-[80px] text-center font-semibold text-textMain">Verifikasi</span>
+                <span class="w-[80px] text-right">Selesai</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="mt-[44px] flex flex-col items-center gap-[18px]">
+            <button type="button" class="w-full h-[52px] rounded-full bg-appleBlue hover:bg-[#0077ED] active:scale-[0.99] text-white text-[17px] font-semibold flex items-center justify-center transition-all cursor-pointer">
+              Unggah bukti bayar
+            </button>
+            <a href="#rincian-tagihan" class="text-[17px] font-normal text-appleBlue hover:underline">
+              Lihat rincian tagihan &gt;
+            </a>
+          </div>
+        </div>
+
+        <!-- RIGHT TILE: JOURNAL TILE -->
+        <div class="bg-white rounded-[28px] p-[48px] flex flex-col justify-between h-full border border-hairline">
+          <div>
+            <!-- Header Jurnal -->
+            <h2 class="text-[28px] font-semibold text-textMain leading-tight">
+              Jurnal terakhir
+            </h2>
+            <p class="text-[17px] font-normal text-textSec mt-[6px]">
+              Rabu, 30 Sep · Bu Sari Wulandari
+            </p>
+
+            <!-- 5 Rows -->
+            <div class="mt-[28px] flex flex-col">
+              
+              <!-- Row 1: Nilai Agama dan Moral -->
+              <div class="py-[16px] border-t border-hairline">
+                <div class="flex items-center justify-between">
+                  <span class="text-[17px] font-semibold text-textMain">Nilai Agama dan Moral</span>
+                  <span class="h-[28px] px-[12px] inline-flex items-center justify-center rounded-full bg-lightBlue text-appleBlue text-[14px] font-medium">
+                    BSB
+                  </span>
+                </div>
+                <p class="text-[15px] font-normal text-textSec mt-[6px]">
+                  Berdoa dengan tertib sebelum dan sesudah makan.
+                </p>
+              </div>
+
+              <!-- Row 2: Fisik Motorik -->
+              <div class="py-[16px] border-t border-hairline">
+                <div class="flex items-center justify-between">
+                  <span class="text-[17px] font-semibold text-textMain">Fisik Motorik</span>
+                  <span class="h-[28px] px-[12px] inline-flex items-center justify-center rounded-full bg-lightBlue text-appleBlue text-[14px] font-medium">
+                    BSH
+                  </span>
+                </div>
+                <p class="text-[15px] font-normal text-textSec mt-[6px]">
+                  Mampu meronce manik-manik dan melipat kertas dengan rapi.
+                </p>
+              </div>
+
+              <!-- Row 3: Kognitif -->
+              <div class="py-[16px] border-t border-hairline">
+                <div class="flex items-center justify-between">
+                  <span class="text-[17px] font-semibold text-textMain">Kognitif</span>
+                  <span class="h-[28px] px-[12px] inline-flex items-center justify-center rounded-full bg-lightBlue text-appleBlue text-[14px] font-medium">
+                    BSH
+                  </span>
+                </div>
+                <p class="text-[15px] font-normal text-textSec mt-[6px]">
+                  Mengenal konsep bilangan 1-10 dan mengelompokkan warna.
+                </p>
+              </div>
+
+              <!-- Row 4: Bahasa -->
+              <div class="py-[16px] border-t border-hairline">
+                <div class="flex items-center justify-between">
+                  <span class="text-[17px] font-semibold text-textMain">Bahasa</span>
+                  <span class="h-[28px] px-[12px] inline-flex items-center justify-center rounded-full bg-lightBlue text-appleBlue text-[14px] font-medium">
+                    BSB
+                  </span>
+                </div>
+                <p class="text-[15px] font-normal text-textSec mt-[6px]">
+                  Menceritakan kembali kegiatan liburan dengan kalimat lengkap.
+                </p>
+              </div>
+
+              <!-- Row 5: Sosial Emosional -->
+              <div class="py-[16px] border-t border-b border-hairline">
+                <div class="flex items-center justify-between">
+                  <span class="text-[17px] font-semibold text-textMain">Sosial Emosional</span>
+                  <span class="h-[28px] px-[12px] inline-flex items-center justify-center rounded-full bg-lightBlue text-appleBlue text-[14px] font-medium">
+                    BSH
+                  </span>
+                </div>
+                <p class="text-[15px] font-normal text-textSec mt-[6px]">
+                  Mau berbagi mainan dan antre saat mencuci tangan.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Bottom Action Link -->
+          <div class="mt-[28px]">
+            <a href="#riwayat-jurnal" class="text-[17px] font-normal text-appleBlue hover:underline inline-block">
+              Lihat semua riwayat jurnal &gt;
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 4. ANNOUNCEMENTS SECTION -->
+    <section class="w-full bg-white py-[96px] px-8 flex justify-center">
+      <div class="w-full max-w-[1100px]">
+        
+        <!-- Header -->
+        <div class="flex items-baseline justify-between mb-[32px]">
+          <h2 class="text-[40px] font-semibold text-textMain tracking-[-0.015em]">
+            Pengumuman
+          </h2>
+          <a href="#semua-pengumuman" class="text-[17px] font-normal text-appleBlue hover:underline">
+            Semua pengumuman &gt;
+          </a>
+        </div>
+
+        <!-- Announcement Grouped Container -->
+        <div class="bg-white rounded-[20px] border border-hairline overflow-hidden divide-y divide-hairline">
+          
+          <!-- Row 1: Pinned -->
+          <a href="#pengumuman-1" class="h-[88px] px-[32px] flex items-center justify-between hover:bg-[#FAFAFC] transition-colors group">
+            <div class="flex flex-col justify-center gap-[4px] pr-4">
+              <div class="flex items-center gap-[10px]">
+                <span class="inline-flex items-center justify-center h-[24px] px-[10px] rounded-full bg-surfaceGray text-textSec text-[14px] font-medium">
+                  Disematkan
+                </span>
+                <span class="text-[14px] font-normal text-textSec">
+                  28 Sep 2026
+                </span>
+              </div>
+              <div class="flex items-center gap-[10px]">
+                <span class="text-[19px] font-semibold text-textMain">
+                  Peringatan Hari Batik Nasional 2 Oktober
+                </span>
+                <span class="text-[15px] font-normal text-textSec truncate max-w-[420px]">
+                  · Anak-anak diharapkan mengenakan pakaian batik bebas dan sopan.
+                </span>
+              </div>
+            </div>
+            <div class="text-textSec text-[20px] font-light group-hover:translate-x-1 transition-transform">
+              ›
+            </div>
+          </a>
+
+          <!-- Row 2 -->
+          <a href="#pengumuman-2" class="h-[88px] px-[32px] flex items-center justify-between hover:bg-[#FAFAFC] transition-colors group">
+            <div class="flex flex-col justify-center gap-[4px] pr-4">
+              <span class="text-[14px] font-normal text-textSec">
+                25 Sep 2026
+              </span>
+              <div class="flex items-center gap-[10px]">
+                <span class="text-[19px] font-semibold text-textMain">
+                  Jadwal Pemeriksaan Kesehatan Gigi dan Mulut
+                </span>
+                <span class="text-[15px] font-normal text-textSec truncate max-w-[420px]">
+                  · Puskesmas Tunas Harapan akan mengadakan pemeriksaan berkala.
+                </span>
+              </div>
+            </div>
+            <div class="text-textSec text-[20px] font-light group-hover:translate-x-1 transition-transform">
+              ›
+            </div>
+          </a>
+
+          <!-- Row 3 -->
+          <a href="#pengumuman-3" class="h-[88px] px-[32px] flex items-center justify-between hover:bg-[#FAFAFC] transition-colors group">
+            <div class="flex flex-col justify-center gap-[4px] pr-4">
+              <span class="text-[14px] font-normal text-textSec">
+                18 Sep 2026
+              </span>
+              <div class="flex items-center gap-[10px]">
+                <span class="text-[19px] font-semibold text-textMain">
+                  Kegiatan Kunjungan Edukatif ke Kebun Sayur
+                </span>
+                <span class="text-[15px] font-normal text-textSec truncate max-w-[420px]">
+                  · Informasi perlengkapan dan surat izin orang tua dapat diunduh.
+                </span>
+              </div>
+            </div>
+            <div class="text-textSec text-[20px] font-light group-hover:translate-x-1 transition-transform">
+              ›
+            </div>
+          </a>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 5. FOOTER -->
+  <footer class="w-full bg-surfaceGray py-[40px] px-8 border-t border-hairline flex items-center justify-center">
+    <p class="text-[12px] font-normal text-textSec text-center">
+      © 2026 TK Tunas Harapan · Sistem Informasi dan Keuangan Sekolah
+    </p>
+  </footer>
+
+
+
+</body></html>

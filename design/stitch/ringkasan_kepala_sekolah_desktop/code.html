@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ringkasan - Kepala Sekolah Desktop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, sans-serif;
+      background-color: #FFFFFF;
+      color: #1D1D1F;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <div>
+    <!-- TOP NAV (44px, white, 1px bottom border) -->
+    <header class="w-full bg-[#FFFFFF] border-b border-[#E5E5EA] h-[44px] sticky top-0 z-50">
+      <div class="max-w-[1200px] h-full mx-auto px-[48px] flex items-center justify-between">
+        <!-- Brand -->
+        <div class="text-[17px] font-semibold text-[#1D1D1F] tracking-tight">
+          SKMS
+        </div>
+
+        <!-- Center Nav Items -->
+        <nav class="flex items-center space-x-[40px]">
+          <a href="#" class="text-[14px] font-semibold text-[#1D1D1F]">Ringkasan</a>
+          <a href="#" class="text-[14px] text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">Laporan Keuangan</a>
+          <a href="#" class="text-[14px] text-[#6E6E73] hover:text-[#1D1D1F] transition-colors">Laporan Evaluasi</a>
+        </nav>
+
+        <!-- Right User Profile -->
+        <div class="text-[14px] text-[#1D1D1F]">
+          Ibu Hartini
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO SECTION (white background, 64px top padding, 64px bottom padding) -->
+    <section class="w-full bg-[#FFFFFF] pt-[64px] pb-[64px]">
+      <div class="max-w-[1200px] mx-auto px-[48px] text-left">
+        <!-- 1. Row with "SPP bulan ini" and two selects -->
+        <div class="flex items-center justify-between">
+          <div class="text-[21px] text-[#6E6E73] font-normal">
+            SPP bulan ini
+          </div>
+          <div class="flex items-center space-x-[12px]">
+            <!-- Select Oktober 2026 -->
+            <div class="relative">
+              <select class="appearance-none h-[44px] px-[16px] pr-[36px] bg-[#FFFFFF] border border-[#E5E5EA] rounded-[12px] text-[15px] text-[#1D1D1F] focus:outline-none focus:border-[#0071E3] cursor-pointer">
+                <option value="okt-2026" selected>Oktober 2026</option>
+                <option value="sep-2026">September 2026</option>
+                <option value="agu-2026">Agustus 2026</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-[12px] text-[#6E6E73]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Select 2026/2027 -->
+            <div class="relative">
+              <select class="appearance-none h-[44px] px-[16px] pr-[36px] bg-[#FFFFFF] border border-[#E5E5EA] rounded-[12px] text-[15px] text-[#1D1D1F] focus:outline-none focus:border-[#0071E3] cursor-pointer">
+                <option value="2026/2027" selected>2026/2027</option>
+                <option value="2025/2026">2025/2026</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-[12px] text-[#6E6E73]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Margin-top 16px: "81%" at 120px semibold #1D1D1F and "sudah lunas" 28px #6E6E73 -->
+        <div class="mt-[16px] flex items-baseline space-x-[16px]">
+          <span class="text-[120px] font-semibold text-[#1D1D1F] tracking-[-0.03em] leading-none tabular-nums">
+            81%
+          </span>
+          <span class="text-[28px] text-[#6E6E73] font-normal leading-none">
+            sudah lunas
+          </span>
+        </div>
+
+        <!-- 3. Margin-top 32px: stacked bar spanning FULL container width (1104px), 16px high, fully rounded -->
+        <div class="mt-[32px] w-full h-[16px] bg-[#E5E5EA] rounded-full flex overflow-hidden">
+          <!-- Lunas 80.8% in #0071E3 -->
+          <div class="h-full bg-[#0071E3]" style="width: 80.8%;"></div>
+          <!-- Menunggu verifikasi 11.5% in #D99A1E -->
+          <div class="h-full bg-[#D99A1E]" style="width: 11.5%;"></div>
+          <!-- Belum bayar 7.7% in #C7C7CC -->
+          <div class="h-full bg-[#C7C7CC]" style="width: 7.7%;"></div>
+        </div>
+
+        <!-- 4. Margin-top 16px: legend in one row, 15px #1D1D1F, each item with a 12px colored dot -->
+        <div class="mt-[16px] flex items-center justify-between text-[15px]">
+          <div class="flex items-center space-x-[24px]">
+            <!-- Legend item 1: Lunas -->
+            <div class="flex items-center space-x-[8px] text-[#1D1D1F]">
+              <span class="w-[12px] h-[12px] rounded-full bg-[#0071E3] inline-block shrink-0"></span>
+              <span>63 Lunas · Rp 22.050.000</span>
+            </div>
+
+            <!-- Legend item 2: Menunggu verifikasi -->
+            <div class="flex items-center space-x-[8px] text-[#1D1D1F]">
+              <span class="w-[12px] h-[12px] rounded-full bg-[#D99A1E] inline-block shrink-0"></span>
+              <span>9 Menunggu verifikasi · Rp 3.150.000</span>
+            </div>
+
+            <!-- Legend item 3: Belum bayar -->
+            <div class="flex items-center space-x-[8px] text-[#1D1D1F]">
+              <span class="w-[12px] h-[12px] rounded-full bg-[#C7C7CC] inline-block shrink-0"></span>
+              <span>6 Belum bayar · Rp 2.100.000</span>
+            </div>
+          </div>
+
+          <!-- Target & total siswa at far right -->
+          <div class="text-[#6E6E73]">
+            Target Rp 27.300.000 · 78 siswa
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TILES SECTION (full-width background #F5F5F7, 64px vertical padding) -->
+    <section class="w-full bg-[#F5F5F7] py-[64px]">
+      <div class="max-w-[1200px] mx-auto px-[48px] flex flex-col space-y-[24px]">
+        
+        <!-- Row 1: two equal tiles side by side, same height -->
+        <div class="grid grid-cols-2 gap-[24px]">
+          
+          <!-- Tile 1: Siswa Aktif -->
+          <div class="bg-[#FFFFFF] rounded-[28px] p-[32px] flex flex-col justify-between h-[390px]">
+            <div>
+              <h2 class="text-[22px] font-semibold text-[#1D1D1F] tracking-tight">
+                Bagaimana jumlah siswa aktif berubah?
+              </h2>
+              <div class="mt-[16px] flex items-baseline space-x-[8px]">
+                <span class="text-[56px] font-semibold text-[#1D1D1F] leading-none tabular-nums">
+                  78
+                </span>
+                <span class="text-[17px] text-[#6E6E73] font-normal">
+                  siswa aktif
+                </span>
+              </div>
+            </div>
+
+            <!-- Line chart 200px high with 4 points Jul 74, Agu 76, Sep 77, Okt 78 -->
+            <div class="w-full h-[200px] relative mt-[16px]">
+              <svg class="w-full h-full overflow-visible" viewBox="0 0 460 200">
+                <!-- Light gridlines #E5E5EA -->
+                <line x1="20" y1="30" x2="440" y2="30" stroke="#E5E5EA" stroke-width="1" />
+                <line x1="20" y1="80" x2="440" y2="80" stroke="#E5E5EA" stroke-width="1" />
+                <line x1="20" y1="130" x2="440" y2="130" stroke="#E5E5EA" stroke-width="1" />
+                <line x1="20" y1="170" x2="440" y2="170" stroke="#E5E5EA" stroke-width="1" />
+
+                <!-- Points coordinates: Jul=74 (y=130), Agu=76 (y=90), Sep=77 (y=70), Okt=78 (y=50) -->
+                <!-- X positions: Jul=55, Agu=175, Sep=295, Okt=405 -->
+                <polyline
+                  fill="none"
+                  stroke="#0071E3"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  points="55,130 175,90 295,70 405,50"
+                />
+
+                <!-- Point 1: Jul 74 -->
+                <circle cx="55" cy="130" r="4.5" fill="#FFFFFF" stroke="#0071E3" stroke-width="2.5" />
+                <text x="55" y="116" text-anchor="middle" font-size="15" font-weight="600" fill="#1D1D1F">74</text>
+                <text x="55" y="190" text-anchor="middle" font-size="14" fill="#6E6E73">Jul</text>
+
+                <!-- Point 2: Agu 76 -->
+                <circle cx="175" cy="90" r="4.5" fill="#FFFFFF" stroke="#0071E3" stroke-width="2.5" />
+                <text x="175" y="76" text-anchor="middle" font-size="15" font-weight="600" fill="#1D1D1F">76</text>
+                <text x="175" y="190" text-anchor="middle" font-size="14" fill="#6E6E73">Agu</text>
+
+                <!-- Point 3: Sep 77 -->
+                <circle cx="295" cy="70" r="4.5" fill="#FFFFFF" stroke="#0071E3" stroke-width="2.5" />
+                <text x="295" y="56" text-anchor="middle" font-size="15" font-weight="600" fill="#1D1D1F">77</text>
+                <text x="295" y="190" text-anchor="middle" font-size="14" fill="#6E6E73">Sep</text>
+
+                <!-- Point 4: Okt 78 -->
+                <circle cx="405" cy="50" r="4.5" fill="#FFFFFF" stroke="#0071E3" stroke-width="2.5" />
+                <text x="405" y="36" text-anchor="middle" font-size="15" font-weight="600" fill="#1D1D1F">78</text>
+                <text x="405" y="190" text-anchor="middle" font-size="14" fill="#6E6E73">Okt</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Tile 2: Jurnal Harian Guru -->
+          <div class="bg-[#FFFFFF] rounded-[28px] p-[32px] flex flex-col justify-between h-[390px]">
+            <div>
+              <h2 class="text-[22px] font-semibold text-[#1D1D1F] tracking-tight">
+                Seberapa lengkap jurnal harian tiap guru?
+              </h2>
+              <div class="mt-[16px] flex items-baseline space-x-[8px]">
+                <span class="text-[56px] font-semibold text-[#1D1D1F] leading-none tabular-nums">
+                  83%
+                </span>
+                <span class="text-[17px] text-[#6E6E73] font-normal">
+                  rata-rata keterisian
+                </span>
+              </div>
+            </div>
+
+            <!-- Two rows with 24px between -->
+            <div class="flex flex-col space-y-[24px] mt-[16px]">
+              <!-- Row 1: Bu Sari · Kelompok A -->
+              <div>
+                <div class="flex items-center justify-between text-[17px] mb-[10px]">
+                  <span class="text-[#1D1D1F]">Bu Sari · Kelompok A</span>
+                  <span class="font-semibold text-[#1D1D1F] tabular-nums">92% · 36 dari 39</span>
+                </div>
+                <div class="w-full h-[12px] bg-[#E5E5EA] rounded-full overflow-hidden">
+                  <div class="h-full bg-[#0071E3] rounded-full" style="width: 92%;"></div>
+                </div>
+              </div>
+
+              <!-- Row 2: Bu Rina · Kelompok B -->
+              <div>
+                <div class="flex items-center justify-between text-[17px] mb-[10px]">
+                  <span class="text-[#1D1D1F]">Bu Rina · Kelompok B</span>
+                  <span class="font-semibold text-[#1D1D1F] tabular-nums">74% · 29 dari 39</span>
+                </div>
+                <div class="w-full h-[12px] bg-[#E5E5EA] rounded-full overflow-hidden">
+                  <div class="h-full bg-[#0071E3] rounded-full" style="width: 74%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: one wide tile, full width -->
+        <div class="bg-[#FFFFFF] rounded-[28px] p-[32px]">
+          <!-- Tile Header -->
+          <div class="flex items-center justify-between mb-[24px]">
+            <h2 class="text-[22px] font-semibold text-[#1D1D1F] tracking-tight">
+              Siapa yang menunggak lebih dari 30 hari?
+            </h2>
+            <span class="text-[17px] text-[#6E6E73]">
+              6 siswa perlu tindak lanjut
+            </span>
+          </div>
+
+          <!-- Table with fixed column widths and NO text wrapping -->
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="text-[14px] text-[#6E6E73] font-normal border-b border-[#E5E5EA] h-[44px]">
+                  <th class="w-[260px] font-normal pl-0">Nama siswa</th>
+                  <th class="w-[140px] font-normal">Kelas</th>
+                  <th class="w-[300px] font-normal">Bulan menunggak</th>
+                  <th class="w-[160px] font-normal text-right pr-[24px]">Nominal tagihan</th>
+                  <th class="w-[200px] font-normal pl-[16px]">Status</th>
+                </tr>
+              </thead>
+              <tbody class="text-[15px] text-[#1D1D1F]">
+                <!-- Row 1: Dimas Pratama -->
+                <tr class="h-[56px] border-b border-[#E5E5EA]">
+                  <td class="w-[260px] font-medium whitespace-nowrap pl-0">Dimas Pratama</td>
+                  <td class="w-[140px] text-[#6E6E73] whitespace-nowrap">Kelompok A</td>
+                  <td class="w-[300px] text-[#6E6E73] whitespace-nowrap">September 2026, Oktober 2026</td>
+                  <td class="w-[160px] text-right pr-[24px] whitespace-nowrap tabular-nums">Rp 700.000</td>
+                  <td class="w-[200px] pl-[16px] whitespace-nowrap">
+                    <span class="inline-flex items-center justify-center h-[28px] px-[14px] rounded-full text-[14px] font-medium bg-[#FDE7E5] text-[#C4271B]">
+                      Menunggak &gt;30 hari
+                    </span>
+                  </td>
+                </tr>
+
+                <!-- Row 2: Kenzo Alvaro -->
+                <tr class="h-[56px] border-b border-[#E5E5EA]">
+                  <td class="w-[260px] font-medium whitespace-nowrap pl-0">Kenzo Alvaro</td>
+                  <td class="w-[140px] text-[#6E6E73] whitespace-nowrap">Kelompok A</td>
+                  <td class="w-[300px] text-[#6E6E73] whitespace-nowrap">September 2026, Oktober 2026</td>
+                  <td class="w-[160px] text-right pr-[24px] whitespace-nowrap tabular-nums">Rp 700.000</td>
+                  <td class="w-[200px] pl-[16px] whitespace-nowrap">
+                    <span class="inline-flex items-center justify-center h-[28px] px-[14px] rounded-full text-[14px] font-medium bg-[#FDE7E5] text-[#C4271B]">
+                      Menunggak &gt;30 hari
+                    </span>
+                  </td>
+                </tr>
+
+                <!-- Row 3: Hafiz Ramadhan -->
+                <tr class="h-[56px] border-b border-[#E5E5EA]">
+                  <td class="w-[260px] font-medium whitespace-nowrap pl-0">Hafiz Ramadhan</td>
+                  <td class="w-[140px] text-[#6E6E73] whitespace-nowrap">Kelompok B</td>
+                  <td class="w-[300px] text-[#6E6E73] whitespace-nowrap">September 2026, Oktober 2026</td>
+                  <td class="w-[160px] text-right pr-[24px] whitespace-nowrap tabular-nums">Rp 700.000</td>
+                  <td class="w-[200px] pl-[16px] whitespace-nowrap">
+                    <span class="inline-flex items-center justify-center h-[28px] px-[14px] rounded-full text-[14px] font-medium bg-[#FDE7E5] text-[#C4271B]">
+                      Menunggak &gt;30 hari
+                    </span>
+                  </td>
+                </tr>
+
+                <!-- Row 4: Citra Kirana Dewi -->
+                <tr class="h-[56px] border-b border-[#E5E5EA]">
+                  <td class="w-[260px] font-medium whitespace-nowrap pl-0">Citra Kirana Dewi</td>
+                  <td class="w-[140px] text-[#6E6E73] whitespace-nowrap">Kelompok A</td>
+                  <td class="w-[300px] text-[#6E6E73] whitespace-nowrap">Agustus 2026</td>
+                  <td class="w-[160px] text-right pr-[24px] whitespace-nowrap tabular-nums">Rp 350.000</td>
+                  <td class="w-[200px] pl-[16px] whitespace-nowrap">
+                    <span class="inline-flex items-center justify-center h-[28px] px-[14px] rounded-full text-[14px] font-medium bg-[#FDE7E5] text-[#C4271B]">
+                      Menunggak &gt;30 hari
+                    </span>
+                  </td>
+                </tr>
+
+                <!-- Row 5: Farah Zahrani -->
+                <tr class="h-[56px] border-b border-[#E5E5EA]">
+                  <td class="w-[260px] font-medium whitespace-nowrap pl-0">Farah Zahrani</td>
+                  <td class="w-[140px] text-[#6E6E73] whitespace-nowrap">Kelompok B</td>
+                  <td class="w-[300px] text-[#6E6E73] whitespace-nowrap">September 2026</td>
+                  <td class="w-[160px] text-right pr-[24px] whitespace-nowrap tabular-nums">Rp 350.000</td>
+                  <td class="w-[200px] pl-[16px] whitespace-nowrap">
+                    <span class="inline-flex items-center justify-center h-[28px] px-[14px] rounded-full text-[14px] font-medium bg-[#FDE7E5] text-[#C4271B]">
+                      Menunggak &gt;30 hari
+                    </span>
+                  </td>
+                </tr>
+
+                <!-- Row 6: Bilal Al-Farisi -->
+                <tr class="h-[56px] border-b border-[#E5E5EA]">
+                  <td class="w-[260px] font-medium whitespace-nowrap pl-0">Bilal Al-Farisi</td>
+                  <td class="w-[140px] text-[#6E6E73] whitespace-nowrap">Kelompok B</td>
+                  <td class="w-[300px] text-[#6E6E73] whitespace-nowrap">Agustus 2026</td>
+                  <td class="w-[160px] text-right pr-[24px] whitespace-nowrap tabular-nums">Rp 350.000</td>
+                  <td class="w-[200px] pl-[16px] whitespace-nowrap">
+                    <span class="inline-flex items-center justify-center h-[28px] px-[14px] rounded-full text-[14px] font-medium bg-[#FDE7E5] text-[#C4271B]">
+                      Menunggak &gt;30 hari
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Closing line: Total tunggakan at right -->
+          <div class="mt-[20px] flex justify-end">
+            <div class="text-[17px] font-semibold text-[#1D1D1F] tabular-nums">
+              Total tunggakan: Rp 3.150.000
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER: background #F5F5F7, 1200px container, 12px #6E6E73 -->
+  <footer class="w-full bg-[#F5F5F7] border-t border-[#E5E5EA] py-[24px]">
+    <div class="max-w-[1200px] mx-auto px-[48px] text-[12px] text-[#6E6E73]">
+      © 2026 TK Tunas Harapan · Sistem Informasi dan Keuangan Sekolah
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Orang Tua - Desktop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            bg: '#F5F5F7',
+            surface: '#FFFFFF',
+            textPrimary: '#1D1D1F',
+            textSecondary: '#6E6E73',
+            textTertiary: '#86868B',
+            accent: '#0071E3',
+            accentSoft: '#E8F1FD',
+            hairline: '#E5E5EA',
+            statusAktifBg: '#E4F6EA',
+            statusAktifText: '#1D7A3C',
+            statusPendingBg: '#FFF1D6',
+            statusPendingText: '#A15C00',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #F5F5F7;
+      color: #1D1D1F;
+    }
+    .no-wrap-cell {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-bg flex flex-col justify-between">
+
+  <!-- TOP WRAPPER: NAVIGASI & HEADER -->
+  <div>
+    <!-- TOP GLOBAL NAV BAR (44px, white, bottom hairline) -->
+    <header class="h-[44px] bg-white border-b border-hairline sticky top-0 z-50">
+      <div class="max-w-[1440px] mx-auto h-full px-12 flex items-center justify-between">
+        <!-- Brand / Wordmark -->
+        <div class="flex items-center space-x-10">
+          <span class="text-[17px] font-semibold tracking-tight text-textPrimary">SKMS</span>
+          <span class="text-[14px] text-textSecondary hidden lg:inline-block">TK Tunas Harapan</span>
+        </div>
+
+        <!-- Main Nav Links (40px spacing, active Siswa) -->
+        <nav class="flex items-center space-x-10">
+          <a href="#" class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors">Beranda</a>
+          <a href="#" class="text-[14px] font-semibold text-textPrimary transition-colors">Siswa</a>
+          <a href="#" class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors">Keuangan</a>
+          <a href="#" class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors">Pengumuman</a>
+          <a href="#" class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors">Laporan</a>
+        </nav>
+
+        <!-- User Profile (Pak Dedi) -->
+        <div class="flex items-center space-x-3">
+          <span class="text-[14px] text-textPrimary font-medium">Pak Dedi</span>
+          <div class="w-7 h-7 rounded-full bg-accentSoft text-accent flex items-center justify-center text-[12px] font-semibold">
+            PD
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- LOCAL SUB-NAV BAR (52px, white, hairline) -->
+    <section class="h-[52px] bg-white border-b border-hairline sticky top-[44px] z-40">
+      <div class="max-w-[1440px] mx-auto h-full px-12 flex items-center justify-between">
+        <!-- Title left -->
+        <div class="w-[280px]">
+          <h1 class="text-[21px] font-semibold text-textPrimary tracking-tight">Data Orang Tua</h1>
+        </div>
+
+        <!-- Segmented Control Middle: Siswa · Orang Tua · Guru · Kelas -->
+        <div class="bg-bg p-[3px] rounded-full flex items-center space-x-1 border border-hairline/60">
+          <a href="#" class="px-4 py-1.5 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all">Siswa</a>
+          <a href="#" class="px-4 py-1.5 text-[14px] font-semibold text-textPrimary bg-white rounded-full shadow-sm transition-all">Orang Tua</a>
+          <a href="#" class="px-4 py-1.5 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all">Guru</a>
+          <a href="#" class="px-4 py-1.5 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all">Kelas</a>
+        </div>
+
+        <!-- Right balance placeholder (matching width for perfect centering) -->
+        <div class="w-[280px] flex justify-end items-center">
+          <span class="text-[14px] text-textSecondary">Tahun Ajaran 2026/2027</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN CONTENT SECTION (Section background #F5F5F7, 32px padding) -->
+    <main class="py-8 px-12">
+      <!-- One White Container (radius 24px, max width 1300px, centered) -->
+      <div class="max-w-[1300px] mx-auto bg-surface rounded-[24px] border border-hairline overflow-hidden shadow-none">
+        
+        <!-- TOP OF CONTAINER: SEARCH & SEGMENTED FILTER (24px padding) -->
+        <div class="p-6 flex items-center justify-between border-b border-hairline">
+          <!-- Search Field (320px wide, 44px high, radius 12px) -->
+          <div class="w-[320px] relative">
+            <input 
+              type="text" 
+              placeholder="Cari nama, email, atau nama anak" 
+              class="w-full h-[44px] pl-4 pr-10 text-[14px] text-textPrimary placeholder-textTertiary bg-white rounded-[12px] border border-hairline focus:outline-none focus:border-accent transition-colors"
+            />
+            <svg class="w-4 h-4 text-textTertiary absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+
+          <!-- Segmented Control: Semua · Aktif · Belum pernah masuk -->
+          <div class="bg-bg p-[3px] rounded-full flex items-center space-x-1 border border-hairline/60">
+            <button class="px-5 py-2 text-[14px] font-semibold text-textPrimary bg-white rounded-full shadow-sm transition-all">Semua</button>
+            <button class="px-5 py-2 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all">Aktif</button>
+            <button class="px-5 py-2 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all">Belum pernah masuk</button>
+          </div>
+        </div>
+
+        <!-- TABLE SECTION WITH FIXED COLUMN WIDTHS AND NO TEXT WRAPPING -->
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-left" style="table-layout: fixed; width: 1300px;">
+            <!-- Column specifications: Nama 240px, Email 280px, No. HP 160px, Anak 260px, Status akun 190px, Aksi 170px -->
+            <colgroup>
+              <col style="width: 240px;">
+              <col style="width: 280px;">
+              <col style="width: 160px;">
+              <col style="width: 260px;">
+              <col style="width: 190px;">
+              <col style="width: 170px;">
+            </colgroup>
+            <thead>
+              <tr class="h-[48px] bg-bg/50 border-b border-hairline text-[14px] font-medium text-textSecondary">
+                <th class="px-6 font-medium">Nama</th>
+                <th class="px-6 font-medium">Email</th>
+                <th class="px-6 font-medium">No. HP</th>
+                <th class="px-6 font-medium">Anak</th>
+                <th class="px-6 font-medium">Status akun</th>
+                <th class="px-6 font-medium text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-hairline text-[15px] text-textPrimary">
+              
+              <!-- Row 1 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">Rina Wulandari</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">rina.wulandari@gmail.com</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0812-3456-7890</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Aisyah Putri R. (A), Naufal R. (B)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusAktifBg text-statusAktifText">
+                    Aktif
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+              <!-- Row 2 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">Bambang Santoso</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">bambang.santoso@yahoo.com</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0813-8821-4321</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Kevin Santoso (A)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusAktifBg text-statusAktifText">
+                    Aktif
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+              <!-- Row 3 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">Dewi Anggraini</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">dewi.anggraini@outlook.com</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0852-7719-2041</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Muhammad Fadhil (A)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusAktifBg text-statusAktifText">
+                    Aktif
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+              <!-- Row 4 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">I Made Suardana</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">suardana.made@gmail.com</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0819-0412-8876</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Ni Luh Ayu Gayatri (B)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusPendingBg text-statusPendingText">
+                    Belum pernah masuk
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+              <!-- Row 5 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">Hendro Pratama</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">hendro.pratama@perusahaan.co.id</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0811-9234-5100</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Dimas Pratama (A)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusAktifBg text-statusAktifText">
+                    Aktif
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+              <!-- Row 6 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">Siti Fatimah</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">siti.fatimah84@gmail.com</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0857-1122-3344</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Salma Nur Fathia (B)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusPendingBg text-statusPendingText">
+                    Belum pernah masuk
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+              <!-- Row 7 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">Ahmad Al-Farisi</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">ahmad.alfarisi@gmail.com</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0821-6543-9870</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Bilal Al-Farisi (B)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusAktifBg text-statusAktifText">
+                    Aktif
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+              <!-- Row 8 -->
+              <tr class="h-[60px] hover:bg-bg/40 transition-colors">
+                <td class="px-6 no-wrap-cell font-semibold">Ratna Sari Dewi</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">ratna.saridewi@gmail.com</td>
+                <td class="px-6 no-wrap-cell text-textSecondary">0813-7766-5544</td>
+                <td class="px-6 no-wrap-cell text-textPrimary">Citra Kirana Dewi (A)</td>
+                <td class="px-6 no-wrap-cell">
+                  <span class="inline-flex items-center px-3.5 h-[28px] rounded-full text-[14px] font-medium bg-statusAktifBg text-statusAktifText">
+                    Aktif
+                  </span>
+                </td>
+                <td class="px-6 no-wrap-cell text-right space-x-3">
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Ubah</a>
+                  <span class="text-hairline">·</span>
+                  <a href="#" class="text-[14px] font-medium text-accent hover:underline">Reset kata sandi</a>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER OF CONTAINER (Menampilkan 1–8 dari 64 orang tua & Simple Pagination) -->
+        <div class="px-6 py-4 border-t border-hairline flex items-center justify-between bg-white text-[14px] text-textSecondary">
+          <div>
+            Menampilkan 1–8 dari 64 orang tua
+          </div>
+          <div class="flex items-center space-x-2">
+            <button class="px-3.5 py-1.5 rounded-[8px] border border-hairline bg-white text-textTertiary cursor-not-allowed text-[14px]" disabled>
+              Sebelumnya
+            </button>
+            <div class="flex items-center space-x-1">
+              <span class="w-8 h-8 rounded-full bg-accentSoft text-accent font-semibold flex items-center justify-center text-[14px]">1</span>
+              <a href="#" class="w-8 h-8 rounded-full text-textSecondary hover:bg-bg flex items-center justify-center text-[14px] transition-colors">2</a>
+              <a href="#" class="w-8 h-8 rounded-full text-textSecondary hover:bg-bg flex items-center justify-center text-[14px] transition-colors">3</a>
+              <span class="px-1 text-textTertiary">…</span>
+              <a href="#" class="w-8 h-8 rounded-full text-textSecondary hover:bg-bg flex items-center justify-center text-[14px] transition-colors">8</a>
+            </div>
+            <button class="px-3.5 py-1.5 rounded-[8px] border border-hairline bg-white text-textPrimary hover:bg-bg text-[14px] transition-colors">
+              Selanjutnya
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- FOOTER (on #F5F5F7, 12px gray text, hairline top border) -->
+  <footer class="w-full border-t border-hairline py-6 px-12 bg-bg mt-12">
+    <div class="max-w-[1300px] mx-auto flex items-center justify-between text-[12px] text-textSecondary">
+      <div>
+        © 2026 TK Tunas Harapan · Sistem Informasi dan Keuangan Sekolah
+      </div>
+      <div class="flex items-center space-x-6">
+        <span>Versi 2.4.0 (Build 2603)</span>
+        <span>Pusat Bantuan</span>
+        <span>Kebijakan Privasi</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

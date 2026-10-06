@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Data Orang Tua - Desktop</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            bg: '#F5F5F7',
+            surface: '#FFFFFF',
+            textPrimary: '#1D1D1F',
+            textSecondary: '#6E6E73',
+            textTertiary: '#86868B',
+            accent: '#0071E3',
+            accentSoft: '#E8F1FD',
+            hairline: '#E5E5EA',
+            statusAktifBg: '#E4F6EA',
+            statusAktifText: '#1D7A3C',
+            statusPendingBg: '#FFF1D6',
+            statusPendingText: '#A15C00',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #F5F5F7;
+      color: #1D1D1F;
+    }
+    .no-wrap-cell {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+<meta content="web_standard" name="shell-type"/></head>
+<body class="min-h-screen bg-bg flex flex-col justify-between">
+<!-- TOP WRAPPER: NAVIGASI & HEADER -->
+<div>
+<!-- TOP GLOBAL NAV BAR (44px, white, bottom hairline) -->
+<header class="h-[44px] bg-white border-b border-hairline sticky top-0 z-50">
+<div class="max-w-[1440px] mx-auto h-full px-12 flex items-center justify-between">
+<!-- Brand / Wordmark -->
+<div class="flex items-center space-x-10">
+<span class="text-[17px] font-semibold tracking-tight text-textPrimary">SKMS</span>
+<span class="text-[14px] text-textSecondary hidden lg:inline-block">TK Tunas Harapan</span>
+</div>
+<!-- Main Nav Links (40px spacing, active Siswa) -->
+<nav class="flex items-center space-x-10">
+<a class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors" href="#">Beranda</a>
+<a class="text-[14px] font-semibold text-textPrimary transition-colors" href="#">Siswa</a>
+<a class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors" href="#">Keuangan</a>
+<a class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors" href="#">Pengumuman</a>
+<a class="text-[14px] text-textSecondary hover:text-textPrimary transition-colors" href="#">Laporan</a>
+</nav>
+<!-- User Profile (Pak Dedi) -->
+<div class="flex items-center space-x-3">
+<span class="text-[14px] text-textPrimary font-medium">Pak Dedi</span>
+<div class="w-7 h-7 rounded-full bg-accentSoft text-accent flex items-center justify-center text-[12px] font-semibold">
+            PD
+          </div>
+</div>
+</div>
+</header>
+<!-- LOCAL SUB-NAV BAR (52px, white, hairline) -->
+<section class="h-[52px] bg-white border-b border-hairline sticky top-[44px] z-40">
+<div class="max-w-[1440px] mx-auto h-full px-12 flex items-center justify-between">
+<!-- Title left -->
+<div class="w-[280px]">
+<h1 class="text-[21px] font-semibold text-textPrimary tracking-tight">Data Orang Tua</h1>
+</div>
+<!-- Segmented Control Middle: Siswa · Orang Tua · Guru · Kelas -->
+<div class="bg-bg p-[3px] rounded-full flex items-center space-x-1 border border-hairline/60">
+<a class="px-4 py-1.5 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all" href="#">Siswa</a>
+<a class="px-4 py-1.5 text-[14px] font-semibold text-textPrimary bg-white rounded-full shadow-sm transition-all" href="#">Orang Tua</a>
+<a class="px-4 py-1.5 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all" href="#">Guru</a>
+<a class="px-4 py-1.5 text-[14px] text-textSecondary hover:text-textPrimary rounded-full transition-all" href="#">Kelas</a>
+</div>
+<!-- Right balance placeholder (matching width for perfect centering) -->
+<div class="w-[280px] flex justify-end items-center">
+<span class="text-[14px] text-textSecondary">Tahun Ajaran 2026/2027</span>
+</div>
+</div>
+</section>
+<!-- MAIN CONTENT SECTION (Section background #F5F5F7, 32px padding) -->
+<main class="py-8 px-12"><div class="flex flex-col w-full">
+<!-- LOCAL SUB-NAV BAR (Apple Human Interface Guidelines 52px Sticky Bar) -->
+<section class="h-[52px] bg-white border-b border-separator sticky top-[44px] z-40 -mt-8 -mx-12 px-12 mb-8">
+<div class="max-w-[1440px] mx-auto h-full flex items-center justify-between">
+<!-- Title & Caption Left -->
+<div class="flex items-baseline space-x-3 w-[340px]">
+<h1 class="text-[21px] font-semibold text-text-primary tracking-tight leading-none">Data Guru</h1>
+<span class="text-[14px] text-text-secondary leading-none">12 tenaga pendidik</span>
+</div>
+<!-- Segmented Control Middle -->
+<div class="bg-bg-canvas p-[3px] rounded-full flex items-center space-x-1 border border-separator/80">
+<a class="px-4 py-1.5 text-[14px] text-text-secondary hover:text-text-primary rounded-full transition-all" href="#">Siswa</a>
+<a class="px-4 py-1.5 text-[14px] text-text-secondary hover:text-text-primary rounded-full transition-all" href="#">Orang Tua</a>
+<a class="px-4 py-1.5 text-[14px] font-semibold text-text-primary bg-surface rounded-full shadow-sm transition-all cursor-default" href="#">Guru</a>
+<a class="px-4 py-1.5 text-[14px] text-text-secondary hover:text-text-primary rounded-full transition-all" href="#">Kelas</a>
+</div>
+<!-- Action Right -->
+<div class="w-[340px] flex justify-end items-center">
+<button class="h-[40px] px-5 bg-accent hover:bg-accent-hover text-surface text-[14px] font-semibold rounded-full inline-flex items-center justify-center transition-transform active:scale-[0.98]" type="button">
+          Tambah guru
+        </button>
+</div>
+</div>
+</section>
+<!-- MAIN DATA CONTAINER -->
+<div class="w-full max-w-[1300px] mx-auto bg-surface rounded-[24px] border border-separator overflow-hidden shadow-sm">
+<!-- Header Filter / Search Toolbar -->
+<div class="p-6 border-b border-separator flex items-center justify-between">
+<div class="relative w-[320px]">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-tertiary">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="w-full h-[44px] pl-10 pr-4 rounded-[12px] border border-separator bg-surface text-[15px] text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all" id="teacher-search" placeholder="Cari nama, NIP, atau wali kelas" type="text"/>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse" style="table-layout: fixed; min-width: 1250px;">
+<!-- Column Specifications -->
+<colgroup>
+<col style="width: 260px;"/>
+<col style="width: 190px;"/>
+<col style="width: 270px;"/>
+<col style="width: 150px;"/>
+<col style="width: 160px;"/>
+<col style="width: 190px;"/>
+<col style="width: 120px;"/>
+</colgroup>
+<!-- Table Header -->
+<thead>
+<tr class="h-[48px] bg-surface border-b border-separator text-[14px] font-medium text-text-secondary">
+<th class="px-6 font-medium whitespace-nowrap">Nama</th>
+<th class="px-6 font-medium whitespace-nowrap">NIP</th>
+<th class="px-6 font-medium whitespace-nowrap">Email</th>
+<th class="px-6 font-medium whitespace-nowrap">No. HP</th>
+<th class="px-6 font-medium whitespace-nowrap">Wali kelas</th>
+<th class="px-6 font-medium whitespace-nowrap">Status akun</th>
+<th class="px-6 font-medium whitespace-nowrap">Aksi</th>
+</tr>
+</thead>
+<!-- Table Body -->
+<tbody class="divide-y divide-separator text-[15px]">
+<!-- Row 1 -->
+<tr class="h-[60px] hover:bg-[#FAFAFC] transition-colors">
+<td class="px-6 font-semibold text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">Bu Sari Wulandari, S.Pd.</td>
+<td class="px-6 text-text-secondary font-mono whitespace-nowrap">198804152012012004</td>
+<td class="px-6 text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis">sari.wulandari@tunas-harapan.sch.id</td>
+<td class="px-6 text-text-secondary whitespace-nowrap">0812-3456-7890</td>
+<td class="px-6 text-text-primary whitespace-nowrap">Kelompok A</td>
+<td class="px-6 whitespace-nowrap">
+<span class="inline-flex items-center justify-center h-[28px] px-3.5 rounded-full text-[14px] font-medium bg-[#E4F6EA] text-[#1D7A3C]">
+                Aktif
+              </span>
+</td>
+<td class="px-6 whitespace-nowrap">
+<div class="flex items-center gap-3 text-[14px] font-medium text-accent">
+<a class="hover:underline" href="#">Ubah</a>
+<span class="text-separator">·</span>
+<a class="hover:underline" href="#">Reset</a>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="h-[60px] hover:bg-[#FAFAFC] transition-colors">
+<td class="px-6 font-semibold text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">Bu Rina Kartika, S.Pd.AUD</td>
+<td class="px-6 text-text-secondary font-mono whitespace-nowrap">199008222014022003</td>
+<td class="px-6 text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis">rina.kartika@tunas-harapan.sch.id</td>
+<td class="px-6 text-text-secondary whitespace-nowrap">0813-9876-5432</td>
+<td class="px-6 text-text-primary whitespace-nowrap">Kelompok B</td>
+<td class="px-6 whitespace-nowrap">
+<span class="inline-flex items-center justify-center h-[28px] px-3.5 rounded-full text-[14px] font-medium bg-[#E4F6EA] text-[#1D7A3C]">
+                Aktif
+              </span>
+</td>
+<td class="px-6 whitespace-nowrap">
+<div class="flex items-center gap-3 text-[14px] font-medium text-accent">
+<a class="hover:underline" href="#">Ubah</a>
+<span class="text-separator">·</span>
+<a class="hover:underline" href="#">Reset</a>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="h-[60px] hover:bg-[#FAFAFC] transition-colors">
+<td class="px-6 font-semibold text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">Ibu Nurul Hidayati, S.Pd.</td>
+<td class="px-6 text-text-secondary font-mono whitespace-nowrap">198511032009032001</td>
+<td class="px-6 text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis">nurul.hidayati@tunas-harapan.sch.id</td>
+<td class="px-6 text-text-secondary whitespace-nowrap">0852-1122-3344</td>
+<td class="px-6 text-text-primary whitespace-nowrap">–</td>
+<td class="px-6 whitespace-nowrap">
+<span class="inline-flex items-center justify-center h-[28px] px-3.5 rounded-full text-[14px] font-medium bg-[#E4F6EA] text-[#1D7A3C]">
+                Aktif
+              </span>
+</td>
+<td class="px-6 whitespace-nowrap">
+<div class="flex items-center gap-3 text-[14px] font-medium text-accent">
+<a class="hover:underline" href="#">Ubah</a>
+<span class="text-separator">·</span>
+<a class="hover:underline" href="#">Reset</a>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="h-[60px] hover:bg-[#FAFAFC] transition-colors">
+<td class="px-6 font-semibold text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">Pak Ahmad Fauzi, S.Pd.I</td>
+<td class="px-6 text-text-secondary font-mono whitespace-nowrap">199203172018011002</td>
+<td class="px-6 text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis">ahmad.fauzi@tunas-harapan.sch.id</td>
+<td class="px-6 text-text-secondary whitespace-nowrap">0821-6543-9876</td>
+<td class="px-6 text-text-primary whitespace-nowrap">–</td>
+<td class="px-6 whitespace-nowrap">
+<span class="inline-flex items-center justify-center h-[28px] px-3.5 rounded-full text-[14px] font-medium bg-[#FFF1D6] text-[#A15C00]">
+                Belum pernah masuk
+              </span>
+</td>
+<td class="px-6 whitespace-nowrap">
+<div class="flex items-center gap-3 text-[14px] font-medium text-accent">
+<a class="hover:underline" href="#">Ubah</a>
+<span class="text-separator">·</span>
+<a class="hover:underline" href="#">Reset</a>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="h-[60px] hover:bg-[#FAFAFC] transition-colors">
+<td class="px-6 font-semibold text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">Ibu Ratna Dewi, S.Pd.</td>
+<td class="px-6 text-text-secondary font-mono whitespace-nowrap">199106202016022005</td>
+<td class="px-6 text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis">ratna.dewi@tunas-harapan.sch.id</td>
+<td class="px-6 text-text-secondary whitespace-nowrap">0813-7766-5544</td>
+<td class="px-6 text-text-primary whitespace-nowrap">–</td>
+<td class="px-6 whitespace-nowrap">
+<span class="inline-flex items-center justify-center h-[28px] px-3.5 rounded-full text-[14px] font-medium bg-[#E4F6EA] text-[#1D7A3C]">
+                Aktif
+              </span>
+</td>
+<td class="px-6 whitespace-nowrap">
+<div class="flex items-center gap-3 text-[14px] font-medium text-accent">
+<a class="hover:underline" href="#">Ubah</a>
+<span class="text-separator">·</span>
+<a class="hover:underline" href="#">Reset</a>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="h-[60px] hover:bg-[#FAFAFC] transition-colors">
+<td class="px-6 font-semibold text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">Bu Siti Aminah, A.Md.</td>
+<td class="px-6 text-text-secondary font-mono whitespace-nowrap">199512142020012008</td>
+<td class="px-6 text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis">siti.aminah@tunas-harapan.sch.id</td>
+<td class="px-6 text-text-secondary whitespace-nowrap">0857-8899-0011</td>
+<td class="px-6 text-text-primary whitespace-nowrap">–</td>
+<td class="px-6 whitespace-nowrap">
+<span class="inline-flex items-center justify-center h-[28px] px-3.5 rounded-full text-[14px] font-medium bg-[#FFF1D6] text-[#A15C00]">
+                Belum pernah masuk
+              </span>
+</td>
+<td class="px-6 whitespace-nowrap">
+<div class="flex items-center gap-3 text-[14px] font-medium text-accent">
+<a class="hover:underline" href="#">Ubah</a>
+<span class="text-separator">·</span>
+<a class="hover:underline" href="#">Reset</a>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="h-[60px] hover:bg-[#FAFAFC] transition-colors">
+<td class="px-6 font-semibold text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">Pak Hendro Kusumo, S.Or.</td>
+<td class="px-6 text-text-secondary font-mono whitespace-nowrap">198907092015031001</td>
+<td class="px-6 text-text-secondary whitespace-nowrap overflow-hidden text-ellipsis">hendro.kusumo@tunas-harapan.sch.id</td>
+<td class="px-6 text-text-secondary whitespace-nowrap">0811-9234-5123</td>
+<td class="px-6 text-text-primary whitespace-nowrap">–</td>
+<td class="px-6 whitespace-nowrap">
+<span class="inline-flex items-center justify-center h-[28px] px-3.5 rounded-full text-[14px] font-medium bg-[#E4F6EA] text-[#1D7A3C]">
+                Aktif
+              </span>
+</td>
+<td class="px-6 whitespace-nowrap">
+<div class="flex items-center gap-3 text-[14px] font-medium text-accent">
+<a class="hover:underline" href="#">Ubah</a>
+<span class="text-separator">·</span>
+<a class="hover:underline" href="#">Reset</a>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination Footer -->
+<div class="px-6 py-5 border-t border-separator flex items-center justify-between bg-surface">
+<span class="text-[14px] text-text-secondary font-normal">
+        Menampilkan 1–7 dari 12 tenaga pendidik
+      </span>
+<!-- Pagination Buttons -->
+<nav aria-label="Pagination" class="flex items-center space-x-1">
+<button class="px-3 py-1.5 text-[14px] text-text-tertiary cursor-not-allowed font-normal rounded-lg transition-colors" disabled="" type="button">
+          Sebelumnya
+        </button>
+<span class="w-[32px] h-[32px] inline-flex items-center justify-center text-[14px] font-semibold text-surface bg-accent rounded-full select-none">
+          1
+        </span>
+<a class="w-[32px] h-[32px] inline-flex items-center justify-center text-[14px] font-medium text-text-secondary hover:text-text-primary hover:bg-[#F5F5F7] rounded-full transition-colors" href="#">
+          2
+        </a>
+<a class="px-3 py-1.5 text-[14px] text-accent hover:text-accent-hover font-medium rounded-lg transition-colors" href="#">
+          Selanjutnya
+        </a>
+</nav>
+</div>
+</div>
+</div>
+<script>
+  // Instant search filtering micro-interaction
+  const searchInput = document.getElementById('teacher-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      const tableRows = document.querySelectorAll('tbody tr');
+      
+      tableRows.forEach(row => {
+        const textContent = row.textContent.toLowerCase();
+        if (textContent.includes(query)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  }
+</script></main>
+</div>
+<!-- FOOTER (on #F5F5F7, 12px gray text, hairline top border) -->
+<footer class="w-full border-t border-hairline py-6 px-12 bg-bg mt-12">
+<div class="max-w-[1300px] mx-auto flex items-center justify-between text-[12px] text-textSecondary">
+<div>
+        © 2026 TK Tunas Harapan · Sistem Informasi dan Keuangan Sekolah
+      </div>
+<div class="flex items-center space-x-6">
+<span>Versi 2.4.0 (Build 2603)</span>
+<span>Pusat Bantuan</span>
+<span>Kebijakan Privasi</span>
+</div>
+</div>
+</footer>
+</body></html>
