@@ -53,6 +53,6 @@ class Student extends Model
             return $query->whereHas('enrollments', fn ($q) => $q->where('status', 'aktif')->whereHas('classroom', fn ($c) => $c->where('homeroom_teacher_id', $user->teacher?->id)->whereHas('academicYear', fn ($y) => $y->where('is_active', true))));
         }
 
-return $query->whereKey(-1);
+        return $query->whereKey(-1);
     }
 }
