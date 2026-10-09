@@ -37,7 +37,8 @@ class AccountProvisioningService
             $user->assignRole('guru');
             $profile = Teacher::create(['user_id' => $user->id, 'name' => $data['name'], 'nip' => $data['nip'], 'phone' => $data['phone']]);
             if (! empty($data['classroom_id'])) {
-                app(MasterDataService::class)->replaceHomeroom(Classroom::findOrFail($data['classroom_id']), $profile, $actor);
+                $classroom = Classroom::findOrFail($data['classroom_id']);
+                app(MasterDataService::class)->assignTeacherClassroom($profile, $classroom, $actor, 'wali_kelas');
             }
             $this->audit($actor, 'account_created', 'Teacher', $profile->id, ['user_id' => $user->id]);
             $this->flashAccount($user, $password);

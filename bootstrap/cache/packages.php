@@ -1,102 +1,76 @@
-<?php return array (
-  'barryvdh/laravel-dompdf' => 
-  array (
-    'aliases' => 
-    array (
-      'PDF' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
-      'Pdf' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
-    ),
-    'providers' => 
-    array (
-      0 => 'Barryvdh\\DomPDF\\ServiceProvider',
-    ),
-  ),
-  'inertiajs/inertia-laravel' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Inertia\\ServiceProvider',
-    ),
-  ),
-  'laravel/breeze' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Breeze\\BreezeServiceProvider',
-    ),
-  ),
-  'laravel/pail' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Pail\\PailServiceProvider',
-    ),
-  ),
-  'laravel/sail' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Sail\\SailServiceProvider',
-    ),
-  ),
-  'laravel/sanctum' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Sanctum\\SanctumServiceProvider',
-    ),
-  ),
-  'laravel/tinker' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    ),
-  ),
-  'maatwebsite/excel' => 
-  array (
-    'aliases' => 
-    array (
-      'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
-    ),
-    'providers' => 
-    array (
-      0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
-    ),
-  ),
-  'nesbot/carbon' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Carbon\\Laravel\\ServiceProvider',
-    ),
-  ),
-  'nunomaduro/collision' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    ),
-  ),
-  'nunomaduro/termwind' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    ),
-  ),
-  'spatie/laravel-permission' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Spatie\\Permission\\PermissionServiceProvider',
-    ),
-  ),
-  'tightenco/ziggy' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
-    ),
-  ),
-);
+<?php
+
+return [
+    'barryvdh/laravel-dompdf' => [
+        'aliases' => [
+            'PDF' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
+            'Pdf' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
+        ],
+        'providers' => [
+            0 => 'Barryvdh\\DomPDF\\ServiceProvider',
+        ],
+    ],
+    'inertiajs/inertia-laravel' => [
+        'providers' => [
+            0 => 'Inertia\\ServiceProvider',
+        ],
+    ],
+    'laravel/breeze' => [
+        'providers' => [
+            0 => 'Laravel\\Breeze\\BreezeServiceProvider',
+        ],
+    ],
+    'laravel/pail' => [
+        'providers' => [
+            0 => 'Laravel\\Pail\\PailServiceProvider',
+        ],
+    ],
+    'laravel/sail' => [
+        'providers' => [
+            0 => 'Laravel\\Sail\\SailServiceProvider',
+        ],
+    ],
+    'laravel/sanctum' => [
+        'providers' => [
+            0 => 'Laravel\\Sanctum\\SanctumServiceProvider',
+        ],
+    ],
+    'laravel/tinker' => [
+        'providers' => [
+            0 => 'Laravel\\Tinker\\TinkerServiceProvider',
+        ],
+    ],
+    'maatwebsite/excel' => [
+        'aliases' => [
+            'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
+        ],
+        'providers' => [
+            0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
+        ],
+    ],
+    'nesbot/carbon' => [
+        'providers' => [
+            0 => 'Carbon\\Laravel\\ServiceProvider',
+        ],
+    ],
+    'nunomaduro/collision' => [
+        'providers' => [
+            0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+        ],
+    ],
+    'nunomaduro/termwind' => [
+        'providers' => [
+            0 => 'Termwind\\Laravel\\TermwindServiceProvider',
+        ],
+    ],
+    'spatie/laravel-permission' => [
+        'providers' => [
+            0 => 'Spatie\\Permission\\PermissionServiceProvider',
+        ],
+    ],
+    'tightenco/ziggy' => [
+        'providers' => [
+            0 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
+        ],
+    ],
+];
