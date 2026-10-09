@@ -31,6 +31,87 @@ class MasterDataService
         });
     }
 
+    public function assignTeacherClassroom(Teacher $teacher, ?Classroom $classroom, User $actor, string $role = 'pendamping'): void
+    {
+        Gate::forUser($actor)->authorize('update', $teacher);
+
+        DB::transaction(function () use ($teacher, $classroom, $actor, $role) {
+            $teacher = Teacher::whereKey($teacher->id)->lockForUpdate()->firstOrFail();
+
+            if ($classroom) {
+                if (! $classroom->academicYear->is_active) {
+                    throw ValidationException::withMessages(['classroom_id' => 'Pilih kelas pada tahun ajaran aktif.']);
+                }
+                if (! $teacher->user->is_active) {
+                    throw ValidationException::withMessages(['classroom_id' => 'Pilih guru yang berstatus aktif.']);
+                }
+
+                $currentCount = $classroom->teachers()->where('teachers.id', '!=', $teacher->id)->count();
+                if ($currentCount >= 3) {
+                    throw ValidationException::withMessages(['classroom_id' => 'Kelas ini sudah mencapai batas maksimal 3 guru.']);
+                }
+            }
+
+            // Remove teacher from any existing classrooms in the active academic year
+            $activeClassrooms = $teacher->classrooms()
+                ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
+                ->get();
+
+            foreach ($activeClassrooms as $oldClass) {
+                $teacher->classrooms()->detach($oldClass->id);
+                if ($oldClass->homeroom_teacher_id === $teacher->id) {
+                    $nextTeacher = $oldClass->teachers()->first();
+                    $oldClass->update(['homeroom_teacher_id' => $nextTeacher?->id]);
+                    if ($nextTeacher) {
+                        $oldClass->teachers()->updateExistingPivot($nextTeacher->id, ['role' => 'wali_kelas']);
+                    }
+                }
+            }
+
+            // Clear direct homeroom reference if set on any other classroom
+            Classroom::where('homeroom_teacher_id', $teacher->id)
+                ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
+                ->when($classroom, fn ($q) => $q->where('id', '!=', $classroom->id))
+                ->update(['homeroom_teacher_id' => null]);
+
+            if ($classroom) {
+                $shouldBeHomeroom = $role === 'wali_kelas' || $classroom->homeroom_teacher_id === null;
+                $effectiveRole = $shouldBeHomeroom ? 'wali_kelas' : $role;
+
+                $classroom->teachers()->syncWithoutDetaching([
+                    $teacher->id => ['role' => $effectiveRole],
+                ]);
+
+                if ($shouldBeHomeroom) {
+                    $oldHomeroom = $classroom->homeroom_teacher_id;
+                    $classroom->update(['homeroom_teacher_id' => $teacher->id]);
+                    if ($oldHomeroom && $oldHomeroom !== $teacher->id) {
+                        $classroom->teachers()->updateExistingPivot($oldHomeroom, ['role' => 'pendamping']);
+                    }
+                }
+
+                AuditLog::create([
+                    'user_id' => $actor->id,
+                    'action' => 'teacher_classroom_assigned',
+                    'entity_type' => 'Teacher',
+                    'entity_id' => $teacher->id,
+                    'new_values' => [
+                        'classroom_id' => $classroom->id,
+                        'classroom_name' => $classroom->name,
+                        'role' => $effectiveRole,
+                    ],
+                ]);
+            } else {
+                AuditLog::create([
+                    'user_id' => $actor->id,
+                    'action' => 'teacher_classroom_unassigned',
+                    'entity_type' => 'Teacher',
+                    'entity_id' => $teacher->id,
+                ]);
+            }
+        });
+    }
+
     public function replaceHomeroom(Classroom $classroom, Teacher $teacher, User $actor): Classroom
     {
         Gate::forUser($actor)->authorize('update', $classroom);
@@ -40,11 +121,32 @@ class MasterDataService
             if (! $classroom->academicYear->is_active || ! $teacher->user->is_active) {
                 throw ValidationException::withMessages(['teacher_id' => 'Pilih guru aktif dan kelas pada tahun ajaran aktif.']);
             }
-            if ($teacher->classrooms()->where('academic_year_id', $classroom->academic_year_id)->where('id', '!=', $classroom->id)->exists()) {
+            $isAlreadyHomeroom = Classroom::where('homeroom_teacher_id', $teacher->id)
+                ->where('academic_year_id', $classroom->academic_year_id)
+                ->where('id', '!=', $classroom->id)
+                ->exists();
+
+            if ($isAlreadyHomeroom || $teacher->classrooms()->where('classrooms.academic_year_id', $classroom->academic_year_id)->where('classrooms.id', '!=', $classroom->id)->exists()) {
                 throw ValidationException::withMessages(['teacher_id' => 'Guru sudah menjadi wali kelas lain pada tahun ajaran ini.']);
             }
+
+            $currentCount = $classroom->teachers()->where('teachers.id', '!=', $teacher->id)->count();
+            if ($currentCount >= 3) {
+                throw ValidationException::withMessages(['teacher_id' => 'Kelas ini sudah mencapai batas maksimal 3 guru.']);
+            }
+
             $old = $classroom->getAttributes();
+            $oldHomeroomId = $classroom->homeroom_teacher_id;
+
             $classroom->update(['homeroom_teacher_id' => $teacher->id]);
+            $classroom->teachers()->syncWithoutDetaching([
+                $teacher->id => ['role' => 'wali_kelas'],
+            ]);
+
+            if ($oldHomeroomId && $oldHomeroomId !== $teacher->id) {
+                $classroom->teachers()->updateExistingPivot($oldHomeroomId, ['role' => 'pendamping']);
+            }
+
             AuditLog::create(['user_id' => $actor->id, 'action' => 'homeroom_changed', 'entity_type' => 'Classroom', 'entity_id' => $classroom->id, 'old_values' => $old, 'new_values' => $classroom->fresh()->getAttributes()]);
 
             return $classroom->fresh();
