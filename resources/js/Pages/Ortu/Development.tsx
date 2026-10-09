@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import ParentLayout from '@/Layouts/ParentLayout';
+import { getParentLayout } from '@/Layouts/ParentLayout';
 import SegmentedControl from '@/Components/SegmentedControl';
 import StatusCapsule from '@/Components/StatusCapsule';
 import BottomSheet from '@/Components/BottomSheet';
@@ -74,7 +74,8 @@ export default function Development({
     journals,
     anecdotes,
 }: Props) {
-    const pageProps = usePage().props as { appName?: string; schoolSettings?: Record<string, string> };
+    const pageProps = usePage().props as { appName?: string; schoolName?: string; schoolSettings?: Record<string, string> };
+    const schoolName = pageProps.schoolName || pageProps.schoolSettings?.school_name || 'RA Waladun Sholeh';
 
     const [activeTab, setActiveTab] = useState<'jurnal' | 'anekdot'>('jurnal');
     const [isLegendOpen, setIsLegendOpen] = useState(false);
@@ -86,13 +87,10 @@ export default function Development({
     };
 
     return (
-        <ParentLayout
-            appName={pageProps.appName}
-            schoolName={pageProps.schoolSettings?.school_name}
-        >
+        <>
             <Head title="Perkembangan Anak" />
 
-            <div className="page-content space-y-6">
+            <div className="space-y-6">
                 {/* Header: Child Info & Actions */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 py-2">
                     <div>
@@ -309,7 +307,7 @@ export default function Development({
             >
                 <div className="space-y-4 text-sm text-[var(--text)] mt-2">
                     <p className="text-xs text-[var(--text-2)]">
-                        Sistem penilaian perkembangan anak usia dini di TK Tunas Harapan menggunakan empat tingkat capaian:
+                        Sistem penilaian perkembangan anak usia dini di {schoolName} menggunakan empat tingkat capaian:
                     </p>
 
                     <div className="p-3.5 rounded-2xl bg-[#EEF2F8] border border-[#DCEAFE] space-y-1">
@@ -398,6 +396,9 @@ export default function Development({
                     ))}
                 </div>
             </BottomSheet>
-        </ParentLayout>
+        </>
     );
 }
+
+Development.layout = getParentLayout;
+
