@@ -10,6 +10,7 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -64,7 +65,7 @@ class InvoiceService
                                     'period_year' => $year,
                                     'amount' => $amount,
                                     'discount_amount' => 0,
-                                    'due_date' => $dueDate ?? sprintf('%04d-%02d-10', $year, $month),
+                                    'due_date' => $dueDate ? Carbon::parse($dueDate)->toDateString() : sprintf('%04d-%02d-10', $year, $month),
                                     'status' => InvoiceStatus::Unpaid,
                                 ]);
                                 $created++;
