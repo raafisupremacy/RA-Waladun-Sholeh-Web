@@ -12,16 +12,16 @@ Aplikasi web modern untuk digitalisasi operasional sekolah anak usia dini (PAUD 
 
 ## Panduan Cepat Menjalankan Proyek (Local Development)
 
-Ikuti langkah-langkah praktis berikut untuk menjalankan aplikasi di komputer lokal (Windows dengan XAMPP):
+Ikuti langkah-langkah praktis berikut untuk menjalankan aplikasi di komputer lokal (Windows dengan **XAMPP** atau **Laragon**):
 
 ### 1. Prasyarat Sistem
 Pastikan software berikut sudah terinstal di komputer Anda:
-* **XAMPP** (dengan PHP 8.2 atau lebih baru)
+* **XAMPP** atau **Laragon** (dengan PHP 8.2 atau lebih baru dan modul MySQL aktif)
 * **Composer** ([getcomposer.org](https://getcomposer.org/))
 * **Node.js & npm** ([nodejs.org](https://nodejs.org/), v18 atau v20+)
 * **Git**
 
-Periksa di PowerShell atau Command Prompt:
+Periksa di PowerShell, Command Prompt, atau Terminal Laragon:
 ```powershell
 php -v
 composer -V
@@ -29,7 +29,8 @@ node -v
 npm -v
 ```
 > [!TIP]
-> Jika perintah `php` atau `composer` tidak dikenali, tambahkan folder PHP XAMPP (biasanya `C:\xampp\php`) ke Environment Variables `PATH` Windows Anda, lalu buka ulang terminal.
+> - **Pengguna Laragon:** PHP, Composer, dan Git biasanya sudah otomatis terintegrasi dan siap pakai di terminal bawaan Laragon (**Laragon > Terminal**).
+> - **Pengguna XAMPP:** Jika perintah `php` atau `composer` belum dikenali di PowerShell biasa, tambahkan path PHP XAMPP (biasanya `C:\xampp\php`) ke Environment Variables `PATH` Windows Anda, lalu buka ulang terminal.
 
 ---
 
@@ -43,13 +44,20 @@ cd RA-Waladun-Sholeh-Web
 ---
 
 ### 3. Nyalakan MySQL & Buat Database
-1. Buka **XAMPP Control Panel**, klik **Start** pada modul **MySQL** (Apache tidak wajib dinyalakan).
-2. Buka browser ke **phpMyAdmin** (`http://localhost/phpmyadmin`).
-3. Buat database baru dengan nama:
-   ```text
-   skms
-   ```
-   *(Pilih collation: `utf8mb4_unicode_ci`)*.
+Pilih salah satu sesuai perangkat lunak stack lokal yang Anda gunakan:
+
+* **Opsi A — Menggunakan XAMPP:**
+  1. Buka **XAMPP Control Panel**, klik **Start** pada modul **MySQL** (Apache tidak wajib dinyalakan).
+  2. Buka browser ke **phpMyAdmin** (`http://localhost/phpmyadmin`).
+* **Opsi B — Menggunakan Laragon:**
+  1. Buka **Laragon**, klik **Start All** (atau klik kanan > **MySQL** > **Start MySQL**).
+  2. Buka pengelola database melalui tombol **Database** (HeidiSQL) atau via phpMyAdmin (`http://localhost/phpmyadmin`).
+
+Lalu buat database baru dengan nama:
+```text
+skms
+```
+*(Pilih collation: `utf8mb4_unicode_ci`)*.
 
 ---
 
@@ -72,7 +80,7 @@ Copy-Item .env.example .env
 php artisan key:generate
 ```
 
-Buka file `.env` dan pastikan konfigurasi basis data sesuai dengan XAMPP lokal Anda:
+Buka file `.env` dan pastikan konfigurasi basis data sesuai dengan stack lokal Anda:
 ```dotenv
 APP_NAME=SKMS
 APP_ENV=local
@@ -87,7 +95,7 @@ DB_DATABASE=skms
 DB_USERNAME=root
 DB_PASSWORD=
 ```
-*(Pada XAMPP default, `DB_USERNAME` adalah `root` dan `DB_PASSWORD` dikosongkan).*
+*(Baik pada XAMPP maupun Laragon bawaan default, `DB_USERNAME` adalah `root` dan `DB_PASSWORD` dikosongkan).*
 
 ---
 
