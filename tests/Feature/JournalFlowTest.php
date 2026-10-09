@@ -246,4 +246,26 @@ class JournalFlowTest extends TestCase
             ->get(route('guru.journals.show', $otherStudent->id))
             ->assertForbidden();
     }
+
+    public function test_teacher_can_view_journal_hub_index_with_stats_and_filters(): void
+    {
+        [$teacherUser, $teacher, $class, $student] = $this->fixture();
+
+        app(JournalService::class)->saveDraft([
+            'student_id' => $student->id,
+            'classroom_id' => $class->id,
+            'journal_date' => today()->toDateString(),
+            'activity_summary' => 'Belajar berhitung',
+        ], $teacher);
+
+        $response = $this->actingAs($teacherUser)
+            ->get(route('guru.journals', ['q' => $student->name]))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Guru/Journal')
+                ->has('classroom')
+                ->has('today_stats')
+                ->has('journals.data', 1)
+            );
+    }
 }

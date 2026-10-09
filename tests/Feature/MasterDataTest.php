@@ -165,4 +165,130 @@ class MasterDataTest extends TestCase
         $this->actingAs($this->admin)->post("/admin/kelas/{$other->id}/wali", ['teacher_id' => $teacher->id])->assertSessionHasErrors('teacher_id');
         $this->assertNull($other->fresh()->homeroom_teacher_id);
     }
+
+    public function test_admin_can_create_new_classroom_and_audit_log_is_recorded(): void
+    {
+        $this->actingAs($this->admin)->from('/admin/kelas')->post('/admin/kelas', [
+            'name' => 'Kelompok Bermain',
+            'age_range' => '3–4 tahun',
+            'teacher_id' => '',
+        ])->assertRedirect('/admin/kelas')->assertSessionHas('success');
+
+        $this->assertDatabaseHas('classrooms', [
+            'name' => 'Kelompok Bermain',
+            'age_range' => '3–4 tahun',
+            'academic_year_id' => $this->classroom->academic_year_id,
+            'homeroom_teacher_id' => null,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $this->admin->id,
+            'action' => 'classroom_created',
+            'entity_type' => 'Classroom',
+        ]);
+    }
+
+    public function test_classroom_creation_validates_unique_name_in_academic_year(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/kelas', [
+            'name' => $this->classroom->name,
+            'age_range' => '4–5 tahun',
+        ])->assertSessionHasErrors('name');
+    }
+
+    public function test_admin_can_update_student_details_and_classroom(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/siswa', $this->studentData());
+        $student = Student::where('nis', '2627-099')->firstOrFail();
+
+        $newClass = Classroom::factory()->create(['academic_year_id' => $this->classroom->academic_year_id]);
+
+        $res = $this->actingAs($this->admin)->put("/admin/siswa/{$student->id}", [
+            'name' => 'Anak Diperbarui',
+            'nis' => '2627-099',
+            'birth_date' => '2021-06-15',
+            'gender' => 'P',
+            'status' => 'aktif',
+            'classroom_id' => $newClass->id,
+        ]);
+
+        $res->assertSessionHasNoErrors();
+        $student->refresh();
+        $this->assertSame('Anak Diperbarui', $student->name);
+        $this->assertSame('P', $student->gender->value);
+        $this->assertSame('2021-06-15', $student->birth_date->format('Y-m-d'));
+        $this->assertSame($newClass->id, $student->enrollments()->first()->classroom_id);
+    }
+
+    public function test_admin_can_assign_teacher_to_classroom(): void
+    {
+        $teacher = Teacher::factory()->create();
+        $this->actingAs($this->admin)->post("/admin/guru/{$teacher->id}/kelas", [
+            'classroom_id' => $this->classroom->id,
+            'role' => 'wali_kelas',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertTrue($this->classroom->teachers()->where('teachers.id', $teacher->id)->exists());
+        $this->assertSame($teacher->id, $this->classroom->fresh()->homeroom_teacher_id);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'teacher_classroom_assigned',
+            'entity_id' => $teacher->id,
+        ]);
+    }
+
+    public function test_classroom_can_have_up_to_3_teachers_and_rejects_fourth(): void
+    {
+        $teachers = Teacher::factory(4)->create();
+
+        // Assign 3 teachers successfully
+        for ($i = 0; $i < 3; $i++) {
+            $this->actingAs($this->admin)->post("/admin/guru/{$teachers[$i]->id}/kelas", [
+                'classroom_id' => $this->classroom->id,
+                'role' => $i === 0 ? 'wali_kelas' : 'pendamping',
+            ])->assertSessionHasNoErrors();
+        }
+
+        $this->assertSame(3, $this->classroom->fresh()->teachers()->count());
+
+        // Attempting to assign 4th teacher must fail with 422 validation error
+        $this->actingAs($this->admin)->post("/admin/guru/{$teachers[3]->id}/kelas", [
+            'classroom_id' => $this->classroom->id,
+            'role' => 'pendamping',
+        ])->assertSessionHasErrors(['classroom_id' => 'Kelas ini sudah mencapai batas maksimal 3 guru.']);
+
+        $this->assertSame(3, $this->classroom->fresh()->teachers()->count());
+    }
+
+    public function test_admin_can_unassign_teacher_from_classroom(): void
+    {
+        $teacher = Teacher::factory()->create();
+        $this->classroom->teachers()->attach($teacher->id, ['role' => 'pendamping']);
+
+        $this->actingAs($this->admin)->post("/admin/guru/{$teacher->id}/kelas", [
+            'classroom_id' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertFalse($this->classroom->fresh()->teachers()->where('teachers.id', $teacher->id)->exists());
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'teacher_classroom_unassigned',
+            'entity_id' => $teacher->id,
+        ]);
+    }
+
+    public function test_assigning_teacher_moves_them_from_old_classroom(): void
+    {
+        $oldClass = $this->classroom;
+        $newClass = Classroom::factory()->create(['academic_year_id' => $this->classroom->academic_year_id]);
+        $teacher = Teacher::factory()->create();
+
+        $oldClass->teachers()->attach($teacher->id, ['role' => 'pendamping']);
+        $this->assertTrue($oldClass->fresh()->teachers()->where('teachers.id', $teacher->id)->exists());
+
+        $this->actingAs($this->admin)->post("/admin/guru/{$teacher->id}/kelas", [
+            'classroom_id' => $newClass->id,
+            'role' => 'pendamping',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertFalse($oldClass->fresh()->teachers()->where('teachers.id', $teacher->id)->exists());
+        $this->assertTrue($newClass->fresh()->teachers()->where('teachers.id', $teacher->id)->exists());
+    }
 }
