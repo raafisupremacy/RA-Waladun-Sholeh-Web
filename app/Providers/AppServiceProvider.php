@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AnecdotalNote;
+use App\Models\AuditLog;
 use App\Models\CashLedgerEntry;
 use App\Models\Classroom;
 use App\Models\DailyJournal;
@@ -12,6 +13,7 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Policies\AnecdotalNotePolicy;
+use App\Policies\AuditLogPolicy;
 use App\Policies\CashLedgerEntryPolicy;
 use App\Policies\DailyJournalPolicy;
 use App\Policies\InvoicePolicy;
@@ -36,5 +38,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(DailyJournal::class, DailyJournalPolicy::class);
         Gate::policy(AnecdotalNote::class, AnecdotalNotePolicy::class);
         Gate::policy(CashLedgerEntry::class, CashLedgerEntryPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
     }
 }

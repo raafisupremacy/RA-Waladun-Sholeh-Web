@@ -7,10 +7,10 @@ import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import PrimaryButton from '@/Components/PrimaryButton';
 
-type Props = { canResetPassword?: boolean; status?: string; appName?: string; schoolSettings?: Record<string, string> };
+type Props = { canResetPassword?: boolean; status?: string; appName?: string; schoolSettings?: Record<string, string>; schoolName?: string };
 export default function Login({ status, canResetPassword }: Props) {
     const page = usePage() as unknown as { props: Props };
-    const schoolName = page.props.schoolSettings?.school_name || '';
+    const schoolName = page.props.schoolName || page.props.schoolSettings?.school_name || '';
     const appName = page.props.appName || '';
     const { data, setData, post, processing, errors, reset } = useForm({ email: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
