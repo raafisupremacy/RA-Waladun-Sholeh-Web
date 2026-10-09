@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import { X } from 'lucide-react';
+import { getAdminLayout } from '@/Layouts/AdminLayout';
 import StatusCapsule from '@/Components/StatusCapsule';
 import SegmentedControl from '@/Components/SegmentedControl';
 import ConfirmDialog from '@/Components/ConfirmDialog';
@@ -71,7 +72,7 @@ export default function Guardians({
     };
 
     return (
-        <AdminLayout>
+        <>
             <Head title="Data Orang Tua" />
 
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -109,14 +110,14 @@ export default function Guardians({
                                 <button
                                     type="button"
                                     onClick={() => { setSearch(''); filter({ search: '' }); }}
-                                    className="absolute right-12 inset-y-0 flex items-center text-xs text-stone-400 hover:text-stone-600"
+                                    className="absolute right-14 top-1/2 -translate-y-1/2 !min-h-0 h-5 w-5 flex items-center justify-center text-xs text-stone-400 hover:text-stone-600"
                                 >
-                                    ✕
+                                    <X size={13} strokeWidth={2} />
                                 </button>
                             )}
                             <button
                                 type="submit"
-                                className="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-full bg-stone-200 hover:bg-stone-300 text-xs font-medium text-stone-700 transition-colors"
+                                className="absolute right-1.5 top-1/2 -translate-y-1/2 !min-h-0 h-7 px-3 rounded-full bg-stone-200 hover:bg-stone-300 text-xs font-medium text-stone-700 transition-colors flex items-center justify-center active:scale-[0.98]"
                             >
                                 Cari
                             </button>
@@ -278,8 +279,8 @@ export default function Guardians({
                             </p>
                             <nav className="inline-flex items-center gap-1.5" aria-label="Navigasi halaman">
                                 {guardians.links.map((link, idx) => {
-                                    const isPrev = link.label.includes('Previous') || link.label.includes('Sebelumnya') || link.label.includes('&laquo;');
-                                    const isNext = link.label.includes('Next') || link.label.includes('Selanjutnya') || link.label.includes('&raquo;');
+                                    const isPrev = link.label.toLowerCase().includes('previous') || link.label.includes('Sebelumnya') || link.label.includes('&laquo;');
+                                    const isNext = link.label.toLowerCase().includes('next') || link.label.includes('Selanjutnya') || link.label.includes('&raquo;');
                                     const cleanLabel = isPrev ? 'Sebelumnya' : isNext ? 'Selanjutnya' : link.label;
 
                                     if (!link.url) {
@@ -342,6 +343,9 @@ export default function Guardians({
                     }
                 }}
             />
-        </AdminLayout>
+        </>
     );
 }
+
+Guardians.layout = getAdminLayout;
+

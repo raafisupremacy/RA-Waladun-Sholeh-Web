@@ -1,9 +1,18 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { ChevronRight, X } from 'lucide-react';
+import { getAdminLayout } from '@/Layouts/AdminLayout';
 import ConfirmDialog from '@/Components/ConfirmDialog';
+import CustomSelect from '@/Components/CustomSelect';
 
 type Student = { id: number; name: string; nis: string };
+
+type ClassroomTeacher = {
+    id: number;
+    name: string;
+    role: string;
+};
 
 type Classroom = {
     id: number;
@@ -12,6 +21,7 @@ type Classroom = {
     year: string;
     teacher_id: number | null;
     teacher: string | null;
+    teachers?: ClassroomTeacher[];
     students: Student[];
 };
 
@@ -37,15 +47,45 @@ export default function Classrooms({
     const [targetClassId, setTargetClassId] = useState<string>('');
     const [confirmMoveOpen, setConfirmMoveOpen] = useState(false);
     const [editingClassroom, setEditingClassroom] = useState<Classroom | null>(null);
-    const [expandedClasses, setExpandedClasses] = useState<Record<number, boolean>>({});
+    const [expandedClassId, setExpandedClassId] = useState<number | null>(null);
+    const [createClassModalOpen, setCreateClassModalOpen] = useState(false);
 
     const teacherForm = useForm({
+        teacher_id: '',
+    });
+
+    const createClassForm = useForm({
+        name: '',
+        age_range: '',
         teacher_id: '',
     });
 
     const moveForm = useForm({
         student_ids: [] as number[],
     });
+
+    useEffect(() => {
+        if (!editingClassroom && !createClassModalOpen) return;
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (editingClassroom && !teacherForm.processing) {
+                    setEditingClassroom(null);
+                }
+                if (createClassModalOpen && !createClassForm.processing) {
+                    setCreateClassModalOpen(false);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.body.style.overflow = prevOverflow;
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [editingClassroom, createClassModalOpen, teacherForm.processing, createClassForm.processing]);
 
     const toggleStudent = (id: number) => {
         setSelectedStudents(prev =>
@@ -54,10 +94,7 @@ export default function Classrooms({
     };
 
     const toggleExpand = (classId: number) => {
-        setExpandedClasses(prev => ({
-            ...prev,
-            [classId]: !prev[classId],
-        }));
+        setExpandedClassId(prev => (prev === classId ? null : classId));
     };
 
     // Determine target classroom for moving
@@ -104,8 +141,18 @@ export default function Classrooms({
         });
     };
 
+    const handleCreateClassSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        createClassForm.post('/admin/kelas', {
+            onSuccess: () => {
+                setCreateClassModalOpen(false);
+                createClassForm.reset();
+            },
+        });
+    };
+
     return (
-        <AdminLayout>
+        <>
             <Head title="Kelas & Rombel" />
 
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -115,12 +162,23 @@ export default function Classrooms({
                         Tahun Ajaran {classrooms[0]?.year ?? 'Belum ada tahun ajaran aktif'}
                     </p>
                 </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        createClassForm.reset();
+                        createClassForm.clearErrors();
+                        setCreateClassModalOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] active:scale-[0.98] transition-all shadow-sm self-start md:self-auto"
+                >
+                    Tambah kelas
+                </button>
             </header>
 
             {/* Classrooms Grid (2 Columns) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-28">
                 {classrooms.map(classroom => {
-                    const isExpanded = !!expandedClasses[classroom.id];
+                    const isExpanded = expandedClassId === classroom.id;
                     const displayedStudents = isExpanded
                         ? classroom.students
                         : classroom.students.slice(0, 6);
@@ -142,30 +200,40 @@ export default function Classrooms({
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 mt-4 text-sm text-stone-600">
-                                    <span>Wali kelas: {classroom.teacher ?? 'Belum ditugaskan'}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setEditingClassroom(classroom);
-                                            teacherForm.setData(
-                                                'teacher_id',
-                                                classroom.teacher_id ? String(classroom.teacher_id) : ''
-                                            );
-                                            teacherForm.clearErrors();
-                                        }}
-                                        className="text-sm font-semibold text-[#0071E3] hover:underline"
-                                    >
-                                        Ganti
-                                    </button>
+                                <div className="flex flex-col gap-1 mt-4 text-sm text-stone-600">
+                                    <div className="flex items-center gap-2">
+                                        <span>Wali kelas: <strong className="font-semibold text-stone-800">{classroom.teacher ?? 'Belum ditugaskan'}</strong></span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditingClassroom(classroom);
+                                                teacherForm.setData(
+                                                    'teacher_id',
+                                                    classroom.teacher_id ? String(classroom.teacher_id) : ''
+                                                );
+                                                teacherForm.clearErrors();
+                                            }}
+                                            className="text-xs font-semibold text-[#0071E3] hover:underline"
+                                        >
+                                            Ganti
+                                        </button>
+                                    </div>
+                                    {classroom.teachers && classroom.teachers.filter(t => t.role === 'pendamping').length > 0 && (
+                                        <div className="text-xs text-stone-500">
+                                            Pendamping: {classroom.teachers.filter(t => t.role === 'pendamping').map(t => t.name).join(', ')}
+                                        </div>
+                                    )}
+                                    <div className="text-xs text-stone-400">
+                                        Total tenaga pendidik: {(classroom.teachers?.length || (classroom.teacher ? 1 : 0))}/3 guru
+                                    </div>
                                 </div>
 
-                                {/* Hero Number 72px */}
-                                <div className="flex items-baseline gap-3 my-6">
-                                    <span className="text-6xl md:text-7xl font-extrabold text-stone-900 tracking-tight">
+                                {/* Hero Number (Proportional 48-56px) */}
+                                <div className="flex items-baseline gap-3 my-5">
+                                    <span className="text-5xl md:text-6xl font-bold text-stone-900 tracking-tight">
                                         {classroom.students.length}
                                     </span>
-                                    <span className="text-stone-500 font-medium text-lg">siswa</span>
+                                    <span className="text-stone-500 font-medium text-base">siswa</span>
                                 </div>
 
                                 {/* Students Checkbox List */}
@@ -222,7 +290,14 @@ export default function Classrooms({
                                         onClick={() => toggleExpand(classroom.id)}
                                         className="font-semibold text-[#0071E3] hover:underline"
                                     >
-                                        {isExpanded ? 'Tampilkan ringkas' : 'Lihat semua siswa ›'}
+                                        {isExpanded ? (
+                                            'Tampilkan ringkas'
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1">
+                                                <span>Lihat semua siswa</span>
+                                                <ChevronRight size={13} strokeWidth={2} />
+                                            </span>
+                                        )}
                                     </button>
                                 </div>
                             )}
@@ -234,7 +309,7 @@ export default function Classrooms({
             {/* Floating Selection Pill Bar */}
             {selectedStudents.length > 0 && (
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40">
-                    <div className="bg-white rounded-full shadow-2xl border border-stone-200/90 px-6 py-3.5 flex items-center gap-4 whitespace-nowrap">
+                    <div className="bg-white rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-stone-200/90 px-6 py-3 flex items-center gap-4 whitespace-nowrap animate-in fade-in slide-in-from-bottom-2 duration-150">
                         <span className="text-sm font-bold text-stone-900">
                             {selectedStudents.length} siswa dipilih
                         </span>
@@ -250,17 +325,15 @@ export default function Classrooms({
                         </button>
 
                         {classrooms.length > 2 && (
-                            <select
+                            <CustomSelect
                                 value={effectiveTargetId}
-                                onChange={e => setTargetClassId(e.target.value)}
-                                className="text-xs py-1.5 px-3 bg-stone-50 border border-stone-200 rounded-full text-stone-800 focus:outline-none"
-                            >
-                                {classrooms.map(c => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={val => setTargetClassId(String(val))}
+                                buttonClassName="text-xs h-8 px-3 bg-stone-50 border-stone-200"
+                                options={classrooms.map(c => ({
+                                    value: String(c.id),
+                                    label: c.name,
+                                }))}
+                            />
                         )}
 
                         <button
@@ -276,63 +349,84 @@ export default function Classrooms({
             )}
 
             {/* Ganti Wali Kelas Modal */}
-            {editingClassroom && (
+            {editingClassroom && typeof document !== 'undefined' && createPortal(
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xs overflow-hidden"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="replace-teacher-title"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget && !teacherForm.processing) {
+                            setEditingClassroom(null);
+                        }
+                    }}
                 >
-                    <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6 text-left border border-stone-100">
-                        <div>
-                            <h2 id="replace-teacher-title" className="text-2xl font-bold text-stone-900 tracking-tight">
-                                Ganti wali kelas
-                            </h2>
-                            <p className="text-sm text-stone-500 mt-1">
-                                Pilih pendidik pengganti untuk {editingClassroom.name} (Usia {editingClassroom.age_range}).
-                            </p>
+                    <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl flex flex-col max-h-[calc(100dvh-32px)] border border-stone-100 text-left my-auto animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                        {/* Header */}
+                        <div className="p-6 pb-4 shrink-0 flex items-start justify-between gap-4 border-b border-stone-100">
+                            <div>
+                                <h2 id="replace-teacher-title" className="text-xl font-bold text-stone-900 tracking-tight">
+                                    Ganti wali kelas
+                                </h2>
+                                <p className="text-xs text-stone-500 mt-1">
+                                    Pilih pendidik pengganti untuk {editingClassroom.name} (Usia {editingClassroom.age_range}).
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!teacherForm.processing) setEditingClassroom(null);
+                                }}
+                                className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
 
-                        <form onSubmit={handleTeacherSubmit} className="space-y-5">
-                            <div>
-                                <label htmlFor="w_teacher_id" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
-                                    Wali kelas baru
-                                </label>
-                                <select
-                                    id="w_teacher_id"
-                                    required
-                                    value={teacherForm.data.teacher_id}
-                                    onChange={e => teacherForm.setData('teacher_id', e.target.value)}
-                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
-                                >
-                                    <option value="">Pilih guru</option>
-                                    {teachers.map(t => (
-                                        <option key={t.id} value={t.id}>
-                                            {t.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {teacherForm.errors.teacher_id && (
-                                    <p className="mt-1.5 text-xs text-red-600 font-medium">
-                                        {teacherForm.errors.teacher_id}
-                                    </p>
-                                )}
+                        {/* Scrollable Form Body */}
+                        <form onSubmit={handleTeacherSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="p-6 overflow-y-auto overscroll-contain space-y-4 flex-1">
+                                <div>
+                                    <label htmlFor="w_teacher_id" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                                        Wali kelas baru
+                                    </label>
+                                    <CustomSelect
+                                        className="w-full"
+                                        buttonClassName="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl text-stone-900 h-auto"
+                                        value={teacherForm.data.teacher_id}
+                                        onChange={val => teacherForm.setData('teacher_id', String(val))}
+                                        placeholder="Pilih guru"
+                                        options={[
+                                            { value: '', label: 'Pilih guru' },
+                                            ...teachers.map(t => ({
+                                                value: String(t.id),
+                                                label: t.name,
+                                            })),
+                                        ]}
+                                    />
+                                    {teacherForm.errors.teacher_id && (
+                                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                                            {teacherForm.errors.teacher_id}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <p className="text-xs text-stone-500">
+                                    Wali kelas saat ini: {editingClassroom.teacher ?? 'Belum ditugaskan'}
+                                </p>
+
+                                {/* Amber Notice */}
+                                <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-3.5 text-xs font-medium leading-relaxed">
+                                    Guru lama tidak lagi bisa mengisi jurnal kelas ini.
+                                </div>
                             </div>
 
-                            <p className="text-xs text-stone-500">
-                                Wali kelas saat ini: {editingClassroom.teacher ?? 'Belum ditugaskan'}
-                            </p>
-
-                            {/* Amber Notice */}
-                            <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 text-xs font-medium leading-relaxed">
-                                Guru lama tidak lagi bisa mengisi jurnal kelas ini.
-                            </div>
-
-                            <div className="flex items-center justify-end gap-3 pt-2">
+                            {/* Sticky footer buttons */}
+                            <div className="p-4 px-6 border-t border-stone-100 bg-stone-50/60 shrink-0 flex items-center justify-end gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setEditingClassroom(null)}
-                                    className="px-5 py-2.5 rounded-full border border-stone-200 text-stone-700 text-sm font-semibold hover:bg-stone-50 transition-colors"
+                                    className="px-5 py-2.5 rounded-full border border-stone-200 text-stone-700 text-sm font-semibold hover:bg-white transition-colors"
                                 >
                                     Batal
                                 </button>
@@ -346,7 +440,133 @@ export default function Classrooms({
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Tambah Kelas Modal */}
+            {createClassModalOpen && typeof document !== 'undefined' && createPortal(
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xs overflow-hidden"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="create-class-title"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget && !createClassForm.processing) {
+                            setCreateClassModalOpen(false);
+                        }
+                    }}
+                >
+                    <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl flex flex-col max-h-[calc(100dvh-32px)] border border-stone-100 text-left my-auto animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                        {/* Header */}
+                        <div className="p-6 pb-4 shrink-0 flex items-start justify-between gap-4 border-b border-stone-100">
+                            <div>
+                                <h2 id="create-class-title" className="text-xl font-bold text-stone-900 tracking-tight">
+                                    Tambah kelas baru
+                                </h2>
+                                <p className="text-xs text-stone-500 mt-1">
+                                    Buat rombongan belajar baru untuk tahun ajaran aktif.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!createClassForm.processing) setCreateClassModalOpen(false);
+                                }}
+                                className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Scrollable Form Body */}
+                        <form onSubmit={handleCreateClassSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="p-6 overflow-y-auto overscroll-contain space-y-4 flex-1">
+                                <div>
+                                    <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                                        Nama kelas
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={createClassForm.data.name}
+                                        onChange={e => createClassForm.setData('name', e.target.value)}
+                                        placeholder="Contoh: Kelompok Bermain atau Kelompok C"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                    />
+                                    {createClassForm.errors.name && (
+                                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                                            {createClassForm.errors.name}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                                        Rentang usia
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={createClassForm.data.age_range}
+                                        onChange={e => createClassForm.setData('age_range', e.target.value)}
+                                        placeholder="Contoh: 3–4 tahun atau 4–5 tahun"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                    />
+                                    {createClassForm.errors.age_range && (
+                                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                                            {createClassForm.errors.age_range}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                                        Wali kelas (opsional)
+                                    </label>
+                                    <CustomSelect
+                                        className="w-full"
+                                        buttonClassName="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl text-stone-900 h-auto"
+                                        value={createClassForm.data.teacher_id}
+                                        onChange={val => createClassForm.setData('teacher_id', String(val))}
+                                        placeholder="Pilih wali kelas"
+                                        options={[
+                                            { value: '', label: 'Belum ditugaskan' },
+                                            ...teachers.map(t => ({
+                                                value: String(t.id),
+                                                label: t.name,
+                                            })),
+                                        ]}
+                                    />
+                                    {createClassForm.errors.teacher_id && (
+                                        <p className="mt-1.5 text-xs text-red-600 font-medium">
+                                            {createClassForm.errors.teacher_id}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Sticky footer buttons */}
+                            <div className="p-4 px-6 border-t border-stone-100 bg-stone-50/60 shrink-0 flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setCreateClassModalOpen(false)}
+                                    className="px-5 py-2.5 rounded-full border border-stone-200 text-stone-700 text-sm font-semibold hover:bg-white active:scale-[0.98] transition-all"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={createClassForm.processing}
+                                    className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
+                                >
+                                    {createClassForm.processing ? 'Menyimpan…' : 'Simpan'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>,
+                document.body
             )}
 
             {/* Move Students Confirmation Dialog */}
@@ -364,6 +584,9 @@ export default function Classrooms({
                 onCancel={() => setConfirmMoveOpen(false)}
                 onConfirm={handleExecuteMove}
             />
-        </AdminLayout>
+        </>
     );
 }
+
+Classrooms.layout = getAdminLayout;
+

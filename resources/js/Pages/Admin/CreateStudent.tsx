@@ -1,7 +1,8 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import AdminLayout from '@/Layouts/AdminLayout';
+import { getAdminLayout } from '@/Layouts/AdminLayout';
 import SegmentedControl from '@/Components/SegmentedControl';
+import CustomSelect from '@/Components/CustomSelect';
 
 type Classroom = { id: number; name: string; age_range: string };
 type Guardian = { id: number; name: string; email: string };
@@ -46,7 +47,7 @@ export default function CreateStudent({
     };
 
     return (
-        <AdminLayout>
+        <>
             <Head title="Tambah Siswa" />
 
             <div className="max-w-[640px] mx-auto pb-28">
@@ -145,23 +146,23 @@ export default function CreateStudent({
                             </div>
 
                             <div>
-                                <label htmlFor="classroom_id" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
                                     Kelas
                                 </label>
-                                <select
-                                    id="classroom_id"
-                                    required
+                                <CustomSelect
+                                    className="w-full"
+                                    buttonClassName="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl text-stone-900 h-auto"
                                     value={form.data.classroom_id}
-                                    onChange={e => form.setData('classroom_id', e.target.value)}
-                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
-                                >
-                                    <option value="">Pilih kelas</option>
-                                    {classrooms.map(c => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name} ({c.age_range})
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={val => form.setData('classroom_id', String(val))}
+                                    placeholder="Pilih kelas"
+                                    options={[
+                                        { value: '', label: 'Pilih kelas' },
+                                        ...classrooms.map(c => ({
+                                            value: String(c.id),
+                                            label: `${c.name} (${c.age_range})`,
+                                        })),
+                                    ]}
+                                />
                                 {form.errors.classroom_id && (
                                     <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.classroom_id}</p>
                                 )}
@@ -366,6 +367,9 @@ export default function CreateStudent({
                     </div>
                 </form>
             </div>
-        </AdminLayout>
+        </>
     );
 }
+
+CreateStudent.layout = getAdminLayout;
+
