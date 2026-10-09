@@ -22,3 +22,9 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+/storage/app/shots
+/storage/app/private/*
+!/storage/app/private/.gitignore
+/.npm-cache
+/scratch
+GEMINI.md

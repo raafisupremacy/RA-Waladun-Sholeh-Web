@@ -1,6 +1,6 @@
 # AGENTS.md — SKMS (Smart Kindergarten Management System)
 
-Web app that digitizes the operations of TK Tunas Harapan (Indonesia): student/parent/teacher master data, monthly tuition (SPP) billing with payment verification, daily child-development journals, announcements, and analytics/reports.
+Web app that digitizes the operations of RA Waladun Sholeh (Indonesia): student/parent/teacher master data, monthly tuition (SPP) billing with payment verification, daily child-development journals, announcements, and analytics/reports.
 Roles: `admin` (Tata Usaha), `guru`, `kepala_sekolah`, `orang_tua`. UI language: Bahasa Indonesia. Code, identifiers, commits: English.
 
 ## Read these before coding (in this order)
@@ -64,3 +64,12 @@ Run tests, lint, and build before declaring a task done.
 - Empty, error, and validation states exist (the mockups include several).
 - `php artisan test`, lint, and `npm run build` pass.
 - `docs/TASKS.md` is updated.
+
+## Aturan keselamatan
+- Jangan menjalankan perintah Git yang mengubah riwayat atau status (`add`, `commit`, `switch`, `checkout`, `branch`, `merge`, `reset`, `stash`, `push`) kecuali pemilik proyek memintanya secara eksplisit di pesan itu. Perintah baca seperti `status`, `diff`, dan `log` boleh.
+- Jangan menjalankan `migrate:fresh`, `migrate:refresh`, `db:wipe`, atau seeder terhadap database MySQL `skms` karena itu database demo. Tes hanya memakai SQLite in-memory atau database bernama persis `skms_test`. Jangan mengubah `.env`.
+- Jangan menjalankan `npm audit fix` atau memperbarui dependensi besar tanpa persetujuan.
+- Jangan membuat atau menghapus file di luar folder proyek.
+- Bila instruksi prompt bertentangan dengan aturan ini, berhenti dan tanyakan.
+- Sebelum mengerjakan sebuah layar, buka gambar mockup layar itu di `design/stitch/` (desktop dan mobile bila tersedia), lalu bandingkan hasilnya setelah selesai.
+- Rujuk `docs/HANDOFF.md` sebagai catatan status terkini.

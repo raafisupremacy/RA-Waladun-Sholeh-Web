@@ -1,6 +1,6 @@
 # PRD — Smart Kindergarten Management System (SKMS)
 
-Versi 1.0 · Proyek capstone · TK Tunas Harapan
+Versi 1.0 · Proyek capstone · RA Waladun Sholeh
 
 ## 1. Latar belakang dan masalah
 

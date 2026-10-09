@@ -1,62 +1,84 @@
 # SKMS — Sistem Informasi dan Keuangan Sekolah
+### RA Waladun Sholeh
 
-Aplikasi web untuk pengelolaan data sekolah, tagihan SPP, pembayaran, jurnal perkembangan anak, dan pengumuman. Aplikasi menggunakan Laravel 11, Inertia.js, React + TypeScript, Tailwind CSS, dan MySQL.
+Aplikasi web modern untuk digitalisasi operasional sekolah anak usia dini (PAUD / RA): pengelolaan data master siswa, orang tua, guru, dan kelas, penagihan SPP bulanan otomatis dengan verifikasi bukti transfer digital, buku kas masuk/keluar, jurnal harian & catatan anekdot perkembangan anak, pengumuman bertarget, serta dashboard analitik kepala sekolah dan laporan evaluasi.
 
-## Menjalankan di Windows dengan XAMPP
+**Teknologi Utama:**
+* **Backend:** PHP 8.2+ · Laravel 11 · MySQL · Spatie Permission
+* **Frontend:** Inertia.js · React 18 · TypeScript · Tailwind CSS
+* **Design System:** Apple Human Interface Guidelines style · Inter Font · Lucide Icons
 
-### Prasyarat
+---
 
-- XAMPP dengan **MySQL** aktif dari XAMPP Control Panel.
-- PHP 8.2 atau lebih baru.
-- Composer.
-- Node.js dan npm.
+## Panduan Cepat Menjalankan Proyek (Local Development)
 
-Pastikan perintah berikut bisa dijalankan di PowerShell:
+Ikuti langkah-langkah praktis berikut untuk menjalankan aplikasi di komputer lokal (Windows dengan XAMPP):
 
+### 1. Prasyarat Sistem
+Pastikan software berikut sudah terinstal di komputer Anda:
+* **XAMPP** (dengan PHP 8.2 atau lebih baru)
+* **Composer** ([getcomposer.org](https://getcomposer.org/))
+* **Node.js & npm** ([nodejs.org](https://nodejs.org/), v18 atau v20+)
+* **Git**
+
+Periksa di PowerShell atau Command Prompt:
 ```powershell
 php -v
 composer -V
 node -v
 npm -v
 ```
+> [!TIP]
+> Jika perintah `php` atau `composer` tidak dikenali, tambahkan folder PHP XAMPP (biasanya `C:\xampp\php`) ke Environment Variables `PATH` Windows Anda, lalu buka ulang terminal.
 
-Jika `php` belum dikenali, tambahkan folder PHP XAMPP (biasanya `C:\xampp\php`) ke `PATH`, lalu buka ulang PowerShell.
+---
 
-### 1. Buat database MySQL
-
-Di phpMyAdmin (`http://localhost/phpmyadmin`) buat database dengan nama:
-
-```text
-skms
+### 2. Clone Repositori
+Buka terminal dan clone repositori ke komputer Anda:
+```powershell
+git clone https://github.com/raafisupremacy/RA-Waladun-Sholeh-Web.git
+cd RA-Waladun-Sholeh-Web
 ```
 
-Nama database harus sama dengan `DB_DATABASE` pada `.env`. Pada instalasi XAMPP standar, username MySQL adalah `root` dan password kosong.
+---
 
-### 2. Pasang dependensi
+### 3. Nyalakan MySQL & Buat Database
+1. Buka **XAMPP Control Panel**, klik **Start** pada modul **MySQL** (Apache tidak wajib dinyalakan).
+2. Buka browser ke **phpMyAdmin** (`http://localhost/phpmyadmin`).
+3. Buat database baru dengan nama:
+   ```text
+   skms
+   ```
+   *(Pilih collation: `utf8mb4_unicode_ci`)*.
 
-Buka PowerShell di folder proyek:
+---
 
+### 4. Pasang Dependensi (Vendor & Node Modules)
+Jalankan di folder proyek:
 ```powershell
-Set-Location "C:\Users\User\Documents\GitHub\TK-Tunas-Harapan-Web"
+# Pasang paket backend Laravel
 composer install
+
+# Pasang paket frontend React & TypeScript
 npm install
 ```
 
-### 3. Buat dan atur `.env`
+---
 
-Jalankan:
-
+### 5. Konfigurasi Lingkungan (`.env`)
+Salin file konfigurasi contoh dan buat application key:
 ```powershell
 Copy-Item .env.example .env
 php artisan key:generate
 ```
 
-Periksa bagian database di `.env`:
-
+Buka file `.env` dan pastikan konfigurasi basis data sesuai dengan XAMPP lokal Anda:
 ```dotenv
 APP_NAME=SKMS
+APP_ENV=local
+APP_DEBUG=true
 APP_TIMEZONE=Asia/Jakarta
-APP_LOCALE=id
+APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -65,81 +87,97 @@ DB_DATABASE=skms
 DB_USERNAME=root
 DB_PASSWORD=
 ```
+*(Pada XAMPP default, `DB_USERNAME` adalah `root` dan `DB_PASSWORD` dikosongkan).*
 
-Jika MySQL XAMPP memakai password atau port berbeda, sesuaikan `DB_PASSWORD` atau `DB_PORT`. File `.env` bersifat lokal dan tidak boleh di-commit.
+---
 
-### 4. Migrasi dan data demo
-
-Untuk membuat seluruh tabel dan mengisi data demo:
-
+### 6. Migrasi Tabel & Isi Data Demo (Seeder)
+Jalankan migrasi untuk membuat seluruh tabel dan mengisinya dengan data simulasi yang realistis:
 ```powershell
 php artisan migrate:fresh --seed
 ```
+> [!NOTE]
+> Perintah ini akan membuat data kelas (Kelompok A & Kelompok B), 78 siswa aktif, akun wali murid, akun guru, tagihan SPP dengan berbagai status, jurnal perkembangan, serta pengumuman.
 
-Perintah ini menghapus isi database `skms` lalu membuatnya ulang. Jangan jalankan pada database produksi.
+---
 
-### 5. Jalankan aplikasi
+### 7. Jalankan Server Aplikasi
+Jalankan dua terminal di folder proyek secara berdampingan:
 
-Buka dua jendela PowerShell di folder proyek.
-
-Terminal 1 — server Laravel:
-
+**Terminal 1 — Server Backend Laravel:**
 ```powershell
 php artisan serve
 ```
 
-Terminal 2 — Vite untuk aset React:
-
+**Terminal 2 — Compiler Aset Frontend Vite:**
 ```powershell
 npm run dev
 ```
 
-Buka [http://127.0.0.1:8000](http://127.0.0.1:8000). Biarkan kedua terminal tetap berjalan selama pengembangan.
+Buka browser Anda dan akses:  
+👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
 
-Alternatif, perintah Composer berikut menjalankan server, queue, log, dan Vite sekaligus:
+---
+
+## Akun Demo untuk Masuk (Login)
+
+Semua akun demo di lingkungan pengembangan lokal menggunakan kata sandi yang sama:  
+🔑 **Kata Sandi:** `password`
+
+| Peran (Role) | Email | Fitur Utama yang Dapat Dicoba |
+| :--- | :--- | :--- |
+| **Admin (Tata Usaha)** | `admin@skms.test` | Master data (Siswa, Guru, Ortu, Kelas), Generate tagihan SPP, Verifikasi pembayaran bukti transfer, Buku kas, Pengumuman, Rekap laporan. |
+| **Guru (Wali Kelas)** | `guru@skms.test` | Beranda kelas, Isi jurnal harian capaian anak (5 aspek), Riwayat jurnal, Catatan anekdot + upload foto kegiatan. |
+| **Kepala Sekolah** | `kepsek@skms.test` | Dashboard analitik sekolah, Grafik tren pembayaran SPP, Laporan keuangan, Cetak/Unduh rapor evaluasi siswa (PDF & Excel). |
+| **Orang Tua / Wali** | `ortu@skms.test` | Beranda orang tua, Lihat pengumuman tersemat, Bayar tagihan SPP & unggah foto bukti transfer, Pantau grafik perkembangan anak & catatan anekdot. |
+
+---
+
+## Perintah Pengujian & Pemeliharaan Kualitas Kode
+
+Proyek ini dilengkapi dengan suite pengujian otomatis, validasi kontras aksesibilitas, dan linter ketat:
 
 ```powershell
-composer run dev
-```
-
-### Akun demo
-
-Semua akun demo memakai kata sandi awal `password`.
-
-| Peran | Email |
-| --- | --- |
-| Admin | `admin@skms.test` |
-| Guru | `guru@skms.test` |
-| Kepala sekolah | `kepsek@skms.test` |
-| Orang tua | `ortu@skms.test` |
-
-Seeder juga membuat data siswa, kelas, tagihan, pembayaran, jurnal, dan pengumuman untuk pengujian alur aplikasi.
-
-## Perintah pengembangan
-
-```powershell
-# Pengujian PHP
+# Jalankan test suite backend otomatis (107 tests passed, 1022 assertions)
 php artisan test
 
-# Format PHP (cek tanpa mengubah file)
+# Jalankan pengujian frontend & WCAG contrast check (6 tests passed)
+npm run test:js
+
+# Periksa formatting & code style PHP (Pint)
 .\vendor\bin\pint --test
 
-# Cek TypeScript
+# Periksa TypeScript dan linter frontend (ESLint)
 npm run lint
 
-# Build frontend produksi
+# Kompilasi aset frontend untuk rilis produksi
 npm run build
 ```
 
-## Catatan XAMPP
+---
 
-- Untuk pengembangan, Apache XAMPP tidak wajib dijalankan; `php artisan serve` sudah menyediakan server aplikasi.
-- MySQL XAMPP harus aktif sebelum menjalankan migrasi atau membuka aplikasi.
-- Jika ingin memakai Apache XAMPP, document root harus diarahkan ke folder `public/`, bukan ke akar proyek.
-- Berkas unggahan privat tidak disajikan sebagai URL publik. Jangan menyalin folder `storage` ke `public` untuk mengakses bukti pembayaran.
+## Panduan Masalah Umum (Troubleshooting)
 
-## Struktur konfigurasi penting
+1. **`SQLSTATE[HY000] [2002] No connection could be made`**
+   * Pastikan modul MySQL di XAMPP Control Panel sudah dalam kondisi **Start** (berwarna hijau).
+2. **Perintah `php` atau `composer` tidak dikenali di PowerShell**
+   * Jalankan PowerShell sebagai Administrator dan tambahkan path PHP XAMPP ke environment variable:
+     ```powershell
+     [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\xampp\php", [EnvironmentVariableTarget]::User)
+     ```
+   * Buka jendela terminal baru setelahnya.
+3. **Tampilan antarmuka berantakan / tidak ada styling CSS**
+   * Pastikan Terminal 2 yang menjalankan `npm run dev` tidak ditutup selama Anda membuka aplikasi.
+4. **Cache konfigurasi tersangkut**
+   * Jika ada perubahan konfigurasi atau rute yang belum terbaca, bersihkan cache dengan:
+     ```powershell
+     php artisan optimize:clear
+     ```
 
-- Nama aplikasi berasal dari `APP_NAME` di `.env` dan `config/app.php`.
-- Identitas sekolah, rekening, dan nominal SPP dibaca dari tabel `school_settings`.
-- Konfigurasi jendela edit jurnal berada di `config/skms.php`.
+---
+
+## Struktur Konfigurasi Penting
+
+* **Nama Aplikasi & Identitas:** Diatur via `APP_NAME` di `.env` dan dibaca dari tabel `school_settings` (`school_name` = `RA Waladun Sholeh`).
+* **Jendela Edit Jurnal:** Konfigurasi batas waktu pengubahan jurnal oleh guru diatur pada `config/skms.php`.
+* **Penyimpanan Berkas Privat:** Berkas bukti transfer pembayaran tersimpan di disk privat (`storage/app/private/`) dan disajikan secara aman melalui policy otorisasi per-peran.

@@ -1,6 +1,6 @@
-# DESIGN.md — SKMS (Smart Kindergarten Management System)
+﻿# DESIGN.md — SKMS (Smart Kindergarten Management System)
 
-Responsive web app for TK Tunas Harapan, Indonesia. UI language: Bahasa Indonesia, plain, polite, short.
+Responsive web app for RA Waladun Sholeh, Indonesia. UI language: Bahasa Indonesia, plain, polite, short.
 Users: Admin/Tata Usaha, Guru, Kepala Sekolah, Orang Tua.
 It is a WEBSITE opened in a browser on any device (phone, tablet, laptop). Every screen must work well at mobile (390px), tablet (834px) and desktop (1440px). Never a native Android/iOS app: no status bar, no device frame, no Material components.
 
@@ -154,7 +154,7 @@ Dark mode optional: same tokens inverted (`#000000` / `#1C1C1E` surfaces, `#F5F5
 - Headlines say what matters: "9 pembayaran menunggu verifikasi.", "SPP Oktober sudah lunas."
 - Rejections explain the next step: "Ditolak: nominal tidak sesuai. Mohon unggah ulang."
 - Wording about children is supportive.
-- Realistic uneven data: 78 siswa, 9 menunggu, Rp 350.000, Rp 27.300.000. Names: Aisyah Putri Ramadhani, Muhammad Fadhil, Kevin Santoso, Ni Luh Ayu, Zahra Nabila. NIS 2425-014. Dates like 8 Okt 2026. Teacher: Bu Sari Wulandari. Principal: Ibu Dra. Hartini. Admin: Pak Dedi. School: TK Tunas Harapan.
+- Realistic uneven data: 78 siswa, 9 menunggu, Rp 350.000, Rp 27.300.000. Names: Aisyah Putri Ramadhani, Muhammad Fadhil, Kevin Santoso, Ni Luh Ayu, Zahra Nabila. NIS 2425-014. Dates like 8 Okt 2026. Teacher: Bu Sari Wulandari. Principal: Ibu Dra. Hartini. Admin: Pak Dedi. School: RA Waladun Sholeh.
 
 ## 11. Motion
 

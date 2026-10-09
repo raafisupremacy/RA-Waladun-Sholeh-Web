@@ -10,6 +10,8 @@ erDiagram
     USERS ||--o| GUARDIANS : "profil orang tua"
     ACADEMIC_YEARS ||--o{ CLASSROOMS : "memiliki"
     TEACHERS ||--o{ CLASSROOMS : "wali kelas"
+    CLASSROOMS ||--o{ CLASSROOM_TEACHER : "memiliki guru"
+    TEACHERS ||--o{ CLASSROOM_TEACHER : "ditugaskan ke"
     CLASSROOMS ||--o{ ENROLLMENTS : "berisi"
     STUDENTS ||--o{ ENROLLMENTS : "terdaftar"
     ACADEMIC_YEARS ||--o{ ENROLLMENTS : "tahun ajaran"
@@ -68,13 +70,19 @@ erDiagram
         string name
         string age_range
     }
+    CLASSROOM_TEACHER {
+        bigint id PK
+        bigint classroom_id FK
+        bigint teacher_id FK
+        string role
+    }
     STUDENTS {
         bigint id PK
         string nis UK
         string name
         date birth_date
         string gender
-        year entry_year
+        unsignedSmallInteger entry_year
         string status
     }
     ENROLLMENTS {
@@ -181,6 +189,8 @@ erDiagram
 
 Tabel pendukung tanpa relasi di diagram: `school_settings` (key, value: `school_name`, `school_address`, `school_phone`, `bank_name`, `bank_account_number`, `bank_account_holder`, `default_spp_amount`), serta tabel bawaan Laravel (`password_reset_tokens`, `sessions`, `jobs`).
 
+Implementasi migration final: `cash_ledger_entries.receipt_number` ditambahkan sebagai `string` wajib dengan UNIQUE melalui migration `2026_10_06_000200_add_receipt_number.php`; seluruh kolom, enum, foreign key, dan indeks di dokumen ini mengikuti hasil gabungan dua migration SKMS (`000100` dan `000200`), termasuk `students.entry_year` bertipe `unsignedSmallInteger`.
+
 ## 2. Nilai enum
 
 | Kolom | Nilai |
@@ -204,7 +214,8 @@ Tabel pendukung tanpa relasi di diagram: `school_settings` (key, value: `school_
 - `guardian_student`: UNIQUE (`guardian_id`, `student_id`). Seorang siswa memiliki minimal satu wali.
 - `daily_journals`: UNIQUE (`student_id`, `journal_date`).
 - `journal_assessments`: UNIQUE (`daily_journal_id`, `aspect`). Jurnal final wajib memiliki kelima aspek.
-- `cash_ledger_entries`: UNIQUE (`invoice_id`) dan UNIQUE (`receipt_number`); entri hanya dibuat oleh sistem dan tidak dapat diubah atau dihapus lewat UI. Nomor kuitansi berformat `KWT/YYYY/MM/NNN`.
+- `cash_ledger_entries`: UNIQUE (`invoice_id`) dan UNIQUE (`receipt_number`); entri hanya dibuat oleh sistem dan tidak dapat diubah atau dihapus lewat UI. Kolom `payment_id` merupakan FK ke bukti pembayaran yang disetujui. Nomor kuitansi berformat `KWT/YYYY/MM/NNN`.
+- `audit_logs`: Menggunakan kolom `created_at` saja tanpa `updated_at` karena bersifat catatan log audit kejadian yang tidak dapat diubah (append-only).
 - `users.email` UNIQUE; `teachers.nip` UNIQUE; `students.nis` UNIQUE (format `2425-014`); `invoices.invoice_number` UNIQUE (format `INV-2026-10-071`).
 
 ## 4. State machine status tagihan
@@ -240,10 +251,13 @@ Aturan transisi (diterapkan di `PaymentVerificationService`):
 ## 6. Data demo (seeder)
 
 Target seeder agar dashboard terlihat nyata dan konsisten antar layar:
-- `school_settings`: `school_name = "TK Tunas Harapan"`; `school_address = "[ISI: alamat sekolah]"`; `school_phone = "[ISI: nomor telepon]"`; `bank_name = "[ISI: nama bank]"`; `bank_account_number = "[ISI: nomor rekening]"`; `bank_account_holder = "[ISI: nama pemilik rekening]"`; `default_spp_amount = [ISI: nominal SPP dalam rupiah]`.
+- `school_settings`: `school_name = "RA Waladun Sholeh"`; `school_address = "[ISI: alamat sekolah]"`; `school_phone = "[ISI: nomor telepon]"`; `bank_name = "[ISI: nama bank]"`; `bank_account_number = "[ISI: nomor rekening]"`; `bank_account_holder = "[ISI: nama pemilik rekening]"`; `default_spp_amount = [ISI: nominal SPP dalam rupiah]`.
 - 1 tahun ajaran aktif 2026/2027 (dan 2025/2026 untuk riwayat), 2 kelas (Kelompok A dan B, masing-masing 39 siswa), 78 siswa aktif, sekitar 64 orang tua (beberapa punya dua anak), 12 guru dan staf, 1 admin, 1 kepala sekolah.
-- Tagihan Okt 2026 untuk 78 siswa: 63 lunas, 9 menunggu verifikasi, 6 belum bayar (dua di antaranya terlambat); tagihan Agu dan Sep dengan campuran status, termasuk beberapa `ditolak` dan beberapa tunggakan lebih dari 30 hari.
-- Jurnal harian 17 hari sekolah di Oktober dengan keterisian sekitar 92% (Kelompok A) dan 74% (Kelompok B), disertai beberapa catatan anekdot.
-- 3 sampai 6 pengumuman (satu disematkan, satu draf, satu kedaluwarsa).
+- Tagihan Okt 2026 untuk 78 siswa: 63 lunas, 9 menunggu verifikasi (siswa 64–72), 6 belum bayar (siswa 73–78).
+- Tagihan Sep 2026 untuk 78 siswa: 69 lunas, 3 ditolak dengan alasan realistis (siswa 64–66), 6 belum bayar (siswa 73–78, menunggak >30 hari).
+- Tagihan Agu 2026 untuk 78 siswa: 75 lunas, 3 belum bayar (siswa 76–78).
+- Diskon saudara kandung (`discount_amount = 50000`) diterapkan pada siswa 1 dan 65 yang berbagi akun orang tua sama (`guardians[0]`).
+- Jurnal harian 17 hari sekolah di Oktober dengan keterisian sekitar 92% (Kelompok A) dan 74% (Kelompok B), serta 12 catatan anekdot realistis terbagi di Guru Demo (Kelompok A) dan Guru 2 (Kelompok B).
+- 6 pengumuman: disematkan, terbit umum, sasaran Kelompok A, sasaran Kelompok B, kedaluwarsa, dan draf.
 - Akun demo: `admin@skms.test`, `guru@skms.test`, `kepsek@skms.test`, `ortu@skms.test` (kata sandi demo di README, bukan di repo publik).
 - **Catatan:** angka pada mockup (misalnya 61 transaksi, Rp 21.350.000) hanya ilustrasi dan tidak perlu sama persis dengan seeder.
