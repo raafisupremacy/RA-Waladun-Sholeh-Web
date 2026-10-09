@@ -50,7 +50,7 @@ class Student extends Model
         } if ($user->hasRole('orang_tua')) {
             return $query->whereHas('guardians', fn ($q) => $q->where('user_id', $user->id));
         } if ($user->hasRole('guru')) {
-            return $query->whereHas('enrollments', fn ($q) => $q->where('status', 'aktif')->whereHas('classroom', fn ($c) => $c->where('homeroom_teacher_id', $user->teacher?->id)->whereHas('academicYear', fn ($y) => $y->where('is_active', true))));
+            return $query->whereHas('enrollments', fn ($q) => $q->where('status', 'aktif')->whereHas('classroom', fn ($c) => $c->where(fn ($cq) => $cq->where('homeroom_teacher_id', $user->teacher?->id)->orWhereHas('teachers', fn ($tq) => $tq->where('teachers.id', $user->teacher?->id)))->whereHas('academicYear', fn ($y) => $y->where('is_active', true))));
         }
 
         return $query->whereKey(-1);
