@@ -24,4 +24,17 @@ class Announcement extends Model
     {
         return $this->belongsTo(Classroom::class);
     }
+
+    public function scopeVisibleToStudent($query, Student $student)
+    {
+        $classroomIds = $student->enrollments()
+            ->where('status', 'aktif')
+            ->whereHas('academicYear', fn ($year) => $year->where('is_active', true))
+            ->pluck('classroom_id');
+
+        return $query->where('status', AnnouncementStatus::Published->value)
+            ->whereNotNull('published_at')->where('published_at', '<=', now())
+            ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->where(fn ($query) => $query->whereNull('classroom_id')->orWhereIn('classroom_id', $classroomIds));
+    }
 }
