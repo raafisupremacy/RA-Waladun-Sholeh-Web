@@ -15,7 +15,7 @@ class AnecdotalNoteService
         abort_unless($teacher->teacher, 403);
         abort_unless(Student::whereKey($data['student_id'])->whereHas('enrollments', function ($query) use ($teacher) {
             $query->where('status', 'aktif')
-                ->whereHas('classroom', fn ($classroom) => $classroom->where('homeroom_teacher_id', $teacher->teacher->id))
+                ->whereHas('classroom', fn ($classroom) => $classroom->where(fn ($cq) => $cq->where('homeroom_teacher_id', $teacher->teacher->id)->orWhereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher->teacher->id))))
                 ->whereHas('academicYear', fn ($year) => $year->where('is_active', true));
         })->exists(), 403);
 
@@ -31,7 +31,7 @@ class AnecdotalNoteService
         abort_unless($note->teacher_id === $teacher->teacher?->id, 403);
         abort_unless(Student::whereKey($note->student_id)->whereHas('enrollments', function ($query) use ($teacher) {
             $query->where('status', 'aktif')
-                ->whereHas('classroom', fn ($classroom) => $classroom->where('homeroom_teacher_id', $teacher->teacher?->id))
+                ->whereHas('classroom', fn ($classroom) => $classroom->where(fn ($cq) => $cq->where('homeroom_teacher_id', $teacher->teacher?->id)->orWhereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher->teacher?->id))))
                 ->whereHas('academicYear', fn ($year) => $year->where('is_active', true));
         })->exists(), 403);
 

@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import TeacherLayout from '@/Layouts/TeacherLayout';
+import { Check, X } from 'lucide-react';
+import { getTeacherLayout } from '@/Layouts/TeacherLayout';
 import BigNumber from '@/Components/BigNumber';
 import StatusCapsule from '@/Components/StatusCapsule';
 import SegmentedControl from '@/Components/SegmentedControl';
@@ -40,8 +41,30 @@ export default function Dashboard({
     progress_percentage,
     students = [],
 }: Props) {
-    const pageProps = usePage().props as { appName?: string; schoolSettings?: Record<string, string> };
+    const pageProps = usePage().props as {
+        appName?: string;
+        schoolSettings?: Record<string, string>;
+        flash?: { success?: string | null };
+    };
     const [filter, setFilter] = useState<'semua' | 'belum_diisi' | 'sudah_diisi'>('semua');
+    const [notification, setNotification] = useState<string | null>(null);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const savedStudent = params.get('saved_student');
+        if (savedStudent) {
+            setNotification(`Jurnal siswa ${savedStudent} berhasil diisi.`);
+            window.history.replaceState({}, '', window.location.pathname);
+        } else if (pageProps.flash?.success) {
+            setNotification(pageProps.flash.success);
+        }
+    }, [pageProps.flash]);
+
+    useEffect(() => {
+        if (!notification) return;
+        const timer = setTimeout(() => setNotification(null), 6000);
+        return () => clearTimeout(timer);
+    }, [notification]);
 
     const unfilledCount = total - filled;
 
@@ -62,16 +85,34 @@ export default function Dashboard({
     ];
 
     return (
-        <TeacherLayout
-            appName={pageProps.appName}
-            schoolName={pageProps.schoolSettings?.school_name}
-        >
+        <>
             <Head title="Beranda Guru" />
 
-            <div className="page-content space-y-6">
+            <div className="space-y-6">
+                {/* Toast Notification Capsule */}
+                {notification && (
+                    <div
+                        role="status"
+                        className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[#E4F6EA] text-[#1D7A3C] border border-[#1D7A3C]/20 px-5 py-2.5 rounded-full flex items-center gap-3 text-sm font-semibold shadow-[0_8px_30px_rgba(0,0,0,0.12)] animate-in fade-in zoom-in-95 duration-200"
+                    >
+                        <span className="w-5 h-5 rounded-full bg-[#1D7A3C] text-white flex items-center justify-center shrink-0">
+                            <Check size={12} strokeWidth={2} />
+                        </span>
+                        <span>{notification}</span>
+                        <button
+                            type="button"
+                            onClick={() => setNotification(null)}
+                            aria-label="Tutup notifikasi"
+                            className="text-[#1D7A3C]/60 hover:text-[#1D7A3C] p-0.5 rounded-full transition-colors ml-1"
+                        >
+                            <X size={15} strokeWidth={1.5} />
+                        </button>
+                    </div>
+                )}
+
                 {/* Hero Tile: Class Title, Date, Progress */}
-                <section className="tile p-8 md:p-12 bg-white rounded-[28px] border border-[var(--border)] shadow-xs">
-                    <p className="text-4xl md:text-5xl font-bold tracking-tight text-[var(--text)]">
+                <section className="tile p-6 md:p-8 bg-white rounded-[24px] border border-[var(--border)] shadow-xs">
+                    <p className="text-3xl md:text-4xl font-bold tracking-tight text-[var(--text)]">
                         {classroom?.name ?? 'Wali Kelas'}
                     </p>
                     <p className="text-[var(--text-2)] text-base md:text-lg mt-1 font-normal">
@@ -167,6 +208,9 @@ export default function Dashboard({
                     )}
                 </section>
             </div>
-        </TeacherLayout>
+        </>
     );
 }
+
+Dashboard.layout = getTeacherLayout;
+

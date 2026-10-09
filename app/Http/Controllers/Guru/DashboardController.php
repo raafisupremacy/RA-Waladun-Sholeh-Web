@@ -15,7 +15,7 @@ class DashboardController extends Controller
     public function index(Request $r)
     {
         $teacher = $r->user()->teacher;
-        $classroom = Classroom::where('homeroom_teacher_id', $teacher?->id)
+        $classroom = Classroom::where(fn ($q) => $q->where('homeroom_teacher_id', $teacher?->id)->orWhereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher?->id)))
             ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
             ->with('academicYear')
             ->first();

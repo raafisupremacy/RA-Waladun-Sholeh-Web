@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { AlertCircle } from 'lucide-react';
 import axios from 'axios';
-import TeacherLayout from '@/Layouts/TeacherLayout';
+import { getTeacherLayout } from '@/Layouts/TeacherLayout';
 import StatusCapsule from '@/Components/StatusCapsule';
 import SegmentedControl from '@/Components/SegmentedControl';
 
@@ -216,12 +217,10 @@ export default function JournalForm({
             });
         })
         .then(() => {
-            router.reload();
+            router.visit(`/guru?saved_student=${encodeURIComponent(student.name)}`);
         })
         .catch((err) => {
             setGeneralError(err.response?.data?.message || 'Gagal menyimpan jurnal.');
-        })
-        .finally(() => {
             setIsSubmitting(false);
         });
     };
@@ -231,13 +230,10 @@ export default function JournalForm({
     };
 
     return (
-        <TeacherLayout
-            appName={pageProps.appName}
-            schoolName={pageProps.schoolSettings?.school_name}
-        >
+        <>
             <Head title={`Jurnal ${student.name}`} />
 
-            <div className="page-content pb-44 lg:pb-28 space-y-6">
+            <div className="w-full max-w-[760px] mx-auto pb-36 space-y-6">
                 {/* Header: Student, NIS, Date Picker, Nav */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-4">
                     <div className="flex items-center gap-3">
@@ -405,32 +401,46 @@ export default function JournalForm({
             </div>
 
             {/* Sticky Bottom Action Bar */}
-            <div className="fixed bottom-[64px] lg:bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-[var(--border)] px-4 md:px-8 py-3.5 shadow-lg">
-                <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="fixed-action-bar fixed bottom-[64px] sm:bottom-0 left-0 right-0 z-30 w-full !max-w-none bg-[#FBFBFD]/92 backdrop-blur-[20px] [backdrop-filter:saturate(180%)_blur(20px)] border-t border-[var(--separator)] px-4 md:px-8 py-3.5 shadow-sm">
+                <div className="max-w-[760px] w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="text-xs md:text-sm">
                         {generalError ? (
-                            <span className="text-[#E02020] font-semibold flex items-center gap-1.5">
-                                ⚠ {generalError}
+                            <span className="text-[#C4271B] font-semibold flex items-center gap-1.5">
+                                <AlertCircle size={15} strokeWidth={1.5} className="shrink-0" />
+                                {generalError}
                             </span>
-                        ) : savedNotice ? (
-                            <span className="text-[var(--text-2)] font-medium">
-                                {savedNotice}
+                        ) : !isFinalized ? (
+                            savedNotice ? (
+                                <span className="text-[var(--text-2)] font-medium flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1D7A3C] inline-block" />
+                                    {savedNotice}
+                                </span>
+                            ) : (
+                                <span className="text-[var(--text-3)]">
+                                    Belum ada perubahan tersimpan
+                                </span>
+                            )
+                        ) : isEditingUnlocked && !is_locked ? (
+                            <span className="text-[var(--text-2)] font-medium flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#0071E3] inline-block" />
+                                Mode edit jurnal · Batas 24 jam
                             </span>
                         ) : (
-                            <span className="text-[var(--text-3)]">
-                                Belum ada perubahan tersimpan
+                            <span className="text-[#1D7A3C] font-medium flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#1D7A3C] inline-block" />
+                                Jurnal sudah disimpan untuk {date_formatted}
                             </span>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-3 self-end sm:self-auto">
-                        {!isReadOnly ? (
+                    <div className="flex items-center gap-2.5 self-end sm:self-auto flex-wrap">
+                        {!isFinalized ? (
                             <>
                                 <button
                                     type="button"
                                     disabled={isSubmitting}
                                     onClick={handleManualSaveDraft}
-                                    className="button-secondary text-sm px-5 py-2.5 rounded-full font-medium"
+                                    className="button-secondary text-sm px-5 py-2.5 rounded-full font-medium active:scale-[0.98] transition-all duration-150"
                                 >
                                     Simpan draf
                                 </button>
@@ -438,20 +448,44 @@ export default function JournalForm({
                                     type="button"
                                     disabled={isSubmitting}
                                     onClick={handleFinalize}
-                                    className="bg-[var(--accent,#0071E3)] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                    className="bg-[var(--accent,#0071E3)] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[#0077ED] active:scale-[0.98] transition-all duration-150 shadow-xs disabled:opacity-50"
                                 >
                                     {isSubmitting ? 'Menyimpan...' : 'Simpan jurnal'}
                                 </button>
                             </>
+                        ) : isEditingUnlocked && !is_locked ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditingUnlocked(false)}
+                                    className="button-secondary text-sm px-5 py-2.5 rounded-full font-medium"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={isSubmitting}
+                                    onClick={handleFinalize}
+                                    className="bg-[var(--accent,#0071E3)] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                >
+                                    {isSubmitting ? 'Menyimpan...' : 'Simpan perubahan'}
+                                </button>
+                            </>
                         ) : (
                             <>
+                                <Link
+                                    href="/guru"
+                                    className="button-secondary text-sm px-5 py-2.5 rounded-full font-medium"
+                                >
+                                    Kembali ke Beranda
+                                </Link>
                                 {can_edit && (
                                     <button
                                         type="button"
                                         onClick={() => setIsEditingUnlocked(true)}
                                         className="button-secondary text-sm px-5 py-2.5 rounded-full font-medium"
                                     >
-                                        Ubah data jurnal
+                                        Ubah jurnal
                                     </button>
                                 )}
                                 {next_student && (
@@ -467,6 +501,9 @@ export default function JournalForm({
                     </div>
                 </div>
             </div>
-        </TeacherLayout>
+        </>
     );
 }
+
+JournalForm.layout = getTeacherLayout;
+

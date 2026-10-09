@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import TeacherLayout from '@/Layouts/TeacherLayout';
+import { getTeacherLayout } from '@/Layouts/TeacherLayout';
 import StatusCapsule from '@/Components/StatusCapsule';
+import CustomSelect from '@/Components/CustomSelect';
 
 type AspectKey = 'nilai_agama_moral' | 'fisik_motorik' | 'kognitif' | 'bahasa' | 'sosial_emosional';
 
@@ -85,8 +86,8 @@ export default function JournalHistory({
         }, { preserveState: false });
     };
 
-    const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const [m, y] = e.target.value.split('-').map(Number);
+    const handleMonthChange = (val: string) => {
+        const [m, y] = val.split('-').map(Number);
         router.get('/guru/riwayat', {
             student_id: selected_student?.id,
             month: m,
@@ -107,13 +108,10 @@ export default function JournalHistory({
     const activeJournal = selectedDate ? journals_by_date[selectedDate] : null;
 
     return (
-        <TeacherLayout
-            appName={pageProps.appName}
-            schoolName={pageProps.schoolSettings?.school_name}
-        >
+        <>
             <Head title="Riwayat Jurnal" />
 
-            <div className="page-content space-y-6">
+            <div className="space-y-6">
                 {/* Header: Eyebrow, Title, Stats */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
@@ -136,43 +134,36 @@ export default function JournalHistory({
                 <div className="tile p-4 md:p-6 bg-white rounded-2xl border border-[var(--border)] shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Student Dropdown */}
-                        <select
+                        <CustomSelect
                             value={selected_student?.id ?? ''}
-                            onChange={(e) => handleStudentChange(Number(e.target.value))}
-                            className="text-sm font-semibold rounded-full border border-[var(--border)] px-4 py-2 bg-[#F5F5F7] focus:bg-white focus:ring-[var(--accent)]"
-                        >
-                            {students.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                    {s.name} (NIS {s.nis})
-                                </option>
-                            ))}
-                        </select>
+                            onChange={(val) => handleStudentChange(Number(val))}
+                            options={students.map((s) => ({
+                                value: s.id,
+                                label: `${s.name} (NIS ${s.nis})`,
+                            }))}
+                        />
 
                         {/* Month Selector */}
-                        <select
+                        <CustomSelect
                             value={`${month}-${year}`}
-                            onChange={handleMonthChange}
-                            className="text-sm font-semibold rounded-full border border-[var(--border)] px-4 py-2 bg-[#F5F5F7] focus:bg-white focus:ring-[var(--accent)]"
-                        >
-                            <option value="10-2026">Oktober 2026</option>
-                            <option value="9-2026">September 2026</option>
-                            <option value="8-2026">Agustus 2026</option>
-                            <option value="7-2026">Juli 2026</option>
-                        </select>
+                            onChange={(val) => handleMonthChange(String(val))}
+                            options={[
+                                { value: '10-2026', label: 'Oktober 2026' },
+                                { value: '9-2026', label: 'September 2026' },
+                                { value: '8-2026', label: 'Agustus 2026' },
+                                { value: '7-2026', label: 'Juli 2026' },
+                            ]}
+                        />
 
                         {/* Aspect Filter */}
-                        <select
+                        <CustomSelect
                             value={currentAspectFilter}
-                            onChange={(e) => handleAspectFilterChange(e.target.value)}
-                            className="text-sm font-semibold rounded-full border border-[var(--border)] px-4 py-2 bg-[#F5F5F7] focus:bg-white focus:ring-[var(--accent)]"
-                        >
-                            <option value="all">Semua Aspek Perkembangan</option>
-                            {ASPECTS.map((a) => (
-                                <option key={a.key} value={a.key}>
-                                    {a.label}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={(val) => handleAspectFilterChange(String(val))}
+                            options={[
+                                { value: 'all', label: 'Semua Aspek Perkembangan' },
+                                ...ASPECTS.map((a) => ({ value: a.key, label: a.label })),
+                            ]}
+                        />
                     </div>
 
                     <div className="text-xs text-[var(--text-2)] font-medium self-end md:self-auto">
@@ -361,6 +352,9 @@ export default function JournalHistory({
                     </div>
                 </div>
             </div>
-        </TeacherLayout>
+        </>
     );
 }
+
+JournalHistory.layout = getTeacherLayout;
+

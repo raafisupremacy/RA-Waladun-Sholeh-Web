@@ -64,7 +64,10 @@ class JournalService
 
     private function ownsClassroom(int $classroomId, $teacher): bool
     {
-        return Classroom::whereKey($classroomId)->where('homeroom_teacher_id', $teacher->id)->whereHas('academicYear', fn ($q) => $q->where('is_active', true))->exists() ?: abort(403);
+        return Classroom::whereKey($classroomId)
+            ->where(fn ($q) => $q->where('homeroom_teacher_id', $teacher->id)->orWhereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher->id)))
+            ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
+            ->exists() ?: abort(403);
     }
 
     private function ownsStudent(int $studentId, int $classroomId): void

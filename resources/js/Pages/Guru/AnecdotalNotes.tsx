@@ -1,7 +1,8 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Head, router, usePage } from '@inertiajs/react';
-import TeacherLayout from '@/Layouts/TeacherLayout';
-import BottomSheet from '@/Components/BottomSheet';
+import { NotebookPen, X } from 'lucide-react';
+import { getTeacherLayout } from '@/Layouts/TeacherLayout';
 import StatusCapsule from '@/Components/StatusCapsule';
 
 type StudentItem = {
@@ -70,6 +71,24 @@ export default function AnecdotalNotes({
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!isDrawerOpen) return;
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isSubmitting) {
+                setIsDrawerOpen(false);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.body.style.overflow = prevOverflow;
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isDrawerOpen, isSubmitting]);
 
     const filteredStudents = useMemo(() => {
         if (!search.trim()) return students;
@@ -157,10 +176,7 @@ export default function AnecdotalNotes({
     };
 
     return (
-        <TeacherLayout
-            appName={pageProps.appName}
-            schoolName={pageProps.schoolSettings?.school_name}
-        >
+        <>
             <Head title="Catatan Anekdot" />
 
             <div className="page-content space-y-6">
@@ -295,8 +311,8 @@ export default function AnecdotalNotes({
                                 {/* Notes Timeline */}
                                 {notes.data.length === 0 ? (
                                     <div className="tile p-12 bg-white rounded-[28px] border border-[var(--border)] text-center space-y-4 shadow-xs">
-                                        <div className="w-14 h-14 rounded-full bg-[#F5F5F7] text-[var(--text-2)] mx-auto flex items-center justify-center">
-                                            📝
+                                        <div className="w-14 h-14 rounded-full bg-[#F5F5F7] text-stone-400 mx-auto flex items-center justify-center">
+                                            <NotebookPen size={24} strokeWidth={1.5} />
                                         </div>
                                         <div>
                                             <p className="text-base font-semibold text-[var(--text)]">
@@ -395,141 +411,176 @@ export default function AnecdotalNotes({
                 </div>
             </div>
 
-            {/* Drawer / BottomSheet for Add & Edit */}
-            <BottomSheet
-                open={isDrawerOpen}
-                title={editingNote ? 'Ubah Catatan Anekdot' : 'Tambah Catatan Anekdot'}
-                drawer={true}
-                onClose={() => setIsDrawerOpen(false)}
-            >
-                <form onSubmit={handleSubmitForm} className="space-y-4 mt-2">
-                    <p className="text-xs text-[var(--text-2)]">
-                        Dokumentasikan peristiwa penting atau perkembangan perilaku anak.
-                    </p>
-
-                    <div>
-                        <label className="block text-xs font-medium text-[var(--text-2)] mb-1">
-                            Siswa
-                        </label>
-                        <div className="p-3 bg-[#F5F5F7] rounded-xl text-sm font-semibold text-[var(--text)]">
-                            {selected_student?.name} — NIS {selected_student?.nis}
+            {/* Modal Catatan Anekdot */}
+            {isDrawerOpen && typeof document !== 'undefined' && createPortal(
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-xs overflow-hidden"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="anecdote-modal-title"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget && !isSubmitting) {
+                            setIsDrawerOpen(false);
+                        }
+                    }}
+                >
+                    <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl flex flex-col max-h-[calc(100dvh-32px)] border border-stone-100 text-left my-auto animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                        {/* Header */}
+                        <div className="p-6 pb-4 shrink-0 flex items-start justify-between gap-4 border-b border-stone-100">
+                            <div>
+                                <h2 id="anecdote-modal-title" className="text-xl font-bold text-stone-900 tracking-tight">
+                                    {editingNote ? 'Ubah Catatan Anekdot' : 'Tambah Catatan Anekdot'}
+                                </h2>
+                                <p className="text-xs text-stone-500 mt-1">
+                                    Dokumentasikan peristiwa penting atau perkembangan perilaku anak.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (!isSubmitting) setIsDrawerOpen(false);
+                                }}
+                                className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                                aria-label="Tutup"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label htmlFor="note-date" className="block text-xs font-medium text-[var(--text-2)] mb-1">
-                                Tanggal
-                            </label>
-                            <input
-                                id="note-date"
-                                type="date"
-                                value={formDate}
-                                onChange={(e) => setFormDate(e.target.value)}
-                                className="w-full rounded-xl border border-[var(--border)] p-2.5 text-sm"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="note-time" className="block text-xs font-medium text-[var(--text-2)] mb-1">
-                                Waktu
-                            </label>
-                            <input
-                                id="note-time"
-                                type="time"
-                                value={formTime}
-                                onChange={(e) => setFormTime(e.target.value)}
-                                className="w-full rounded-xl border border-[var(--border)] p-2.5 text-sm"
-                                required
-                            />
-                        </div>
-                    </div>
+                        {/* Scrollable Form Body */}
+                        <form onSubmit={handleSubmitForm} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+                            <div className="p-6 overflow-y-auto overscroll-contain space-y-4 flex-1">
+                                <div>
+                                    <label className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                                        Siswa
+                                    </label>
+                                    <div className="p-3 bg-stone-50 rounded-2xl border border-stone-100 text-sm font-semibold text-stone-800">
+                                        {selected_student?.name} — NIS {selected_student?.nis}
+                                    </div>
+                                </div>
 
-                    <div>
-                        <label htmlFor="observed-behavior" className="block text-xs font-medium text-[var(--text-2)] mb-1">
-                            Perilaku yang teramati *
-                        </label>
-                        <textarea
-                            id="observed-behavior"
-                            rows={3}
-                            value={observedBehavior}
-                            onChange={(e) => setObservedBehavior(e.target.value)}
-                            placeholder="Deskripsikan apa yang dilakukan atau dikatakan anak secara faktual..."
-                            className="w-full rounded-xl border border-[var(--border)] p-3 text-sm focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
-                            required
-                        />
-                        {formErrors.observed_behavior && (
-                            <p className="text-xs text-[#E02020] mt-1">{formErrors.observed_behavior}</p>
-                        )}
-                    </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label htmlFor="note-date" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                                            Tanggal
+                                        </label>
+                                        <input
+                                            id="note-date"
+                                            type="date"
+                                            value={formDate}
+                                            onChange={(e) => setFormDate(e.target.value)}
+                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="note-time" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                                            Waktu
+                                        </label>
+                                        <input
+                                            id="note-time"
+                                            type="time"
+                                            value={formTime}
+                                            onChange={(e) => setFormTime(e.target.value)}
+                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            required
+                                        />
+                                    </div>
+                                </div>
 
-                    <div>
-                        <label htmlFor="interpretation" className="block text-xs font-medium text-[var(--text-2)] mb-1">
-                            Interpretasi guru *
-                        </label>
-                        <textarea
-                            id="interpretation"
-                            rows={2}
-                            value={interpretation}
-                            onChange={(e) => setInterpretation(e.target.value)}
-                            placeholder="Makna atau capaian perkembangan yang terindikasi dari perilaku..."
-                            className="w-full rounded-xl border border-[var(--border)] p-3 text-sm focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
-                            required
-                        />
-                        {formErrors.interpretation && (
-                            <p className="text-xs text-[#E02020] mt-1">{formErrors.interpretation}</p>
-                        )}
-                    </div>
+                                <div>
+                                    <label htmlFor="observed-behavior" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                                        Perilaku yang teramati *
+                                    </label>
+                                    <textarea
+                                        id="observed-behavior"
+                                        rows={3}
+                                        value={observedBehavior}
+                                        onChange={(e) => setObservedBehavior(e.target.value)}
+                                        placeholder="Deskripsikan apa yang dilakukan atau dikatakan anak secara faktual..."
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none"
+                                        required
+                                    />
+                                    {formErrors.observed_behavior && (
+                                        <p className="text-xs text-rose-600 mt-1 font-medium">{formErrors.observed_behavior}</p>
+                                    )}
+                                </div>
 
-                    <div>
-                        <label htmlFor="follow-up" className="block text-xs font-medium text-[var(--text-2)] mb-1">
-                            Tindak lanjut (opsional)
-                        </label>
-                        <textarea
-                            id="follow-up"
-                            rows={2}
-                            value={followUp}
-                            onChange={(e) => setFollowUp(e.target.value)}
-                            placeholder="Rencana stimulasi atau dukungan pembelajaran selanjutnya..."
-                            className="w-full rounded-xl border border-[var(--border)] p-3 text-sm focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
-                        />
-                    </div>
+                                <div>
+                                    <label htmlFor="interpretation" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                                        Interpretasi guru *
+                                    </label>
+                                    <textarea
+                                        id="interpretation"
+                                        rows={2}
+                                        value={interpretation}
+                                        onChange={(e) => setInterpretation(e.target.value)}
+                                        placeholder="Makna atau capaian perkembangan yang terindikasi dari perilaku..."
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none"
+                                        required
+                                    />
+                                    {formErrors.interpretation && (
+                                        <p className="text-xs text-rose-600 mt-1 font-medium">{formErrors.interpretation}</p>
+                                    )}
+                                </div>
 
-                    <div>
-                        <label htmlFor="photo-file" className="block text-xs font-medium text-[var(--text-2)] mb-1">
-                            Lampiran foto (opsional, maks 5MB)
-                        </label>
-                        <input
-                            id="photo-file"
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/png, image/jpeg, image/jpg"
-                            onChange={(e) => setSelectedPhoto(e.target.files?.[0] ?? null)}
-                            className="w-full text-xs text-[var(--text-2)] file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#EBF4FE] file:text-[var(--accent)] hover:file:bg-[#DCEAFE]"
-                        />
-                        {formErrors.photo && (
-                            <p className="text-xs text-[#E02020] mt-1">{formErrors.photo}</p>
-                        )}
-                    </div>
+                                <div>
+                                    <label htmlFor="follow-up" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                                        Tindak lanjut (opsional)
+                                    </label>
+                                    <textarea
+                                        id="follow-up"
+                                        rows={2}
+                                        value={followUp}
+                                        onChange={(e) => setFollowUp(e.target.value)}
+                                        placeholder="Rencana stimulasi atau dukungan pembelajaran selanjutnya..."
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none"
+                                    />
+                                </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--border)]">
-                        <button
-                            type="button"
-                            onClick={() => setIsDrawerOpen(false)}
-                            className="button-secondary text-sm px-4 py-2"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="bg-[var(--accent,#0071E3)] text-white text-sm px-6 py-2 rounded-full font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
-                        >
-                            {isSubmitting ? 'Menyimpan...' : 'Simpan'}
-                        </button>
+                                <div>
+                                    <label htmlFor="photo-file" className="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-1.5">
+                                        Lampiran foto (opsional, maks 5MB)
+                                    </label>
+                                    <input
+                                        id="photo-file"
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/png, image/jpeg, image/jpg"
+                                        onChange={(e) => setSelectedPhoto(e.target.files?.[0] ?? null)}
+                                        className="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#EBF4FE] file:text-[#0071E3] hover:file:bg-[#DCEAFE]"
+                                    />
+                                    {formErrors.photo && (
+                                        <p className="text-xs text-rose-600 mt-1 font-medium">{formErrors.photo}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Sticky Footer */}
+                            <div className="p-4 px-6 border-t border-stone-100 bg-stone-50/60 shrink-0 flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDrawerOpen(false)}
+                                    className="px-5 py-2.5 rounded-full border border-stone-200 text-stone-700 text-sm font-semibold hover:bg-white transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                >
+                                    {isSubmitting ? 'Menyimpan...' : 'Simpan'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                </form>
-            </BottomSheet>
-        </TeacherLayout>
+                </div>,
+                document.body
+            )}
+        </>
     );
 }
+
+AnecdotalNotes.layout = getTeacherLayout;
+

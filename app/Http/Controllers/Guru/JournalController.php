@@ -14,17 +14,87 @@ use Inertia\Inertia;
 
 class JournalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $studentIds = Student::visibleTo(auth()->user())->pluck('students.id');
-        $journals = DailyJournal::with('student')
-            ->where('teacher_id', auth()->user()->teacher?->id)
-            ->whereIn('student_id', $studentIds)
-            ->latest('journal_date')
-            ->paginate(20)
-            ->through(fn (DailyJournal $journal) => $this->summary($journal));
+        $teacher = auth()->user()->teacher;
+        $classroom = Classroom::where(fn ($q) => $q->where('homeroom_teacher_id', $teacher?->id)->orWhereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher?->id)))
+            ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
+            ->first();
 
-        return Inertia::render('Guru/Journal', ['journals' => $journals]);
+        $activeStudentsQuery = Student::visibleTo(auth()->user());
+        if ($classroom) {
+            $activeStudentsQuery->whereHas('enrollments', fn ($q) => $q->where('classroom_id', $classroom->id)
+                ->where('status', 'aktif')
+                ->whereHas('academicYear', fn ($y) => $y->where('is_active', true)));
+        }
+        $totalStudents = (clone $activeStudentsQuery)->count();
+        $filledToday = DailyJournal::where('teacher_id', $teacher?->id)
+            ->whereDate('journal_date', today())
+            ->where('status', JournalStatus::Final)
+            ->count();
+
+        $filledTodayStudentIds = DailyJournal::where('teacher_id', $teacher?->id)
+            ->whereDate('journal_date', today())
+            ->where('status', JournalStatus::Final)
+            ->pluck('student_id');
+
+        $firstUnfilledStudent = (clone $activeStudentsQuery)
+            ->whereNotIn('students.id', $filledTodayStudentIds)
+            ->first();
+
+        $query = DailyJournal::with('student')
+            ->where('teacher_id', $teacher?->id)
+            ->whereIn('student_id', $activeStudentsQuery->pluck('students.id'));
+
+        if ($request->filled('date')) {
+            $query->whereDate('journal_date', $request->input('date'));
+        }
+
+        if ($request->filled('q')) {
+            $q = $request->input('q');
+            $query->whereHas('student', fn ($s) => $s->where('name', 'like', "%{$q}%")->orWhere('nis', 'like', "%{$q}%"));
+        }
+
+        $journals = $query->latest('journal_date')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (DailyJournal $journal) => [
+                'id' => $journal->id,
+                'student_id' => $journal->student_id,
+                'student' => $journal->student ? [
+                    'id' => $journal->student->id,
+                    'name' => $journal->student->name,
+                    'nis' => $journal->student->nis,
+                    'initials' => collect(explode(' ', $journal->student->name))
+                        ->filter()
+                        ->take(2)
+                        ->map(fn ($p) => mb_substr($p, 0, 1))
+                        ->implode(''),
+                ] : null,
+                'journal_date' => $journal->journal_date?->toDateString(),
+                'journal_date_formatted' => $journal->journal_date?->locale('id')->translatedFormat('j M Y'),
+                'activity_summary' => $journal->activity_summary ?: 'Belum ada ringkasan kegiatan',
+                'status' => $journal->status?->value,
+                'status_label' => $journal->status === JournalStatus::Final ? 'Sudah disimpan' : 'Draf',
+            ]);
+
+        return Inertia::render('Guru/Journal', [
+            'classroom' => $classroom ? [
+                'id' => $classroom->id,
+                'name' => $classroom->name,
+            ] : null,
+            'today_stats' => [
+                'date_formatted' => today()->locale('id')->translatedFormat('l, j M Y'),
+                'filled' => $filledToday,
+                'total' => $totalStudents,
+                'next_student_id' => $firstUnfilledStudent?->id,
+            ],
+            'filters' => [
+                'date' => $request->input('date', ''),
+                'q' => $request->input('q', ''),
+            ],
+            'journals' => $journals,
+        ]);
     }
 
     public function show(Student $student, Request $request)
@@ -32,7 +102,7 @@ class JournalController extends Controller
         abort_unless(Student::visibleTo(auth()->user())->whereKey($student->id)->exists(), 403);
 
         $teacher = auth()->user()->teacher;
-        $classroom = Classroom::where('homeroom_teacher_id', $teacher?->id)
+        $classroom = Classroom::where(fn ($q) => $q->where('homeroom_teacher_id', $teacher?->id)->orWhereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher?->id)))
             ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
             ->first();
 
@@ -124,7 +194,7 @@ class JournalController extends Controller
     public function history(Request $request)
     {
         $teacher = $request->user()->teacher;
-        $classroom = Classroom::where('homeroom_teacher_id', $teacher?->id)
+        $classroom = Classroom::where(fn ($q) => $q->where('homeroom_teacher_id', $teacher?->id)->orWhereHas('teachers', fn ($t) => $t->where('teachers.id', $teacher?->id)))
             ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
             ->first();
 
