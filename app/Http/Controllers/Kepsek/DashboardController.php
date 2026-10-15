@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Kepsek;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
+use App\Models\SchoolSetting;
 use App\Models\Student;
 use App\Services\ReportService;
 use Carbon\Carbon;
@@ -34,6 +35,10 @@ class DashboardController extends Controller
         $trend = $reports->activeStudentTrend($year?->id, 4);
         $journalCompletion = $reports->journalCompletion($month, $periodYear, $year?->id);
         $overdue = $reports->overdueStudents(30, $year?->id);
+        $settings = SchoolSetting::whereIn('key', ['semester_1_start', 'semester_1_end', 'semester_2_start', 'semester_2_end'])->pluck('value', 'key');
+        $today = now('Asia/Jakarta')->startOfDay();
+        $semester = collect([['name' => 'Semester 1', 'start' => $settings['semester_1_start'] ?? null, 'end' => $settings['semester_1_end'] ?? null], ['name' => 'Semester 2', 'start' => $settings['semester_2_start'] ?? null, 'end' => $settings['semester_2_end'] ?? null]])->filter(fn ($s) => $s['start'] && $s['end'])->first(fn ($s) => $today->between(Carbon::parse($s['start']), Carbon::parse($s['end'])));
+        $semesterProgress = $semester ? ['name' => $semester['name'], 'start' => $semester['start'], 'end' => $semester['end'], 'days_total' => Carbon::parse($semester['start'])->diffInDays(Carbon::parse($semester['end'])) + 1, 'days_elapsed' => Carbon::parse($semester['start'])->diffInDays($today) + 1] : ['name' => $today->lt(Carbon::parse($settings['semester_1_start'] ?? '9999-01-01')) ? 'Semester 1 belum dimulai' : 'Semester telah berakhir'];
 
         $activeStudentsCount = Student::where('status', 'aktif')
             ->when($year?->id, fn ($q) => $q->whereHas('enrollments', fn ($e) => $e->where('academic_year_id', $year->id)))
@@ -51,6 +56,7 @@ class DashboardController extends Controller
             'activeStudentsCount' => $activeStudentsCount,
             'journalCompletion' => $journalCompletion,
             'overdue' => $overdue,
+            'semesterProgress' => $semesterProgress,
         ]);
     }
 }

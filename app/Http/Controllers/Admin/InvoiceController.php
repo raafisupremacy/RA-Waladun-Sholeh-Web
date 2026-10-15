@@ -21,19 +21,23 @@ class InvoiceController extends Controller
             $query->when($filters[$key] ?? null, fn ($q, $value) => $q->where($column, $value));
         }
         $query->when($filters['classroom_id'] ?? null, fn ($q, $id) => $q->whereHas('student.enrollments', fn ($enrollment) => $enrollment->where('classroom_id', $id)->whereColumn('enrollments.academic_year_id', 'invoices.academic_year_id')));
+        if ($search = trim((string) ($filters['search'] ?? ''))) {
+            $term = addcslashes($search, '%_\\');
+            $query->whereHas('student', fn ($student) => $student->where('name', 'like', "%{$term}%")->orWhere('nis', 'like', "%{$term}%"));
+        }
 
         return Inertia::render('Admin/Invoices', [
             'invoices' => $query->orderByDesc('period_year')->orderByDesc('period_month')->orderBy('id')->paginate(10)->withQueryString()->through(fn ($invoice) => [
                 'id' => $invoice->id, 'invoice_number' => $invoice->invoice_number,
                 'student' => $invoice->student->name, 'nis' => $invoice->student->nis,
-                'classroom' => $invoice->student->enrollments->firstWhere('academic_year_id', $invoice->academic_year_id)?->classroom?->name,
+                'classroom' => $invoice->student->enrollments->firstWhere('academic_year_id', $invoice->academic_year_id)?->classroom?->display_name,
                 'month' => $invoice->period_month, 'year' => $invoice->period_year,
                 'amount' => (int) $invoice->amount, 'discount_amount' => (int) $invoice->discount_amount,
                 'net_amount' => $invoice->net_amount, 'due_date' => $invoice->due_date->toDateString(), 'status' => $invoice->status->value,
                 'overdue_days' => $invoice->status->value !== 'lunas' ? max(0, (int) $invoice->due_date->diffInDays(today(), false)) : 0,
             ]),
             'academicYears' => AcademicYear::orderByDesc('start_date')->get()->map->only(['id', 'name', 'is_active']),
-            'classrooms' => Classroom::orderBy('name')->get(['id', 'name', 'academic_year_id'])->toArray(),
+            'classrooms' => Classroom::orderBy('name')->get(['id', 'name', 'level', 'academic_year_id'])->map(fn ($c) => ['id' => $c->id, 'name' => $c->display_name, 'academic_year_id' => $c->academic_year_id])->all(),
             'filters' => $filters, 'currentPeriod' => ['month' => now()->month, 'year' => now()->year],
         ]);
     }

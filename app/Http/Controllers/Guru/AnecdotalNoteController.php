@@ -21,10 +21,7 @@ class AnecdotalNoteController extends Controller
             ->whereHas('academicYear', fn ($q) => $q->where('is_active', true))
             ->first();
 
-        $students = Student::query()
-            ->whereHas('enrollments', fn ($q) => $q->where('classroom_id', $classroom?->id)
-                ->where('status', 'aktif')
-                ->whereHas('academicYear', fn ($y) => $y->where('is_active', true)))
+        $students = Student::visibleTo($r->user())
             ->where('status', 'aktif')
             ->withCount('anecdotalNotes')
             ->orderBy('name')
@@ -34,7 +31,7 @@ class AnecdotalNoteController extends Controller
         $selectedStudent = $students->firstWhere('id', $selectedStudentId);
 
         $notesQuery = AnecdotalNote::with('student')
-            ->where('teacher_id', $teacher?->id)
+            ->whereIn('student_id', $students->pluck('id'))
             ->where('student_id', $selectedStudentId)
             ->latest('noted_at');
 
@@ -64,7 +61,7 @@ class AnecdotalNoteController extends Controller
         return Inertia::render('Guru/AnecdotalNotes', [
             'classroom' => $classroom ? [
                 'id' => $classroom->id,
-                'name' => $classroom->name,
+                'name' => $classroom->display_name,
             ] : null,
             'students' => $students->map(function ($s) {
                 $nameParts = preg_split('/\s+/', trim($s->name));

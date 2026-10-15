@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MasterDataRequest;
 use App\Models\Classroom;
 use App\Models\Teacher;
 use App\Services\AccountProvisioningService;
@@ -53,7 +54,7 @@ class TeacherController extends Controller
                     'phone' => $t->phone,
                     'email' => $t->user->email,
                     'is_active' => $t->user->is_active,
-                    'classroom' => $assignedClass?->name,
+                    'classroom' => $assignedClass?->display_name,
                     'classroom_id' => $assignedClass?->id,
                     'classroom_role' => $role,
                     'account_status' => ! $t->user->is_active ? 'nonaktif' : ($t->user->must_change_password ? 'belum_masuk' : 'aktif'),
@@ -92,5 +93,26 @@ class TeacherController extends Controller
         $service->resetPassword($teacher->user, $r->user());
 
         return back();
+    }
+
+    public function update(MasterDataRequest $request, Teacher $teacher, MasterDataService $service)
+    {
+        $service->updateTeacher($teacher, $request->validated(), $request->user());
+
+        return back()->with('success', 'Data guru berhasil diperbarui.');
+    }
+
+    public function deactivate(Request $request, Teacher $teacher, MasterDataService $service)
+    {
+        $service->deactivate($teacher, $request->user());
+
+        return back()->with('success', 'Guru dinonaktifkan.');
+    }
+
+    public function activate(Request $request, Teacher $teacher, MasterDataService $service)
+    {
+        $service->activate($teacher->user, $request->user());
+
+        return back()->with('success', 'Guru diaktifkan kembali.');
     }
 }

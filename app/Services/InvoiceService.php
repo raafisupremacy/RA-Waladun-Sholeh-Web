@@ -19,7 +19,12 @@ class InvoiceService
 {
     private function eligibleStudents(int $academicYearId)
     {
-        return Student::where('status', 'aktif')->whereHas('enrollments', fn ($q) => $q->where('academic_year_id', $academicYearId)->where('status', 'aktif'));
+        return Student::where('status', 'aktif')
+            ->whereHas('enrollments', fn ($q) => $q->where('academic_year_id', $academicYearId)->where('status', 'aktif'))
+            ->where(function ($q) {
+                $q->whereDoesntHave('guardians')
+                    ->orWhereHas('guardians.user', fn ($user) => $user->where('is_active', true));
+            });
     }
 
     public function preview(int $month, int $year, int $academicYearId): array

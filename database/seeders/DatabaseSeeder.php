@@ -20,11 +20,12 @@ use App\Models\Guardian;
 use App\Models\Invoice;
 use App\Models\JournalAssessment;
 use App\Models\Payment;
-use App\Models\SchoolSetting;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
+use App\Services\SchoolCalendarService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
@@ -33,18 +34,13 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(SchoolSettingsSeeder::class);
+
         foreach (['admin', 'guru', 'kepala_sekolah', 'orang_tua'] as $role) {
             Role::findOrCreate($role, 'web');
         }
-        $settings = [
-            'school_name' => 'RA Waladun Sholeh', 'school_address' => '[ISI: alamat sekolah]', 'school_phone' => '[ISI: nomor telepon]',
-            'bank_name' => '[ISI: nama bank]', 'bank_account_number' => '[ISI: nomor rekening]', 'bank_account_holder' => '[ISI: nama pemilik rekening]', 'default_spp_amount' => '350000',
-        ];
-        foreach ($settings as $key => $value) {
-            SchoolSetting::create(['key' => $key, 'value' => $value]);
-        }
 
-        if (! in_array(config('app.env'), ['local', 'testing'], true)) {
+        if (! in_array(config('app.env'), ['local', 'testing', 'e2e'], true)) {
             $password = Str::random(32);
             $admin = User::firstOrCreate(['email' => 'admin@skms.test'], [
                 'name' => 'Admin Tata Usaha',
@@ -70,22 +66,28 @@ class DatabaseSeeder extends Seeder
             $u = $this->user("guru{$i}@skms.test", "Guru {$i}", 'guru', true);
             $teachers->push(Teacher::create(['user_id' => $u->id, 'name' => "Guru {$i}", 'nip' => sprintf('NIP-DEMO-%03d', $i), 'phone' => sprintf('081200000%02d', $i)]));
         }
-        $classA = Classroom::create(['academic_year_id' => $activeYear->id, 'homeroom_teacher_id' => $demoTeacher->id, 'name' => 'Kelompok A', 'age_range' => '4–5 tahun']);
-        $classB = Classroom::create(['academic_year_id' => $activeYear->id, 'homeroom_teacher_id' => $teachers[1]->id, 'name' => 'Kelompok B', 'age_range' => '5–6 tahun']);
+        $classA1 = Classroom::create(['academic_year_id' => $activeYear->id, 'homeroom_teacher_id' => $demoTeacher->id, 'name' => 'A-1', 'level' => 'A', 'age_range' => '4–5 tahun']);
+        $classA2 = Classroom::create(['academic_year_id' => $activeYear->id, 'homeroom_teacher_id' => $teachers[1]->id, 'name' => 'A-2', 'level' => 'A', 'age_range' => '4–5 tahun']);
+        $classB1 = Classroom::create(['academic_year_id' => $activeYear->id, 'homeroom_teacher_id' => $teachers[2]->id, 'name' => 'B-1', 'level' => 'B', 'age_range' => '5–6 tahun']);
+        $classB2 = Classroom::create(['academic_year_id' => $activeYear->id, 'homeroom_teacher_id' => $teachers[3]->id, 'name' => 'B-2', 'level' => 'B', 'age_range' => '5–6 tahun']);
+        $classA = $classA1;
+        $classB = $classB1;
 
         $guardians = collect();
         $demoGuardianUser = $this->user('ortu@skms.test', 'Orang Tua Demo', 'orang_tua', false);
-        $guardians->push(Guardian::create(['user_id' => $demoGuardianUser->id, 'name' => 'Orang Tua Demo', 'phone' => '081300000001', 'address' => '[ISI: alamat orang tua]']));
+        $guardians->push(Guardian::create(['user_id' => $demoGuardianUser->id, 'name' => 'Orang Tua Demo', 'phone' => '081300000001', 'address' => 'Belum diisi']));
         for ($i = 2; $i <= 64; $i++) {
             $u = $this->user("ortu{$i}@skms.test", "Orang Tua {$i}", 'orang_tua', true);
-            $guardians->push(Guardian::create(['user_id' => $u->id, 'name' => "Orang Tua {$i}", 'phone' => sprintf('081300000%02d', $i), 'address' => '[ISI: alamat orang tua]']));
+            $guardians->push(Guardian::create(['user_id' => $u->id, 'name' => "Orang Tua {$i}", 'phone' => sprintf('081300000%02d', $i), 'address' => 'Belum diisi']));
         }
         $students = collect();
         for ($i = 1; $i <= 78; $i++) {
             $student = Student::create(['nis' => sprintf('2425-%03d', $i), 'name' => $this->studentName($i), 'birth_date' => sprintf('2021-%02d-%02d', (($i - 1) % 12) + 1, (($i - 1) % 27) + 1), 'gender' => $i % 2 ? Gender::Male->value : Gender::Female->value, 'entry_year' => 2025, 'status' => 'aktif']);
             $students->push($student);
-            $classroom = $i <= 39 ? $classA : $classB;
-            Enrollment::create(['student_id' => $student->id, 'classroom_id' => $classroom->id, 'academic_year_id' => $activeYear->id, 'status' => 'aktif']);
+            $classroom = $i <= 20 ? $classA1 : ($i <= 39 ? $classA2 : ($i <= 59 ? $classB1 : $classB2));
+            $enrollment = Enrollment::create(['student_id' => $student->id, 'classroom_id' => $classroom->id, 'academic_year_id' => $activeYear->id, 'status' => 'aktif']);
+            $enrollmentMonth = $i <= 20 ? 7 : ($i <= 39 ? 8 : ($i <= 59 ? 9 : 10));
+            $enrollment->forceFill(['created_at' => Carbon::create(2026, $enrollmentMonth, 1), 'updated_at' => Carbon::create(2026, $enrollmentMonth, 1)])->save();
             $guardian = $guardians[$i <= 64 ? $i - 1 : $i - 65];
             $student->guardians()->attach($guardian->id, ['relationship' => $i % 2 ? 'ibu' : 'ayah', 'is_primary' => true]);
         }
@@ -254,16 +256,33 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        $schoolDays = collect(range(1, 31))->map(fn ($day) => sprintf('2026-10-%02d', $day))->filter(fn ($date) => date('N', strtotime($date)) <= 5)->values()->take(17);
+        $schoolDays = app(SchoolCalendarService::class)->schoolDays(
+            now('Asia/Jakarta')->setDate(2026, 10, 1),
+            now('Asia/Jakarta')->setDate(2026, 10, 31)
+        )->map(fn ($date) => $date->toDateString());
         $aspects = array_column(JournalAspect::cases(), 'value');
+        $students = Student::whereIn('id', $students->pluck('id'))->with('enrollments.classroom')->get();
         foreach ($schoolDays as $dayIndex => $date) {
             foreach ($students as $index => $student) {
-                $limit = $index < 39 ? 0.92 : 0.74;
-                if ((($index * 17 + $dayIndex) % 100) / 100 >= $limit) {
+                $limit = match (true) {
+                    $index < 20 => 0.94,
+                    $index < 39 => 0.88,
+                    $index < 59 => 0.80,
+                    default => 0.72,
+                };
+                $classSize = ($index < 20 || ($index >= 39 && $index < 59)) ? 20 : 19;
+                $classIndex = match (true) {
+                    $index < 20 => $index,
+                    $index < 39 => $index - 20,
+                    $index < 59 => $index - 39,
+                    default => $index - 59,
+                };
+                $slot = $dayIndex * $classSize + $classIndex;
+                if ((int) floor(($slot + 1) * $limit) === (int) floor($slot * $limit)) {
                     continue;
                 }
-                $enrollment = $student->enrollments()->first();
-                $journal = DailyJournal::create(['student_id' => $student->id, 'classroom_id' => $enrollment->classroom_id, 'teacher_id' => $enrollment->classroom_id === $classA->id ? $demoTeacher->id : $teachers[1]->id, 'journal_date' => $date, 'activity_summary' => 'Kegiatan belajar dan bermain', 'status' => JournalStatus::Final, 'finalized_at' => $date.' 15:00:00']);
+                $enrollment = $student->enrollments->first();
+                $journal = DailyJournal::create(['student_id' => $student->id, 'classroom_id' => $enrollment->classroom_id, 'teacher_id' => $enrollment->classroom->homeroom_teacher_id, 'journal_date' => $date, 'activity_summary' => 'Kegiatan belajar dan bermain', 'status' => JournalStatus::Final, 'finalized_at' => $date.' 15:00:00']);
                 foreach ($aspects as $aspect) {
                     JournalAssessment::create(['daily_journal_id' => $journal->id, 'aspect' => $aspect, 'level' => AssessmentLevel::BSH, 'note' => null]);
                 }
@@ -400,7 +419,8 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'created_by' => $admin->id,
-                'classroom_id' => $classA->id,
+                'classroom_id' => null,
+                'target_level' => 'A',
                 'title' => 'Kegiatan mewarnai dan prakarya Kelompok A',
                 'body' => 'Dimohon membawa krayon dan perlengkapan prakarya untuk latihan motorik halus hari Kamis.',
                 'is_pinned' => false,
@@ -410,7 +430,8 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'created_by' => $admin->id,
-                'classroom_id' => $classB->id,
+                'classroom_id' => null,
+                'target_level' => 'B',
                 'title' => 'Persiapan pentas seni mini Kelompok B',
                 'body' => 'Anak-anak diharapkan membawa pakaian adat atau busana bertema Nusantara untuk gladi bersih.',
                 'is_pinned' => false,
@@ -421,6 +442,7 @@ class DatabaseSeeder extends Seeder
             [
                 'created_by' => $admin->id,
                 'classroom_id' => null,
+                'target_level' => null,
                 'title' => 'Pengambilan seragam tahun ajaran baru',
                 'body' => 'Jadwal pengambilan paket seragam dan buku panduan di ruang Tata Usaha telah selesai.',
                 'is_pinned' => false,
@@ -431,11 +453,23 @@ class DatabaseSeeder extends Seeder
             [
                 'created_by' => $admin->id,
                 'classroom_id' => null,
+                'target_level' => null,
                 'title' => 'Rencana studi wisata semester depan',
                 'body' => 'Rancangan destinasi edukasi ke kebun binatang dan peternakan terpadu masih dalam tahap peninjauan yayasan.',
                 'is_pinned' => false,
                 'status' => AnnouncementStatus::Draft,
                 'published_at' => null,
+                'expires_at' => null,
+            ],
+            [
+                'created_by' => $admin->id,
+                'classroom_id' => $classA2->id,
+                'target_level' => null,
+                'title' => 'Pengingat kelas A-2',
+                'body' => 'Informasi khusus untuk kelas A-2.',
+                'is_pinned' => false,
+                'status' => AnnouncementStatus::Published,
+                'published_at' => '2026-10-08',
                 'expires_at' => null,
             ],
         ];

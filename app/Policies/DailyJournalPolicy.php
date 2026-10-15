@@ -24,6 +24,9 @@ class DailyJournalPolicy
 
     public function update(User $user, DailyJournal $journal): bool
     {
-        return $user->hasRole('guru') && $journal->teacher_id === $user->teacher?->id && ($journal->status->value === 'draf' || ! $journal->finalized_at || ! $journal->journal_date->endOfDay()->addDays(config('skms.journal_edit_days', 1))->isPast());
+        return $user->hasRole('guru')
+            && $journal->teacher_id === $user->teacher?->id
+            && Student::visibleTo($user)->whereKey($journal->student_id)->exists()
+            && ($journal->status->value === 'draf' || ! $journal->finalized_at || ! $journal->journal_date->endOfDay()->addDays(config('skms.journal_edit_days', 1))->isPast());
     }
 }

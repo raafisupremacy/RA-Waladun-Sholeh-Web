@@ -14,7 +14,9 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class PaymentVerificationService
 {
@@ -24,32 +26,59 @@ class PaymentVerificationService
             abort(403);
         }
 
-        return DB::transaction(function () use ($invoice, $guardian, $file, $data) {
-            $lockedInvoice = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
-            if (! in_array($lockedInvoice->status, [InvoiceStatus::Unpaid, InvoiceStatus::Rejected], true)) {
-                throw ValidationException::withMessages(['invoice' => 'Tagihan tidak dapat menerima bukti.']);
-            }
-            if ($lockedInvoice->payments()->where('status', PaymentStatus::Pending->value)->exists()) {
-                throw ValidationException::withMessages(['invoice' => 'Bukti pembayaran sedang menunggu verifikasi.']);
+        $path = null;
+        if (! array_key_exists('amount_transferred', $data) || $data['amount_transferred'] === null || $data['amount_transferred'] === '' || ! array_key_exists('transfer_date', $data) || ! $data['transfer_date']) {
+            throw ValidationException::withMessages(['amount_transferred' => 'Nominal transfer wajib diisi.', 'transfer_date' => 'Tanggal transfer wajib diisi.']);
+        }
+        if ((int) $data['amount_transferred'] < 0 || now()->parse($data['transfer_date'])->isFuture()) {
+            throw ValidationException::withMessages(['transfer_date' => 'Tanggal transfer tidak boleh di masa depan.']);
+        }
+
+        try {
+            return DB::transaction(function () use ($invoice, $guardian, $file, $data, &$path) {
+                $lockedInvoice = Invoice::query()->lockForUpdate()->findOrFail($invoice->id);
+                if (! in_array($lockedInvoice->status, [InvoiceStatus::Unpaid, InvoiceStatus::Rejected], true)) {
+                    throw ValidationException::withMessages(['invoice' => 'Tagihan tidak dapat menerima bukti.']);
+                }
+                if ($lockedInvoice->payments()->where('status', PaymentStatus::Pending->value)->exists()) {
+                    throw ValidationException::withMessages(['invoice' => 'Bukti pembayaran sedang menunggu verifikasi.']);
+                }
+
+                try {
+                    $path = $file->store('payments', 'private');
+                } catch (Throwable $exception) {
+                    throw ValidationException::withMessages(['proof' => 'Bukti pembayaran gagal disimpan. Silakan coba lagi.']);
+                }
+                if (! $path) {
+                    throw ValidationException::withMessages(['proof' => 'Bukti pembayaran gagal disimpan. Silakan coba lagi.']);
+                }
+                $payment = Payment::create([
+                    'invoice_id' => $lockedInvoice->id,
+                    'submitted_by' => $guardian->id,
+                    'proof_path' => $path,
+                    'amount_transferred' => (int) $data['amount_transferred'],
+                    'transfer_date' => $data['transfer_date'],
+                    'sender_name' => $data['sender_name'] ?? $guardian->guardian?->name ?? $guardian->name,
+                    'note' => $data['note'] ?? null,
+                    'status' => PaymentStatus::Pending,
+                ]);
+                $lockedInvoice->update(['status' => InvoiceStatus::Pending]);
+                AuditLog::create(['user_id' => $guardian->id, 'action' => 'payment_submitted', 'entity_type' => 'Payment', 'entity_id' => $payment->id, 'new_values' => ['status' => PaymentStatus::Pending->value]]);
+                AuditLog::create(['user_id' => $guardian->id, 'action' => 'invoice_status_changed', 'entity_type' => 'Invoice', 'entity_id' => $lockedInvoice->id, 'new_values' => ['status' => InvoiceStatus::Pending->value]]);
+
+                return $payment->fresh();
+            });
+        } catch (Throwable $exception) {
+            if ($path) {
+                try {
+                    Storage::disk('private')->delete($path);
+                } catch (Throwable) {
+                    // Preserve the original database failure when cleanup fails.
+                }
             }
 
-            $path = $file->store('payments', 'private');
-            $payment = Payment::create([
-                'invoice_id' => $lockedInvoice->id,
-                'submitted_by' => $guardian->id,
-                'proof_path' => $path,
-                'amount_transferred' => $data['amount_transferred'] ?? $lockedInvoice->net_amount,
-                'transfer_date' => $data['transfer_date'] ?? now()->toDateString(),
-                'sender_name' => $data['sender_name'] ?? $guardian->name,
-                'note' => $data['note'] ?? null,
-                'status' => PaymentStatus::Pending,
-            ]);
-            $lockedInvoice->update(['status' => InvoiceStatus::Pending]);
-            AuditLog::create(['user_id' => $guardian->id, 'action' => 'payment_submitted', 'entity_type' => 'Payment', 'entity_id' => $payment->id, 'new_values' => ['status' => PaymentStatus::Pending->value]]);
-            AuditLog::create(['user_id' => $guardian->id, 'action' => 'invoice_status_changed', 'entity_type' => 'Invoice', 'entity_id' => $lockedInvoice->id, 'new_values' => ['status' => InvoiceStatus::Pending->value]]);
-
-            return $payment->fresh();
-        });
+            throw $exception;
+        }
     }
 
     public function approve(Payment $payment, User $admin): Payment
@@ -70,8 +99,8 @@ class PaymentVerificationService
                     $attempts++;
                     try {
                         return DB::transaction(function () use ($payment, $admin, $now) {
+                            $invoice = Invoice::query()->lockForUpdate()->findOrFail($payment->invoice_id);
                             $lockedPayment = Payment::query()->lockForUpdate()->findOrFail($payment->id);
-                            $invoice = Invoice::query()->lockForUpdate()->findOrFail($lockedPayment->invoice_id);
 
                             if ($lockedPayment->status !== PaymentStatus::Pending || $invoice->status !== InvoiceStatus::Pending) {
                                 throw ValidationException::withMessages(['payment' => 'Pembayaran tidak dapat disetujui.']);
@@ -124,8 +153,7 @@ class PaymentVerificationService
             if (blank(trim($reason))) {
                 throw ValidationException::withMessages(['reason' => 'Alasan penolakan wajib diisi.']);
             }
-            $lockedPayment = Payment::query()->findOrFail($payment->id);
-            $invoice = Invoice::query()->lockForUpdate()->findOrFail($lockedPayment->invoice_id);
+            $invoice = Invoice::query()->lockForUpdate()->findOrFail($payment->invoice_id);
             $lockedPayment = Payment::query()->lockForUpdate()->findOrFail($payment->id);
             if ($lockedPayment->status !== PaymentStatus::Pending || $invoice->status !== InvoiceStatus::Pending) {
                 throw ValidationException::withMessages(['payment' => 'Pembayaran tidak dapat ditolak.']);

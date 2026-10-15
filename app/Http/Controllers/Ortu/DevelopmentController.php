@@ -29,7 +29,7 @@ class DevelopmentController extends Controller
             ->whereHas('academicYear', fn ($y) => $y->where('is_active', true))
             ->with('classroom')
             ->first();
-        $classroomName = $activeEnrollment?->classroom?->name ?? 'Kelompok A';
+        $classroomName = $activeEnrollment?->classroom?->display_name ?? 'Kelas';
 
         $journals = DailyJournal::with(['student', 'assessments'])
             ->where('status', 'final')

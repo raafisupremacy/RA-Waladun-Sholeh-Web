@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\ClassSummaryExport;
 use App\Exports\FinanceReportExport;
+use App\Exports\OverdueReportExport;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Invoice;
+use App\Models\SchoolSetting;
 use App\Services\ReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -23,15 +26,16 @@ class ReportController extends Controller
         $filters['tab'] = $tab;
 
         $academicYears = AcademicYear::latest('start_date')->get(['id', 'name'])->map->only(['id', 'name']);
-        $classrooms = Classroom::latest()->get(['id', 'name', 'academic_year_id'])->map->only(['id', 'name', 'academic_year_id']);
+        $classrooms = Classroom::latest()->get(['id', 'name', 'level', 'academic_year_id'])->map(fn ($c) => ['id' => $c->id, 'name' => $c->display_name, 'academic_year_id' => $c->academic_year_id]);
 
         if ($tab === 'tunggakan') {
-            $overdueList = $reports->overdueStudents(30, $filters['academic_year_id'] ?? null);
+            $overdueList = $reports->overdueStudents(30, $filters['academic_year_id'] ?? null, $filters);
             $totalOverdue = array_sum(array_column($overdueList, 'amount'));
 
             return Inertia::render('Admin/Reports', [
                 'tab' => 'tunggakan',
                 'filters' => $filters,
+                'school_name' => SchoolSetting::where('key', 'school_name')->value('value') ?? '',
                 'overdueList' => $overdueList,
                 'totalOverdue' => $totalOverdue,
                 'academicYears' => $academicYears,
@@ -45,6 +49,7 @@ class ReportController extends Controller
             return Inertia::render('Admin/Reports', [
                 'tab' => 'ringkasan_kelas',
                 'filters' => $filters,
+                'school_name' => SchoolSetting::where('key', 'school_name')->value('value') ?? '',
                 'classSummary' => $classSummary,
                 'academicYears' => $academicYears,
                 'classrooms' => $classrooms,
@@ -59,7 +64,7 @@ class ReportController extends Controller
                 'name' => $invoice->student->name,
                 'nis' => $invoice->student->nis,
             ] : null,
-            'classroom' => $invoice->student?->enrollments?->first()?->classroom?->name ?? '—',
+            'classroom' => $invoice->student?->enrollments?->first()?->classroom?->display_name ?? '—',
             'status' => $invoice->status?->value,
             'due_date' => $invoice->due_date?->toDateString(),
             'due_date_formatted' => $invoice->due_date ? Carbon::parse($invoice->due_date)->locale('id')->isoFormat('D MMM Y') : '—',
@@ -72,6 +77,7 @@ class ReportController extends Controller
         return Inertia::render('Admin/Reports', [
             'tab' => 'rekap',
             'filters' => $filters,
+            'school_name' => SchoolSetting::where('key', 'school_name')->value('value') ?? '',
             'totals' => $reports->financeTotals($filters),
             'invoices' => $invoices,
             'academicYears' => $academicYears,
@@ -83,9 +89,10 @@ class ReportController extends Controller
     {
         $tab = $request->input('tab', 'rekap');
         $filters = $request->only(['start_date', 'end_date', 'academic_year_id', 'classroom_id', 'status', 'tab']);
+        $schoolName = SchoolSetting::where('key', 'school_name')->value('value') ?? '';
 
         if ($tab === 'tunggakan') {
-            $overdueList = $reports->overdueStudents(30, $filters['academic_year_id'] ?? null);
+            $overdueList = $reports->overdueStudents(30, $filters['academic_year_id'] ?? null, $filters);
             $totalOverdue = array_sum(array_column($overdueList, 'amount'));
 
             return Pdf::loadView('exports.finance-report', [
@@ -94,6 +101,7 @@ class ReportController extends Controller
                 'overdueList' => $overdueList,
                 'totalOverdue' => $totalOverdue,
                 'filters' => $filters,
+                'school_name' => $schoolName,
             ])->setPaper('a4')->download('laporan-tunggakan-spp.pdf');
         }
 
@@ -105,6 +113,7 @@ class ReportController extends Controller
                 'title' => 'Laporan Ringkasan Penerimaan SPP per Kelas',
                 'classSummary' => $classSummary,
                 'filters' => $filters,
+                'school_name' => $schoolName,
             ])->setPaper('a4')->download('laporan-ringkasan-kelas.pdf');
         }
 
@@ -114,6 +123,7 @@ class ReportController extends Controller
             'invoices' => $reports->financeQuery($filters)->get(),
             'totals' => $reports->financeTotals($filters),
             'filters' => $filters,
+            'school_name' => $schoolName,
         ])->setPaper('a4')->download('laporan-rekap-spp.pdf');
     }
 
@@ -122,9 +132,12 @@ class ReportController extends Controller
         $filters = $request->only(['start_date', 'end_date', 'academic_year_id', 'classroom_id', 'status', 'tab']);
         $tab = $request->input('tab', 'rekap');
 
-        return Excel::download(
-            new FinanceReportExport($reports->financeQuery($filters)),
-            "laporan-admin-{$tab}.xlsx"
-        );
+        $export = match ($tab) {
+            'ringkasan_kelas' => new ClassSummaryExport($reports->classSummaryReport($filters['academic_year_id'] ?? null)),
+            'tunggakan' => new OverdueReportExport($reports->overdueStudents(30, $filters['academic_year_id'] ?? null, $filters)),
+            default => new FinanceReportExport($reports->financeQuery($filters)),
+        };
+
+        return Excel::download($export, "laporan-admin-{$tab}.xlsx");
     }
 }

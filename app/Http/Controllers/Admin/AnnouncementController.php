@@ -76,7 +76,7 @@ class AnnouncementController extends Controller
 
         return Inertia::render('Admin/Announcements/Form', [
             'announcement' => $announcement ? $this->present($announcement) : null,
-            'classrooms' => Classroom::when($yearId, fn ($q) => $q->where('academic_year_id', $yearId))->orderBy('name')->get(['id', 'name']),
+            'classrooms' => Classroom::when($yearId, fn ($q) => $q->where('academic_year_id', $yearId))->orderBy('name')->get(['id', 'name', 'level'])->map(fn ($c) => ['id' => $c->id, 'name' => $c->display_name, 'level' => $c->level?->value]),
         ]);
     }
 
@@ -85,13 +85,15 @@ class AnnouncementController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:160'],
             'body' => ['required', 'string'],
-            'target' => ['required', 'in:all,classroom'],
+            'target' => ['required', 'in:all,level,classroom'],
+            'target_level' => ['required_if:target,level', 'nullable', 'in:A,B'],
             'classroom_id' => ['required_if:target,classroom', 'nullable', 'integer', 'exists:classrooms,id'],
             'is_pinned' => ['nullable', 'boolean'],
             'status' => ['required', 'in:draf,terbit'],
             'expires_at' => ['nullable', 'date'],
         ]);
         $data['classroom_id'] = $data['target'] === 'classroom' ? ($data['classroom_id'] ?? null) : null;
+        $data['target_level'] = $data['target'] === 'level' ? ($data['target_level'] ?? null) : null;
         unset($data['target']);
 
         return $data;
@@ -106,7 +108,8 @@ class AnnouncementController extends Controller
             'status' => $announcement->status instanceof AnnouncementStatus ? $announcement->status->value : $announcement->status,
             'is_pinned' => (bool) $announcement->is_pinned,
             'classroom_id' => $announcement->classroom_id,
-            'classroom_name' => $announcement->classroom?->name,
+            'target_level' => $announcement->target_level,
+            'classroom_name' => $announcement->classroom?->display_name,
             'published_at' => $announcement->published_at?->toDateString(),
             'expires_at' => $announcement->expires_at?->toDateTimeString(),
         ];

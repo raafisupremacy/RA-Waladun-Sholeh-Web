@@ -13,7 +13,7 @@ class LedgerRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['start_date' => ['nullable', 'date_format:Y-m-d'], 'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date']];
+        return ['start_date' => ['nullable', 'date_format:Y-m-d'], 'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'], 'search' => ['nullable', 'string', 'max:100']];
     }
 
     public function messages(): array

@@ -16,6 +16,7 @@ use App\Http\Controllers\Guru\AnecdotalNoteController;
 use App\Http\Controllers\Guru\JournalController;
 use App\Http\Controllers\Kepsek\DashboardController as KepsekDashboardController;
 use App\Http\Controllers\Kepsek\FinanceReportController as KepsekFinanceReportController;
+use App\Http\Controllers\Kepsek\StudentController as KepsekStudentController;
 use App\Http\Controllers\Kepsek\StudentReportController as KepsekStudentReportController;
 use App\Http\Controllers\Ortu\DashboardController as OrtuDashboardController;
 use App\Http\Controllers\Ortu\DevelopmentController;
@@ -82,6 +83,7 @@ Route::middleware(['auth', 'password.changed', 'role:admin'])->prefix('admin')->
     Route::get('/siswa', [AdminDataController::class, 'students'])->name('admin.students');
     Route::get('/siswa/create', [AdminDataController::class, 'createStudent'])->name('admin.students.create');
     Route::post('/siswa/{student}/nonaktifkan', [AdminDataController::class, 'deactivateStudent'])->name('admin.students.deactivate');
+    Route::get('/siswa/{student}', [AdminDataController::class, 'showStudent'])->name('admin.students.show');
     Route::post('/siswa', [AdminDataController::class, 'storeStudent'])->name('admin.students.store');
     Route::put('/siswa/{student}', [AdminDataController::class, 'updateStudent'])->name('admin.students.update');
     Route::post('/siswa/{student}/pindah', [AdminDataController::class, 'moveStudent'])->name('admin.students.move');
@@ -89,9 +91,15 @@ Route::middleware(['auth', 'password.changed', 'role:admin'])->prefix('admin')->
     Route::get('/guru', [TeacherController::class, 'index'])->name('admin.teachers');
     Route::post('/guru/{teacher}/kelas', [TeacherController::class, 'assignClass'])->name('admin.teachers.assign-class');
     Route::post('/guru/{teacher}/reset-kata-sandi', [TeacherController::class, 'reset'])->name('admin.teachers.reset');
+    Route::put('/guru/{teacher}', [TeacherController::class, 'update'])->name('admin.teachers.update');
+    Route::post('/guru/{teacher}/nonaktifkan', [TeacherController::class, 'deactivate'])->name('admin.teachers.deactivate');
+    Route::post('/guru/{teacher}/aktifkan', [TeacherController::class, 'activate'])->name('admin.teachers.activate');
     Route::post('/orang-tua', [AdminDataController::class, 'storeGuardian'])->name('admin.guardians.store');
     Route::get('/orang-tua', [GuardianController::class, 'index'])->name('admin.guardians');
     Route::post('/orang-tua/{guardian}/reset-kata-sandi', [GuardianController::class, 'reset'])->name('admin.guardians.reset');
+    Route::put('/orang-tua/{guardian}', [GuardianController::class, 'update'])->name('admin.guardians.update');
+    Route::post('/orang-tua/{guardian}/nonaktifkan', [GuardianController::class, 'deactivate'])->name('admin.guardians.deactivate');
+    Route::post('/orang-tua/{guardian}/aktifkan', [GuardianController::class, 'activate'])->name('admin.guardians.activate');
     Route::get('/tagihan', [AdminInvoiceController::class, 'index'])->name('admin.invoices');
     Route::post('/tagihan/preview', [AdminInvoiceController::class, 'preview'])->name('admin.invoices.preview');
     Route::post('/tagihan/generate', [AdminInvoiceController::class, 'generate'])->name('admin.invoices.generate.v2');
@@ -117,6 +125,7 @@ Route::middleware(['auth', 'password.changed', 'role:admin|kepala_sekolah'])->pr
 });
 
 Route::middleware(['auth', 'password.changed', 'role:kepala_sekolah'])->prefix('kepsek')->group(function () {
+    Route::get('/siswa/{student}', [KepsekStudentController::class, 'show'])->name('kepsek.students.show');
     Route::get('/laporan-keuangan', [KepsekFinanceReportController::class, 'index'])->name('principal.finance');
     Route::get('/laporan-keuangan/pdf', [KepsekFinanceReportController::class, 'pdf'])->name('principal.finance.pdf');
     Route::get('/laporan-keuangan/excel', [KepsekFinanceReportController::class, 'excel'])->name('principal.finance.excel');

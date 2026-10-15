@@ -77,8 +77,8 @@ class InvoiceController extends Controller
         $this->authorize('uploadProof', $invoice);
         $data = $request->validate([
             'proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
-            'amount_transferred' => 'nullable|integer|min:0',
-            'transfer_date' => 'nullable|date',
+            'amount_transferred' => 'required|integer|min:0',
+            'transfer_date' => 'required|date|before_or_equal:today',
             'sender_name' => 'nullable|string|max:150',
             'note' => 'nullable|string|max:2000',
         ]);
@@ -114,7 +114,7 @@ class InvoiceController extends Controller
             'id' => $student->id,
             'name' => $student->name,
             'nis' => $student->nis,
-            'classroom' => $enrollment?->classroom?->name,
+            'classroom' => $enrollment?->classroom?->display_name,
         ];
     }
 }

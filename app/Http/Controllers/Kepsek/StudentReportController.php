@@ -21,16 +21,19 @@ class StudentReportController extends Controller
         }
 
         $academicYears = AcademicYear::latest('start_date')->get(['id', 'name']);
-        $classrooms = Classroom::when($year, fn ($q) => $q->where('academic_year_id', $year->id))->orderBy('name')->get(['id', 'name']);
+        $classrooms = Classroom::when($year, fn ($q) => $q->where('academic_year_id', $year->id))->orderBy('name')->get(['id', 'name', 'level'])->map(fn ($c) => ['id' => $c->id, 'name' => $c->display_name]);
 
-        $classroomId = $request->integer('classroom_id') ?: $classrooms->first()?->id;
+        $classroomId = $request->integer('classroom_id') ?: $classrooms->first()['id'] ?? null;
 
         $students = Student::where('status', 'aktif')
-            ->when($classroomId, fn ($q) => $q->whereHas('enrollments', fn ($e) => $e->where('classroom_id', $classroomId)))
+            ->when($classroomId, fn ($q) => $q->whereHas('enrollments', fn ($e) => $e->where('classroom_id', $classroomId)->where('academic_year_id', $year?->id)->where('status', 'aktif')))
             ->orderBy('name')
             ->get(['id', 'name', 'nis']);
 
-        $studentId = $request->integer('student_id') ?: $students->first()?->id;
+        $requestedStudentId = $request->integer('student_id');
+        $studentId = $requestedStudentId && $students->contains('id', $requestedStudentId)
+            ? $requestedStudentId
+            : $students->first()?->id;
         $student = $studentId ? Student::find($studentId) : null;
         $period = $request->input('period', 'semester_1');
 
@@ -51,7 +54,13 @@ class StudentReportController extends Controller
     public function pdf(Request $request, ReportService $reports)
     {
         $year = AcademicYear::find($request->integer('academic_year_id')) ?? AcademicYear::where('is_active', true)->firstOrFail();
-        $student = Student::findOrFail($request->integer('student_id'));
+        $student = Student::whereKey($request->integer('student_id'))
+            ->where('status', 'aktif')
+            ->when($request->integer('classroom_id'), fn ($query) => $query->whereHas('enrollments', fn ($enrollment) => $enrollment
+                ->where('academic_year_id', $year->id)
+                ->where('status', 'aktif')
+                ->where('classroom_id', $request->integer('classroom_id'))))
+            ->firstOrFail();
         $period = $request->input('period', 'semester_1');
 
         return Pdf::loadView('exports.student-report', [

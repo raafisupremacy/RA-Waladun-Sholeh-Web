@@ -76,7 +76,7 @@ class DashboardController extends Controller
         return Inertia::render('Guru/Dashboard', [
             'classroom' => [
                 'id' => $classroom->id,
-                'name' => $classroom->name,
+                'name' => $classroom->display_name,
                 'academic_year' => ($classroom->academicYear?->name ?? '2026/2027').' · Semester Ganjil',
             ],
             'date' => $dateFormatted,

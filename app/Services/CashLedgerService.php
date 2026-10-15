@@ -8,16 +8,26 @@ class CashLedgerService
 {
     public function query(array $filters)
     {
-        // Calculate balances before filtering/pagination, including opening entries.
-        $balances = DB::table('cash_ledger_entries')->select('*')->selectRaw('SUM(amount_in) OVER (ORDER BY entry_date, id ROWS UNBOUNDED PRECEDING) AS running_balance');
+        $startDate = $filters['start_date'] ?? null;
+        $opening = $startDate
+            ? (int) DB::table('cash_ledger_entries')->where('entry_date', '<', $startDate)->sum('amount_in')
+            : 0;
+        $balances = DB::table('cash_ledger_entries')
+            ->when($startDate, fn ($q) => $q->where('entry_date', '>=', $startDate))
+            ->when($filters['end_date'] ?? null, fn ($q, $date) => $q->where('entry_date', '<=', $date))
+            ->select('cash_ledger_entries.*')
+            ->selectRaw('SUM(amount_in) OVER (ORDER BY entry_date, id ROWS UNBOUNDED PRECEDING) + ? AS running_balance', [$opening]);
 
         return DB::query()->fromSub($balances, 'ledger')
             ->join('invoices', 'invoices.id', '=', 'ledger.invoice_id')
             ->leftJoin('enrollments', fn ($join) => $join->on('enrollments.student_id', '=', 'invoices.student_id')->on('enrollments.academic_year_id', '=', 'invoices.academic_year_id'))
             ->leftJoin('classrooms', 'classrooms.id', '=', 'enrollments.classroom_id')
+            ->join('students', 'students.id', '=', 'invoices.student_id')
             ->select('ledger.*', 'invoices.invoice_number', 'classrooms.name as classroom')
-            ->when($filters['start_date'] ?? null, fn ($q, $date) => $q->where('ledger.entry_date', '>=', $date))
-            ->when($filters['end_date'] ?? null, fn ($q, $date) => $q->where('ledger.entry_date', '<=', $date))
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                $term = addcslashes(trim($search), '%_\\');
+                $q->where(fn ($w) => $w->where('students.name', 'like', "%{$term}%")->orWhere('students.nis', 'like', "%{$term}%"));
+            })
             ->orderByDesc('ledger.entry_date')->orderByDesc('ledger.id');
     }
 

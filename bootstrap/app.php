@@ -7,6 +7,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Session\TokenMismatchException;
 use Inertia\Inertia;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -27,7 +28,31 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['password.changed' => EnsurePasswordChanged::class, 'role' => RoleMiddleware::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (TokenMismatchException $exception, $request) {
+            $message = 'Sesi Anda berakhir. Muat ulang halaman lalu coba lagi.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 419);
+            }
+
+            return Inertia::render('Errors/419', ['message' => $message])
+                ->toResponse($request)
+                ->setStatusCode(419);
+        });
+
         $exceptions->render(function (HttpException $exception, $request) {
+            if ($exception->getStatusCode() === 419) {
+                $message = 'Sesi Anda berakhir. Muat ulang halaman lalu coba lagi.';
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $message], 419);
+                }
+
+                return Inertia::render('Errors/419', ['message' => $message])
+                    ->toResponse($request)
+                    ->setStatusCode(419);
+            }
+
             if ($request->expectsJson()) {
                 return null;
             }

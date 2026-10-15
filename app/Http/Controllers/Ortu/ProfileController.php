@@ -15,7 +15,7 @@ class ProfileController extends Controller
 
         return Inertia::render('Ortu/Profile', [
             'guardian' => ['name' => $guardian?->name ?? $request->user()->name, 'email' => $request->user()->email, 'phone' => $guardian?->phone],
-            'students' => $context->students($request->user())->map(fn ($student) => ['id' => $student->id, 'name' => $student->name, 'nis' => $student->nis, 'classroom' => $student->enrollments->first()?->classroom?->name, 'status' => $student->status->value])->values(),
+            'students' => $context->students($request->user())->map(fn ($student) => ['id' => $student->id, 'name' => $student->name, 'nis' => $student->nis, 'classroom' => $student->enrollments->first()?->classroom?->display_name, 'status' => $student->status->value])->values(),
         ]);
     }
 }

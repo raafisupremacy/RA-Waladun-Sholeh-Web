@@ -18,7 +18,6 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -53,10 +52,11 @@ class ReportService
         $points = [];
         for ($offset = $months - 1; $offset >= 0; $offset--) {
             $date = $asOf->copy()->startOfMonth()->subMonths($offset);
-            $query = Student::query()->where('students.status', 'aktif')->whereDate('students.created_at', '<=', $date->copy()->endOfMonth());
-            if ($academicYearId) {
-                $query->whereHas('enrollments', fn ($enrollment) => $enrollment->where('academic_year_id', $academicYearId));
-            }
+            $query = Student::query()->where('students.status', 'aktif');
+            $query->whereHas('enrollments', fn ($enrollment) => $enrollment
+                ->where('status', 'aktif')
+                ->whereDate('created_at', '<=', $date->copy()->endOfMonth())
+                ->when($academicYearId, fn ($q) => $q->where('academic_year_id', $academicYearId)));
             $points[] = ['label' => $date->locale('id')->isoFormat('MMM'), 'period' => $date->format('Y-m'), 'total' => $query->count()];
         }
 
@@ -67,7 +67,8 @@ class ReportService
     {
         $start = Carbon::create($year, $month, 1)->startOfMonth();
         $end = $start->copy()->endOfMonth();
-        $schoolDays = $this->schoolDays($start, $end);
+        $dates = app(SchoolCalendarService::class)->schoolDays($start, $end)->map->toDateString();
+        $schoolDays = $dates->count();
 
         $rosters = DB::table('enrollments')
             ->join('classrooms', 'classrooms.id', '=', 'enrollments.classroom_id')
@@ -75,60 +76,67 @@ class ReportService
             ->where('enrollments.status', 'aktif')
             ->where('students.status', 'aktif')
             ->when($academicYearId, fn ($query) => $query->where('enrollments.academic_year_id', $academicYearId))
-            ->select('classrooms.homeroom_teacher_id as teacher_id', 'classrooms.name as classroom_name', DB::raw('COUNT(DISTINCT enrollments.student_id) as student_count'))
-            ->groupBy('classrooms.homeroom_teacher_id', 'classrooms.name')
+            ->select('classrooms.id as classroom_id', 'classrooms.homeroom_teacher_id as teacher_id', 'classrooms.name as classroom_name', DB::raw('COUNT(DISTINCT enrollments.student_id) as student_count'))
+            ->groupBy('classrooms.id', 'classrooms.homeroom_teacher_id', 'classrooms.name')
             ->get()
-            ->keyBy('teacher_id');
+            ->keyBy('classroom_id');
 
+        $activePairs = DB::table('enrollments')
+            ->where('status', 'aktif')
+            ->whereIn('classroom_id', $rosters->keys()->all())
+            ->when($academicYearId, fn ($query) => $query->where('academic_year_id', $academicYearId))
+            ->get(['classroom_id', 'student_id'])
+            ->mapWithKeys(fn ($row) => ["{$row->classroom_id}:{$row->student_id}" => true]);
         $filled = DailyJournal::query()
             ->where('status', JournalStatus::Final->value)
             ->whereBetween('journal_date', [$start->toDateString(), $end->toDateString()])
-            ->when($academicYearId, fn ($query) => $query->whereHas('classroom', fn ($classroom) => $classroom->where('academic_year_id', $academicYearId)))
-            ->select('teacher_id', DB::raw('COUNT(*) as total_journals'), DB::raw('COUNT(DISTINCT journal_date) as journal_days'))
-            ->groupBy('teacher_id')
-            ->get()
-            ->keyBy('teacher_id');
+            ->whereHas('student', fn ($student) => $student->where('status', 'aktif'))
+            ->whereIn('classroom_id', $rosters->keys()->all())
+            ->get(['classroom_id', 'student_id', 'journal_date'])
+            ->filter(fn ($journal) => $dates->contains($journal->journal_date->toDateString()) && $activePairs->has("{$journal->classroom_id}:{$journal->student_id}"))
+            ->groupBy('classroom_id')
+            ->map(fn ($journals) => (object) ['total_journals' => $journals->count()]);
 
-        $teachers = Teacher::query()->whereIn('id', $rosters->keys())->get(['id', 'name'])->keyBy('id');
+        $teachers = Teacher::query()->whereIn('id', $rosters->pluck('teacher_id')->filter()->unique())->get(['id', 'name'])->keyBy('id');
 
-        return $rosters->map(function ($roster, $teacherId) use ($filled, $teachers, $schoolDays) {
+        return $rosters->map(function ($roster, $classroomId) use ($filled, $teachers, $schoolDays) {
             $students = (int) $roster->student_count;
-            $totalJournals = (int) ($filled->get($teacherId)->total_journals ?? 0);
-            $journalDays = (int) ($filled->get($teacherId)->journal_days ?? 0);
-            $effectiveDays = $journalDays > 0 ? $journalDays : max(1, $schoolDays);
-            $avgDailyFilled = $effectiveDays > 0 ? (int) round($totalJournals / $effectiveDays) : 0;
-            $percentage = $students > 0 ? round(($avgDailyFilled / $students) * 100, 1) : 0;
+            $totalJournals = (int) ($filled->get($classroomId)->total_journals ?? 0);
+            $possible = $schoolDays * $students;
+            $percentage = $possible > 0 ? min(100, round(($totalJournals / $possible) * 100, 1)) : 0;
 
             return [
-                'teacher_id' => (int) $teacherId,
-                'teacher_name' => $teachers->get($teacherId)?->name ?? 'Belum ditentukan',
-                'classroom_name' => $roster->classroom_name ?? '',
-                'filled' => $avgDailyFilled,
-                'possible' => $students,
+                'classroom_id' => (int) $classroomId,
+                'teacher_id' => $roster->teacher_id ? (int) $roster->teacher_id : null,
+                'teacher_name' => $teachers->get($roster->teacher_id)?->name ?? 'Belum ditentukan',
+                'classroom_name' => str_starts_with($roster->classroom_name, 'Kelompok ') ? $roster->classroom_name : 'Kelompok '.$roster->classroom_name,
+                'filled' => $totalJournals,
+                'possible' => $possible,
                 'percentage' => $percentage,
             ];
         })->values()->all();
     }
 
-    public function overdueStudents(int $days = 30, ?int $academicYearId = null): array
+    public function overdueQuery(int $days = 30, ?int $academicYearId = null, array $filters = []): Builder
     {
-        $cutoff = now()->subDays($days)->toDateString();
-        $rows = Invoice::query()
-            ->where('status', InvoiceStatus::Unpaid->value)
-            ->whereDate('due_date', '<', $cutoff)
-            ->when($academicYearId, fn ($query) => $query->where('academic_year_id', $academicYearId))
+        return $this->financeQuery($filters)->reorder()
+            ->whereIn('status', [InvoiceStatus::Unpaid->value, InvoiceStatus::Rejected->value])
+            ->whereDate('due_date', '<', now('Asia/Jakarta')->startOfDay()->subDays($days)->toDateString())
+            ->when($academicYearId, fn ($query) => $query->where('academic_year_id', $academicYearId));
+    }
+
+    public function overdueStudents(int $days = 30, ?int $academicYearId = null, array $filters = []): array
+    {
+        $rows = $this->overdueQuery($days, $academicYearId, $filters)
             ->select('student_id', DB::raw('SUM(amount - discount_amount) as outstanding_amount'), DB::raw('COUNT(*) as invoice_count'), DB::raw('MIN(due_date) as oldest_due_date'))
             ->groupBy('student_id')
             ->orderByDesc('outstanding_amount')
             ->get();
 
-        $students = Student::query()->with(['enrollments.classroom'])->whereIn('id', $rows->pluck('student_id'))->get()->keyBy('id');
+        $students = Student::query()->with(['enrollments' => fn ($q) => $q->when($academicYearId, fn ($q) => $q->where('academic_year_id', $academicYearId))->with('classroom')])->whereIn('id', $rows->pluck('student_id'))->get()->keyBy('id');
 
-        $unpaidInvoices = Invoice::query()
+        $unpaidInvoices = $this->overdueQuery($days, $academicYearId, $filters)
             ->whereIn('student_id', $rows->pluck('student_id'))
-            ->where('status', InvoiceStatus::Unpaid->value)
-            ->whereDate('due_date', '<', $cutoff)
-            ->when($academicYearId, fn ($query) => $query->where('academic_year_id', $academicYearId))
             ->orderBy('period_year')
             ->orderBy('period_month')
             ->get(['student_id', 'period_month', 'period_year'])
@@ -142,11 +150,12 @@ class ReportService
             return [
                 'student_id' => (int) $row->student_id,
                 'student_name' => $students->get($row->student_id)?->name ?? '—',
-                'classroom' => $students->get($row->student_id)?->enrollments->first()?->classroom?->name ?? '—',
+                'classroom' => $students->get($row->student_id)?->enrollments->first()?->classroom?->display_name ?? '—',
                 'months' => $months ?: 'Bulan tertunggak',
                 'amount' => (int) $row->outstanding_amount,
                 'invoice_count' => (int) $row->invoice_count,
                 'oldest_due_date' => $row->oldest_due_date,
+                'late_days' => (int) Carbon::parse($row->oldest_due_date, 'Asia/Jakarta')->startOfDay()->diffInDays(now('Asia/Jakarta')->startOfDay()),
                 'status' => 'Menunggak >30 hari',
             ];
         })->all();
@@ -168,9 +177,19 @@ class ReportService
 
     public function monthlyReceived(array $filters = [], int $months = 4): array
     {
-        $end = isset($filters['end_date']) ? Carbon::parse($filters['end_date'])->endOfMonth() : now()->endOfMonth();
+        $end = isset($filters['end_date']) ? Carbon::parse($filters['end_date'], 'Asia/Jakarta')->endOfDay() : now('Asia/Jakarta')->endOfDay();
         $start = $end->copy()->startOfMonth()->subMonths($months - 1);
-        $rows = CashLedgerEntry::query()->whereBetween('entry_date', [$start->toDateString(), $end->toDateString()])->get(['entry_date', 'amount_in'])->groupBy(fn ($entry) => Carbon::parse($entry->entry_date)->format('Y-m'))->map(fn ($items) => $items->sum('amount_in'));
+        $query = CashLedgerEntry::query()
+            ->whereDate('entry_date', '>=', $start->toDateString())
+            ->whereDate('entry_date', '<=', $end->toDateString())
+            ->when($filters['academic_year_id'] ?? null, fn ($q, $id) => $q->whereHas('invoice', fn ($invoice) => $invoice->where('academic_year_id', $id)))
+            ->when($filters['classroom_id'] ?? null, fn ($q, $id) => $q->whereHas('invoice.student.enrollments', fn ($enrollment) => $enrollment->where('classroom_id', $id)->when($filters['academic_year_id'] ?? null, fn ($year) => $year->where('academic_year_id', $filters['academic_year_id']))));
+        if (! empty($filters['start_date'])) {
+            $query->whereDate('entry_date', '>=', Carbon::parse($filters['start_date'], 'Asia/Jakarta')->toDateString());
+        }
+        $period = DB::connection()->getDriverName() === 'mysql' ? "DATE_FORMAT(entry_date, '%Y-%m')" : "strftime('%Y-%m', entry_date)";
+        $rows = $query->selectRaw("{$period} as period, SUM(amount_in) as total")
+            ->groupByRaw($period)->pluck('total', 'period');
 
         return collect(range(0, $months - 1))->map(function ($offset) use ($start, $rows) {
             $date = $start->copy()->addMonths($offset);
@@ -220,7 +239,7 @@ class ReportService
         $classBreakdown = Classroom::withCount(['enrollments' => fn ($q) => $q->where('status', 'aktif')->whereHas('student', fn ($s) => $s->where('status', 'aktif'))])
             ->orderBy('name')
             ->get()
-            ->map(fn ($c) => "{$c->name} {$c->enrollments_count}")
+            ->map(fn ($c) => "{$c->display_name} {$c->enrollments_count}")
             ->implode(' · ');
 
         $latestPending = Payment::where('status', 'menunggu')->latest()->first();
@@ -250,16 +269,16 @@ class ReportService
     {
         $enrollment = $student->enrollments()->with(['classroom.homeroomTeacher'])->where('academic_year_id', $academicYear->id)->first();
 
-        $startDate = Carbon::parse($academicYear->start_date);
-        $endDate = Carbon::parse($academicYear->end_date);
+        $startDate = Carbon::parse($academicYear->start_date, 'Asia/Jakarta')->startOfDay();
+        $endDate = Carbon::parse($academicYear->end_date, 'Asia/Jakarta')->endOfDay();
 
         $periodLabel = 'Semester 1 (Juli – Des '.$startDate->year.')';
         if ($period === 'semester_1') {
             $startDate = $startDate->copy()->startOfDay();
-            $endDate = $startDate->copy()->addMonths(5)->endOfMonth();
+            $endDate = $startDate->copy()->addMonths(5)->endOfMonth()->endOfDay();
             $periodLabel = 'Semester 1 (Juli – Des '.$startDate->year.')';
         } elseif ($period === 'semester_2') {
-            $startDate = $endDate->copy()->subMonths(5)->startOfMonth();
+            $startDate = $endDate->copy()->subMonths(5)->startOfMonth()->startOfDay();
             $endDate = $endDate->copy()->endOfDay();
             $periodLabel = 'Semester 2 (Jan – Jun '.$endDate->year.')';
         }
@@ -289,7 +308,7 @@ class ReportService
 
         $anecdotes = AnecdotalNote::query()
             ->where('student_id', $student->id)
-            ->whereBetween('noted_at', [$startDate->toDateString(), $endDate->toDateString()])
+            ->whereBetween('noted_at', [$startDate, $endDate])
             ->latest('noted_at')
             ->limit(3)
             ->get(['noted_at', 'observed_behavior', 'interpretation'])
@@ -304,7 +323,7 @@ class ReportService
         $teacher = $enrollment?->classroom?->homeroomTeacher;
 
         $schoolSettings = DB::table('school_settings')->pluck('value', 'key');
-        $schoolName = $schoolSettings->get('school_name', config('app.name', 'TK Tunas Harapan'));
+        $schoolName = $schoolSettings->get('school_name', '');
 
         return [
             'school_name' => $schoolName,
@@ -322,15 +341,15 @@ class ReportService
             ],
             'period' => $period,
             'period_label' => $periodLabel,
-            'classroom' => $enrollment?->classroom?->name ?? '—',
+            'classroom' => $enrollment?->classroom?->display_name ?? '—',
             'classroom_age' => $enrollment?->classroom?->age_range ?? 'Usia 4–5 Tahun',
             'teacher' => $teacher?->name ?? 'Wali Kelas',
             'teacher_nip' => $teacher?->nip ?? 'NIP. —',
-            'principal' => $principalUser?->name ?? 'Ibu Dra. Hartini',
-            'principal_nip' => $principalTeacher?->nip ?? 'NIP. 197406121998032001',
+            'principal' => $principalUser?->name ?? 'Kepala Sekolah',
+            'principal_nip' => $principalTeacher?->nip ?? 'NIP. —',
             'city_date' => 'Jakarta, '.now()->locale('id')->isoFormat('D MMMM Y'),
             'assessments' => $assessments,
-            'narratives' => $notes->groupBy(fn ($note) => $note->aspect instanceof \BackedEnum ? $note->aspect->value : $note->aspect)->map(fn ($items) => $items->pluck('note')->take(2)->values())->all(),
+            'narratives' => $notes->groupBy(fn ($note) => $note->aspect instanceof \BackedEnum ? $note->aspect->value : $note->aspect)->map(fn ($items) => $items->pluck('note')->take(2)->values()->all())->all(),
             'anecdotes' => $anecdotes,
             'is_complete' => $assessments->isNotEmpty(),
         ];
@@ -338,54 +357,59 @@ class ReportService
 
     public function classSummaryReport(?int $academicYearId = null): array
     {
-        $classrooms = Classroom::with(['homeroomTeacher', 'enrollments' => fn ($q) => $q->where('status', 'aktif')])
-            ->when($academicYearId, fn ($q) => $q->where('academic_year_id', $academicYearId))
-            ->get();
+        $cutoff = now('Asia/Jakarta')->subDays(30)->startOfDay()->toDateString();
+        $rows = DB::table('classrooms')
+            ->leftJoin('teachers', 'teachers.id', '=', 'classrooms.homeroom_teacher_id')
+            ->leftJoin('enrollments', fn ($join) => $join->on('enrollments.classroom_id', '=', 'classrooms.id')->where('enrollments.status', 'aktif'))
+            ->leftJoin('students', fn ($join) => $join->on('students.id', '=', 'enrollments.student_id')->where('students.status', 'aktif'))
+            ->leftJoin('invoices', function ($join) use ($academicYearId) {
+                $join->on('invoices.student_id', '=', 'students.id');
+                if ($academicYearId) {
+                    $join->where('invoices.academic_year_id', $academicYearId);
+                }
+            })
+            ->when($academicYearId, fn ($query) => $query->where('classrooms.academic_year_id', $academicYearId))
+            ->select([
+                'classrooms.id', 'classrooms.name', 'teachers.name as teacher_name',
+                DB::raw('COUNT(DISTINCT enrollments.student_id) as student_count'),
+                DB::raw("SUM(CASE WHEN invoices.status = 'lunas' THEN 1 ELSE 0 END) as paid_count"),
+                DB::raw("SUM(CASE WHEN invoices.id IS NOT NULL AND invoices.status <> 'lunas' THEN 1 ELSE 0 END) as unpaid_count"),
+                DB::raw('COUNT(invoices.id) as invoice_count'),
+                DB::raw("SUM(CASE WHEN invoices.status = 'menunggu_verifikasi' THEN 1 ELSE 0 END) as pending_count"),
+                DB::raw("SUM(CASE WHEN invoices.status IN ('belum_bayar', 'ditolak') AND invoices.due_date < '{$cutoff}' THEN 1 ELSE 0 END) as overdue_count"),
+                DB::raw("COALESCE(SUM(CASE WHEN invoices.status = 'lunas' THEN invoices.amount - invoices.discount_amount ELSE 0 END), 0) as received_amount"),
+                DB::raw("COALESCE(SUM(CASE WHEN invoices.id IS NOT NULL AND invoices.status <> 'lunas' THEN invoices.amount - invoices.discount_amount ELSE 0 END), 0) as outstanding_amount"),
+            ])
+            ->groupBy('classrooms.id', 'classrooms.name', 'teachers.name')
+            ->orderBy('classrooms.name')
+            ->get()
+            ->map(function ($row) {
+                $paid = (int) $row->paid_count;
+                $unpaid = (int) $row->unpaid_count;
 
-        $rows = [];
-        $totalStudents = 0;
-        $totalPaid = 0;
-        $totalUnpaid = 0;
-        $totalReceived = 0;
-        $totalOutstanding = 0;
+                return [
+                    'id' => (int) $row->id,
+                    'name' => str_starts_with($row->name, 'Kelompok ') ? $row->name : 'Kelompok '.$row->name,
+                    'teacher_name' => $row->teacher_name ?? 'Belum ditentukan',
+                    'student_count' => (int) $row->student_count,
+                    'paid_count' => $paid,
+                    'unpaid_count' => $unpaid,
+                    'invoice_count' => (int) $row->invoice_count,
+                    'pending_count' => (int) $row->pending_count,
+                    'overdue_count' => (int) $row->overdue_count,
+                    'received_amount' => (int) $row->received_amount,
+                    'outstanding_amount' => (int) $row->outstanding_amount,
+                    'achievement_percentage' => ($paid + $unpaid) > 0 ? round(($paid / ($paid + $unpaid)) * 100, 1) : 0,
+                ];
+            })->all();
 
-        foreach ($classrooms as $classroom) {
-            $studentIds = $classroom->enrollments->pluck('student_id');
-            $studentCount = $studentIds->count();
-            $totalStudents += $studentCount;
-
-            $invoices = Invoice::whereIn('student_id', $studentIds)
-                ->when($academicYearId, fn ($q) => $q->where('academic_year_id', $academicYearId))
-                ->get();
-
-            $paidInvoices = $invoices->where('status', InvoiceStatus::Paid);
-            $unpaidInvoices = $invoices->where('status', '!=', InvoiceStatus::Paid);
-
-            $paidCount = $paidInvoices->count();
-            $unpaidCount = $unpaidInvoices->count();
-            $received = $paidInvoices->sum(fn ($i) => $i->amount - $i->discount_amount);
-            $outstanding = $unpaidInvoices->sum(fn ($i) => $i->amount - $i->discount_amount);
-
-            $totalPaid += $paidCount;
-            $totalUnpaid += $unpaidCount;
-            $totalReceived += $received;
-            $totalOutstanding += $outstanding;
-
-            $totalInv = $paidCount + $unpaidCount;
-            $pct = $totalInv > 0 ? round(($paidCount / $totalInv) * 100, 1) : 0;
-
-            $rows[] = [
-                'id' => $classroom->id,
-                'name' => $classroom->name,
-                'teacher_name' => $classroom->homeroomTeacher?->name ?? 'Belum ditentukan',
-                'student_count' => $studentCount,
-                'paid_count' => $paidCount,
-                'unpaid_count' => $unpaidCount,
-                'received_amount' => (int) $received,
-                'outstanding_amount' => (int) $outstanding,
-                'achievement_percentage' => $pct,
-            ];
-        }
+        $totalStudents = array_sum(array_column($rows, 'student_count'));
+        $totalPaid = array_sum(array_column($rows, 'paid_count'));
+        $totalUnpaid = array_sum(array_column($rows, 'unpaid_count'));
+        $totalPending = array_sum(array_column($rows, 'pending_count'));
+        $totalOverdue = array_sum(array_column($rows, 'overdue_count'));
+        $totalReceived = array_sum(array_column($rows, 'received_amount'));
+        $totalOutstanding = array_sum(array_column($rows, 'outstanding_amount'));
 
         return [
             'classes' => $rows,
@@ -393,15 +417,13 @@ class ReportService
                 'student_count' => $totalStudents,
                 'paid_count' => $totalPaid,
                 'unpaid_count' => $totalUnpaid,
+                'invoice_count' => $totalPaid + $totalUnpaid,
+                'pending_count' => $totalPending,
+                'overdue_count' => $totalOverdue,
                 'received_amount' => (int) $totalReceived,
                 'outstanding_amount' => (int) $totalOutstanding,
                 'achievement_percentage' => ($totalPaid + $totalUnpaid) > 0 ? round(($totalPaid / ($totalPaid + $totalUnpaid)) * 100, 1) : 0,
             ],
         ];
-    }
-
-    private function schoolDays(Carbon $start, Carbon $end): int
-    {
-        return collect(CarbonPeriod::create($start, $end))->filter(fn (Carbon $date) => $date->isWeekday())->count();
     }
 }

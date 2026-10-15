@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MasterDataRequest;
 use App\Models\AcademicYear;
 use App\Models\Guardian;
 use App\Services\AccountProvisioningService;
+use App\Services\MasterDataService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -39,13 +41,13 @@ class GuardianController extends Controller
 
         return Inertia::render('Admin/Guardians', [
             'guardians' => $query->orderBy('name')->paginate(12)->withQueryString()->through(fn ($g) => [
-                'id' => $g->id, 'name' => $g->name, 'phone' => $g->phone,
+                'id' => $g->id, 'name' => $g->name, 'phone' => $g->phone, 'address' => $g->address,
                 'email' => $g->user->email, 'is_active' => $g->user->is_active,
                 'account_status' => ! $g->user->is_active ? 'nonaktif' : ($g->user->must_change_password ? 'belum_masuk' : 'aktif'),
                 'students' => $g->students->map(fn ($s) => [
                     'id' => $s->id,
                     'name' => $s->name,
-                    'classroom' => $s->enrollments->first()?->classroom?->name,
+                    'classroom' => $s->enrollments->first()?->classroom?->display_name,
                 ])->all(),
             ]),
             'filters' => $request->only('status', 'search'),
@@ -59,5 +61,26 @@ class GuardianController extends Controller
         $service->resetPassword($guardian->user, $r->user());
 
         return back();
+    }
+
+    public function update(MasterDataRequest $request, Guardian $guardian, MasterDataService $service)
+    {
+        $service->updateGuardian($guardian, $request->validated(), $request->user());
+
+        return back()->with('success', 'Data orang tua berhasil diperbarui.');
+    }
+
+    public function deactivate(Request $request, Guardian $guardian, MasterDataService $service)
+    {
+        $service->deactivate($guardian->user, $request->user());
+
+        return back()->with('success', 'Orang tua dinonaktifkan.');
+    }
+
+    public function activate(Request $request, Guardian $guardian, MasterDataService $service)
+    {
+        $service->activate($guardian->user, $request->user());
+
+        return back()->with('success', 'Orang tua diaktifkan kembali.');
     }
 }

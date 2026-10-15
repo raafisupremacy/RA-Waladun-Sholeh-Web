@@ -8,8 +8,10 @@ use App\Models\Classroom;
 use App\Models\DailyJournal;
 use App\Models\Student;
 use App\Services\JournalService;
+use App\Services\SchoolCalendarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class JournalController extends Controller
@@ -28,12 +30,13 @@ class JournalController extends Controller
                 ->whereHas('academicYear', fn ($y) => $y->where('is_active', true)));
         }
         $totalStudents = (clone $activeStudentsQuery)->count();
-        $filledToday = DailyJournal::where('teacher_id', $teacher?->id)
+        $visibleStudentIds = $activeStudentsQuery->pluck('students.id');
+        $filledToday = DailyJournal::whereIn('student_id', $visibleStudentIds)
             ->whereDate('journal_date', today())
             ->where('status', JournalStatus::Final)
             ->count();
 
-        $filledTodayStudentIds = DailyJournal::where('teacher_id', $teacher?->id)
+        $filledTodayStudentIds = DailyJournal::whereIn('student_id', $visibleStudentIds)
             ->whereDate('journal_date', today())
             ->where('status', JournalStatus::Final)
             ->pluck('student_id');
@@ -43,8 +46,7 @@ class JournalController extends Controller
             ->first();
 
         $query = DailyJournal::with('student')
-            ->where('teacher_id', $teacher?->id)
-            ->whereIn('student_id', $activeStudentsQuery->pluck('students.id'));
+            ->whereIn('student_id', $visibleStudentIds);
 
         if ($request->filled('date')) {
             $query->whereDate('journal_date', $request->input('date'));
@@ -81,7 +83,7 @@ class JournalController extends Controller
         return Inertia::render('Guru/Journal', [
             'classroom' => $classroom ? [
                 'id' => $classroom->id,
-                'name' => $classroom->name,
+                'name' => $classroom->display_name,
             ] : null,
             'today_stats' => [
                 'date_formatted' => today()->locale('id')->translatedFormat('l, j M Y'),
@@ -107,10 +109,7 @@ class JournalController extends Controller
             ->first();
 
         // Get all active classroom students for prev / next navigation
-        $classStudents = Student::query()
-            ->whereHas('enrollments', fn ($q) => $q->where('classroom_id', $classroom?->id)
-                ->where('status', 'aktif')
-                ->whereHas('academicYear', fn ($y) => $y->where('is_active', true)))
+        $classStudents = Student::visibleTo($request->user())
             ->where('status', 'aktif')
             ->orderBy('name')
             ->get();
@@ -127,13 +126,11 @@ class JournalController extends Controller
         $dateFormatted = Carbon::parse($date)->locale('id')->translatedFormat('j M Y');
 
         $journal = DailyJournal::with('assessments')
-            ->where('teacher_id', $teacher?->id)
             ->where('student_id', $student->id)
             ->whereDate('journal_date', $date)
             ->first();
 
         $allJournals = DailyJournal::with('assessments')
-            ->where('teacher_id', $teacher?->id)
             ->where('student_id', $student->id)
             ->latest('journal_date')
             ->get()
@@ -143,13 +140,13 @@ class JournalController extends Controller
 
         $editWindowDays = (int) config('skms.journal_edit_days', 1);
         $isLocked = false;
-        $canEdit = true;
+        $canEdit = ! $journal || Gate::forUser($request->user())->allows('update', $journal);
         $lockedUntilDate = null;
 
         if ($journal && $journal->status === JournalStatus::Final) {
             $lockExpiry = $journal->journal_date->endOfDay()->addDays($editWindowDays);
             $isLocked = $lockExpiry->isPast();
-            $canEdit = ! $isLocked;
+            $canEdit = ! $isLocked && Gate::forUser($request->user())->allows('update', $journal);
             $lockedUntilDate = $journal->journal_date->addDays($editWindowDays)->locale('id')->translatedFormat('j M Y');
         }
 
@@ -171,7 +168,7 @@ class JournalController extends Controller
             ],
             'classroom' => $classroom ? [
                 'id' => $classroom->id,
-                'name' => $classroom->name,
+                'name' => $classroom->display_name,
             ] : null,
             'date' => $date,
             'date_formatted' => $dateFormatted,
@@ -202,10 +199,7 @@ class JournalController extends Controller
         $year = (int) ($request->integer('year') ?: now()->year);
         $aspectFilter = $request->input('aspect') ?: 'all';
 
-        $students = Student::query()
-            ->whereHas('enrollments', fn ($q) => $q->where('classroom_id', $classroom?->id)
-                ->where('status', 'aktif')
-                ->whereHas('academicYear', fn ($y) => $y->where('is_active', true)))
+        $students = Student::visibleTo($request->user())
             ->where('status', 'aktif')
             ->orderBy('name')
             ->get();
@@ -213,25 +207,18 @@ class JournalController extends Controller
         $selectedStudentId = (int) ($request->integer('student_id') ?: ($students->first()?->id ?? 0));
         $selectedStudent = $students->firstWhere('id', $selectedStudentId);
 
-        // Calculate school days in that month (Mon-Fri)
         $startOfMonth = Carbon::createFromDate($year, $month, 1)->startOfMonth();
         $endOfMonth = $startOfMonth->copy()->endOfMonth();
-        $schoolDays = [];
-        $cur = $startOfMonth->copy();
-        while ($cur->lte($endOfMonth)) {
-            if ($cur->isWeekday()) {
-                $schoolDays[] = [
-                    'date' => $cur->toDateString(),
-                    'day_name' => $cur->locale('id')->translatedFormat('D'),
-                    'day_number' => $cur->day,
-                    'is_past_or_today' => $cur->lte(today()),
-                ];
-            }
-            $cur->addDay();
-        }
+        $schoolDays = app(SchoolCalendarService::class)->schoolDays($startOfMonth, $endOfMonth)
+            ->map(fn ($date) => [
+                'date' => $date->toDateString(),
+                'day_name' => $date->locale('id')->translatedFormat('D'),
+                'day_number' => $date->day,
+                'is_past_or_today' => $date->lte(today('Asia/Jakarta')),
+            ])->all();
 
         $journalsQuery = DailyJournal::with(['student', 'assessments'])
-            ->where('teacher_id', $teacher?->id)
+            ->whereIn('student_id', $students->pluck('id'))
             ->whereMonth('journal_date', $month)
             ->whereYear('journal_date', $year);
 
@@ -261,13 +248,13 @@ class JournalController extends Controller
         }
 
         $effectiveSchoolDays = array_filter($schoolDays, fn ($d) => $d['is_past_or_today']);
-        $totalSchoolDays = count($effectiveSchoolDays) ?: count($schoolDays);
+        $totalSchoolDays = count($effectiveSchoolDays);
         $filledDays = count(array_filter($effectiveSchoolDays, fn ($d) => isset($journalsByDate[$d['date']]) && $journalsByDate[$d['date']]['status'] === 'final'));
 
         return Inertia::render('Guru/JournalHistory', [
             'classroom' => $classroom ? [
                 'id' => $classroom->id,
-                'name' => $classroom->name,
+                'name' => $classroom->display_name,
             ] : null,
             'students' => $students->map(fn ($s) => ['id' => $s->id, 'name' => $s->name, 'nis' => $s->nis])->values()->all(),
             'selected_student' => $selectedStudent ? [

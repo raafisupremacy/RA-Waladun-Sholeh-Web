@@ -16,6 +16,7 @@ class AnnouncementService
             $values = [
                 'created_by' => $announcement?->created_by ?? $actor->id,
                 'classroom_id' => $data['classroom_id'] ?? null,
+                'target_level' => $data['target_level'] ?? null,
                 'title' => $data['title'],
                 'body' => $data['body'],
                 'is_pinned' => (bool) ($data['is_pinned'] ?? false),

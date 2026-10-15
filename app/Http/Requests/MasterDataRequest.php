@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\AcademicYear;
+use App\Models\Classroom;
+use App\Models\Teacher;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -37,6 +39,18 @@ class MasterDataRequest extends FormRequest
             'admin.guardians.store' => [
                 'name' => 'required|string|max:255', 'email' => 'required|email|max:255|unique:users,email',
                 'phone' => 'required|string|max:50', 'address' => 'required|string|max:2000',
+            ],
+            'admin.teachers.update' => [
+                'name' => 'required|string|max:255',
+                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->route('teacher')->user_id)],
+                'nip' => ['required', 'string', 'max:255', Rule::unique('teachers', 'nip')->ignore($this->route('teacher'))],
+                'phone' => 'required|string|max:50',
+            ],
+            'admin.guardians.update' => [
+                'name' => 'required|string|max:255',
+                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->route('guardian')->user_id)],
+                'phone' => 'required|string|max:50',
+                'address' => 'required|string|max:2000',
             ],
             'admin.classrooms.move' => [
                 'student_ids' => 'required|array|min:1|max:200',
@@ -83,5 +97,28 @@ class MasterDataRequest extends FormRequest
             'phone' => 'Telepon', 'address' => 'Alamat', 'teacher_id' => 'Guru', 'student_ids' => 'Siswa',
             'age_range' => 'Rentang usia',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if (! in_array($this->route()->getName(), ['admin.classrooms.store', 'admin.classrooms.teacher'], true)
+                || ! $this->filled('teacher_id')) {
+                return;
+            }
+
+            $yearId = AcademicYear::where('is_active', true)->value('id');
+            $currentClassId = $this->route('classroom')?->id;
+            $conflict = Classroom::with('homeroomTeacher')
+                ->where('academic_year_id', $yearId)
+                ->where('homeroom_teacher_id', $this->integer('teacher_id'))
+                ->when($currentClassId, fn ($query) => $query->where('id', '!=', $currentClassId))
+                ->first();
+
+            if ($conflict) {
+                $teacher = Teacher::find($this->integer('teacher_id'));
+                $validator->errors()->add('teacher_id', "Guru {$teacher?->name} sudah menjadi wali kelas {$conflict->display_name} pada tahun ajaran ini.");
+            }
+        });
     }
 }

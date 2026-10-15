@@ -33,6 +33,12 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $settings = Schema::hasTable('school_settings')
+            ? SchoolSetting::query()->pluck('value', 'key')
+            : collect();
+        $logoUrl = file_exists(public_path('brand/logo.png'))
+            ? asset('brand/logo.png')
+            : (file_exists(public_path('brand/logo.jpg')) ? asset('brand/logo.jpg') : null);
 
         return [
             ...parent::share($request),
@@ -51,17 +57,24 @@ class HandleInertiaRequests extends Middleware
                 return $encrypted ? json_decode(Crypt::decryptString($encrypted), true) : null;
             },
             'flash' => ['success' => fn () => $request->session()->get('success')],
-            'schoolName' => fn () => Schema::hasTable('school_settings') ? SchoolSetting::where('key', 'school_name')->value('value') : '',
-            'schoolSettings' => function () use ($user) {
-                if (! $user || ! $user->hasAnyRole(['admin', 'orang_tua']) || ! Schema::hasTable('school_settings')) {
+            'schoolName' => $settings->get('school_name', ''),
+            'schoolPhone' => $settings->get('school_phone', ''),
+            'schoolAddress' => $settings->get('school_address', ''),
+            'schoolSettings' => function () use ($user, $settings) {
+                if (! $user || ! $user->hasAnyRole(['admin', 'orang_tua'])) {
                     return [];
                 }
 
-                return SchoolSetting::query()->whereIn('key', [
+                return $settings->only([
                     'school_name', 'school_address', 'school_phone', 'bank_name',
                     'bank_account_number', 'bank_account_holder', 'default_spp_amount',
-                ])->pluck('value', 'key')->all();
+                ])->all();
             },
+            'brandAssets' => [
+                'logo' => $logoUrl !== null,
+                'logoUrl' => $logoUrl,
+                'schoolPhoto' => file_exists(public_path('brand/school.jpg')),
+            ],
         ];
     }
 }

@@ -28,6 +28,7 @@ class InvoiceRequest extends FormRequest
             'due_date' => ['nullable', 'date'],
             'classroom_id' => ['nullable', 'integer', 'exists:classrooms,id'],
             'status' => ['nullable', Rule::enum(InvoiceStatus::class)],
+            'search' => ['nullable', 'string', 'max:100'],
         ];
     }
 

@@ -23,7 +23,7 @@ class ClassroomController extends Controller
             'classrooms' => Classroom::with(['academicYear', 'homeroomTeacher', 'teachers',
                 'enrollments' => fn ($q) => $q->where('status', 'aktif')->whereHas('student', fn ($s) => $s->where('status', 'aktif'))->with('student'),
             ])->whereHas('academicYear', fn ($q) => $q->where('is_active', true))->orderBy('name')->get()->map(fn ($c) => [
-                'id' => $c->id, 'name' => $c->name, 'age_range' => $c->age_range, 'year' => $c->academicYear->name,
+                'id' => $c->id, 'name' => $c->display_name, 'age_range' => $c->age_range, 'year' => $c->academicYear->name,
                 'teacher_id' => $c->homeroom_teacher_id, 'teacher' => $c->homeroomTeacher?->name,
                 'teachers' => $c->teachers->map(fn ($t) => [
                     'id' => $t->id,
