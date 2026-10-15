@@ -69,7 +69,7 @@ export default function AccountCreatedDialog() {
                             <button
                                 type="button"
                                 onClick={copyEmail}
-                                className="text-sm font-semibold text-[#0071E3] hover:underline shrink-0"
+                                className="text-sm font-semibold text-[var(--primary)] hover:underline shrink-0"
                             >
                                 {copiedEmail ? 'Disalin' : 'Salin'}
                             </button>
@@ -83,7 +83,7 @@ export default function AccountCreatedDialog() {
                             <button
                                 type="button"
                                 onClick={copyPassword}
-                                className="text-sm font-semibold text-[#0071E3] hover:underline shrink-0"
+                                className="text-sm font-semibold text-[var(--primary)] hover:underline shrink-0"
                             >
                                 {copiedPassword ? 'Disalin' : 'Salin'}
                             </button>
@@ -107,7 +107,7 @@ export default function AccountCreatedDialog() {
                     <button
                         type="button"
                         onClick={() => setAccount(null)}
-                        className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-all duration-150 active:scale-[0.98]"
+                        className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-all duration-150 active:scale-[0.98]"
                     >
                         Selesai
                     </button>

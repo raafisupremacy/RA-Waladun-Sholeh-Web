@@ -1,6 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { Pin } from 'lucide-react';
+import { ArrowLeftRight, Check, Pin } from 'lucide-react';
 import { getParentLayout } from '@/Layouts/ParentLayout';
 import StatusCapsule from '@/Components/StatusCapsule';
 import EmptyState from '@/Components/EmptyState';
@@ -14,7 +14,7 @@ type Announcement = { id: number; title: string; body: string; is_pinned: boolea
 const aspectLabels: Record<string, string> = { nilai_agama_moral: 'Nilai Agama dan Moral', fisik_motorik: 'Fisik Motorik', kognitif: 'Kognitif', bahasa: 'Bahasa', sosial_emosional: 'Sosial Emosional' };
 
 export default function Dashboard({ students, activeStudentId, invoice, journal, announcements }: { students: Student[]; activeStudentId?: number | null; invoice: Invoice; journal: Journal; announcements: Announcement[] }) {
-    const p = usePage().props as { appName?: string; schoolSettings?: Record<string, string> };
+    const p = usePage().props as { appName?: string; schoolSettings?: Record<string, string>; brandAssets?: { schoolPhoto?: boolean } };
     const [switching, setSwitching] = useState(false);
     const student = students.find(item => item.id === activeStudentId);
     const amount = invoice?.net_amount ?? (invoice ? invoice.amount - invoice.discount_amount : 0);
@@ -24,7 +24,9 @@ export default function Dashboard({ students, activeStudentId, invoice, journal,
     const pinnedAnnouncements = announcements.filter(item => item.is_pinned);
     return <>
         <Head title="Beranda orang tua" />
-        <section className="parent-hero">
+        <section className={`parent-hero ${p.brandAssets?.schoolPhoto ? 'has-school-photo' : ''}`}>
+            {p.brandAssets?.schoolPhoto && <img className="parent-hero-photo" src="/brand/school.jpg" alt="Suasana sekolah" fetchPriority="high" />}
+            <div className="parent-hero-overlay" aria-hidden="true" />
             <div className="parent-hero-info">
                 <div className="avatar-circle">
                     {student?.name.split(' ').map(part => part[0]).slice(0, 2).join('') ?? '—'}
@@ -37,23 +39,44 @@ export default function Dashboard({ students, activeStudentId, invoice, journal,
                 </div>
             </div>
             {student && students.length > 1 && (
-                <button type="button" className="parent-switcher" onClick={() => setSwitching(true)}>
-                    Ganti anak &gt;
+                <button
+                    type="button"
+                    className="parent-switcher"
+                    onClick={() => setSwitching(true)}
+                    aria-label="Pilih profil anak"
+                >
+                    <ArrowLeftRight size={13} strokeWidth={2.2} aria-hidden="true" />
+                    <span>Pilih Anak</span>
                 </button>
             )}
         </section>
-        <BottomSheet open={switching} title="Ganti anak" onClose={() => setSwitching(false)}>
+        <BottomSheet open={switching} title="Pilih Anak" onClose={() => setSwitching(false)}>
             <div className="child-options">
-                {students.map(child => (
-                    <Link
-                        key={child.id}
-                        href={`/ortu?student_id=${child.id}`}
-                        aria-current={child.id === activeStudentId ? 'true' : undefined}
-                        onClick={() => setSwitching(false)}
-                    >
-                        {child.name}<span>{child.classroom}</span>
-                    </Link>
-                ))}
+                {students.map(child => {
+                    const isCurrent = child.id === activeStudentId;
+                    return (
+                        <Link
+                            key={child.id}
+                            href={`/ortu?student_id=${child.id}`}
+                            aria-current={isCurrent ? 'true' : undefined}
+                            onClick={() => setSwitching(false)}
+                            className="child-option-card"
+                        >
+                            <div className="child-option-avatar">
+                                {child.name.split(' ').map(part => part[0]).slice(0, 2).join('')}
+                            </div>
+                            <div className="child-option-info">
+                                <strong>{child.name}</strong>
+                                <span>{child.classroom ?? 'Belum ada kelompok'} · NIS {child.nis}</span>
+                            </div>
+                            {isCurrent && (
+                                <span className="child-option-badge">
+                                    <Check size={14} strokeWidth={2.5} /> Aktif
+                                </span>
+                            )}
+                        </Link>
+                    );
+                })}
             </div>
         </BottomSheet>
         {pinnedAnnouncements.length > 0 && (

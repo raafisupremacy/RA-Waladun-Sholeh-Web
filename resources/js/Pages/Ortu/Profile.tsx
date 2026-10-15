@@ -28,6 +28,7 @@ export default function Profile({
     students: Student[];
 }) {
     const page = usePage().props as { appName?: string; schoolSettings?: Record<string, string> };
+    const schoolPhone = page.schoolSettings?.school_phone || '';
 
     return (
         <ParentLayout appName={page.appName} schoolName={page.schoolSettings?.school_name}>
@@ -36,7 +37,7 @@ export default function Profile({
             <div className="max-w-xl mx-auto py-8 space-y-8 pb-24">
                 {/* Hero Header */}
                 <div className="flex flex-col items-center text-center">
-                    <div className="w-20 h-20 rounded-full bg-blue-100 text-[#0071E3] flex items-center justify-center font-bold text-2xl shadow-sm">
+                    <div className="w-20 h-20 rounded-full bg-blue-100 text-[var(--primary)] flex items-center justify-center font-bold text-2xl shadow-sm">
                         {getInitials(guardian.name)}
                     </div>
                     <h1 className="text-2xl md:text-3xl font-bold text-stone-900 tracking-tight mt-4">
@@ -65,7 +66,7 @@ export default function Profile({
                         </div>
                     </dl>
                     <p className="text-xs text-stone-400 pt-2 border-t border-stone-100">
-                        Untuk mengubah data, hubungi Tata Usaha.
+                        Untuk mengubah data, hubungi <a href={schoolPhone ? `tel:${schoolPhone}` : undefined}>Tata Usaha</a>.
                     </p>
                 </section>
 
@@ -79,7 +80,7 @@ export default function Profile({
                             {students.map(student => (
                                 <div key={student.id} className="py-3.5 flex items-center justify-between gap-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-blue-50 text-[#0071E3] flex items-center justify-center font-bold text-xs shrink-0">
+                                        <div className="w-10 h-10 rounded-full bg-blue-50 text-[var(--primary)] flex items-center justify-center font-bold text-xs shrink-0">
                                             {getInitials(student.name)}
                                         </div>
                                         <div>
@@ -102,7 +103,7 @@ export default function Profile({
                 <section className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/80 shadow-sm space-y-4 divide-y divide-stone-100">
                     <Link
                         href="/ganti-kata-sandi"
-                        className="flex items-center justify-between py-2 text-stone-800 font-semibold text-sm hover:text-[#0071E3] transition-colors"
+                        className="flex items-center justify-between py-2 text-stone-800 font-semibold text-sm hover:text-[var(--primary)] transition-colors"
                     >
                         <span>Ganti kata sandi</span>
                         <ChevronRight size={18} className="text-stone-400" />

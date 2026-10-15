@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { getParentLayout } from '@/Layouts/ParentLayout';
 import SegmentedControl from '@/Components/SegmentedControl';
 import StatusCapsule from '@/Components/StatusCapsule';
@@ -75,7 +76,7 @@ export default function Development({
     anecdotes,
 }: Props) {
     const pageProps = usePage().props as { appName?: string; schoolName?: string; schoolSettings?: Record<string, string> };
-    const schoolName = pageProps.schoolName || pageProps.schoolSettings?.school_name || 'RA Waladun Sholeh';
+    const schoolName = pageProps.schoolName || pageProps.schoolSettings?.school_name || '';
 
     const [activeTab, setActiveTab] = useState<'jurnal' | 'anekdot'>('jurnal');
     const [isLegendOpen, setIsLegendOpen] = useState(false);
@@ -102,49 +103,52 @@ export default function Development({
                                 {selectedStudent?.name ?? 'Anak'}
                             </h1>
                             <span className="text-[var(--text-2)] text-base font-normal">
-                                · {selectedStudent?.classroom_name ?? 'Kelompok A'}
+                                · {selectedStudent?.classroom_name ?? 'Kelas'}
                             </span>
                             {students.length > 1 && (
                                 <button
                                     type="button"
                                     onClick={() => setIsChildModalOpen(true)}
-                                    className="text-[var(--accent)] text-sm font-semibold hover:underline ml-2"
+                                    className="parent-switcher ml-2"
+                                    aria-label="Pilih profil anak"
                                 >
-                                    Ganti anak &gt;
+                                    <ArrowLeftRight size={13} strokeWidth={2.2} aria-hidden="true" />
+                                    <span>Pilih Anak</span>
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 self-start md:self-auto">
+                    <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
                         {/* Month Navigator */}
-                        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-[var(--border)] shadow-2xs">
+                        <div className="h-10 inline-flex items-center gap-1 bg-white p-1 rounded-full border border-[var(--separator)] shadow-2xs">
                             <Link
                                 href={`/ortu/perkembangan?student_id=${selectedStudentId}&month=${prev_month.month}&year=${prev_month.year}`}
-                                className="text-[var(--text-2)] hover:text-[var(--text)] p-1 text-sm font-bold"
+                                className="w-8 h-8 rounded-full inline-flex items-center justify-center text-[var(--text-2)] hover:text-[var(--text)] hover:bg-stone-100 active:scale-95 transition-all"
                                 aria-label="Bulan sebelumnya"
                             >
-                                &lt;
+                                <ChevronLeft size={16} strokeWidth={2.2} />
                             </Link>
-                            <span className="text-sm font-semibold text-[var(--text)] px-1">
+                            <span className="text-sm font-semibold text-[var(--text)] px-2 tabular-nums select-none tracking-tight">
                                 {month_name}
                             </span>
                             <Link
                                 href={`/ortu/perkembangan?student_id=${selectedStudentId}&month=${next_month.month}&year=${next_month.year}`}
-                                className="text-[var(--text-2)] hover:text-[var(--text)] p-1 text-sm font-bold"
+                                className="w-8 h-8 rounded-full inline-flex items-center justify-center text-[var(--text-2)] hover:text-[var(--text)] hover:bg-stone-100 active:scale-95 transition-all"
                                 aria-label="Bulan berikutnya"
                             >
-                                &gt;
+                                <ChevronRight size={16} strokeWidth={2.2} />
                             </Link>
                         </div>
 
-                        {/* Download Report Link (Kept for Batch 3D) */}
+                        {/* Download Report Link */}
                         {selectedStudentId && (
                             <a
                                 href={`/ortu/perkembangan/${selectedStudentId}/laporan`}
-                                className="text-[var(--accent)] text-sm font-semibold hover:underline"
+                                className="h-10 inline-flex items-center gap-2 px-4 rounded-full border border-[var(--separator)] bg-white text-[var(--accent)] text-sm font-semibold hover:bg-[var(--accent-soft)] hover:border-blue-200 active:scale-98 transition-all shadow-2xs"
                             >
-                                Unduh laporan &gt;
+                                <Download size={14} strokeWidth={2.2} aria-hidden="true" className="shrink-0" />
+                                <span>Unduh laporan</span>
                             </a>
                         )}
                     </div>
@@ -258,7 +262,7 @@ export default function Development({
                                         </p>
                                     </div>
 
-                                    <div className="p-4 bg-[#F5F5F7] rounded-2xl space-y-1">
+                                    <div className="p-4 bg-[var(--background)] rounded-2xl space-y-1">
                                         <p className="text-xs font-semibold text-[var(--text-2)] uppercase tracking-wider">
                                             Interpretasi guru
                                         </p>
@@ -340,10 +344,10 @@ export default function Development({
                         </p>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-[#EBF4FE] border border-[#0071E3] space-y-1">
+                    <div className="p-3.5 rounded-2xl bg-[#EBF4FE] border border-[var(--primary)] space-y-1">
                         <div className="flex items-center gap-2">
                             <StatusCapsule status="BSB" />
-                            <span className="font-semibold text-xs text-[#0071E3]">Berkembang Sangat Baik</span>
+                            <span className="font-semibold text-xs text-[var(--primary)]">Berkembang Sangat Baik</span>
                         </div>
                         <p className="text-xs text-[var(--text-2)] leading-relaxed">
                             Anak sudah dapat melakukannya secara mandiri dan mampu membantu atau memotivasi temannya yang belum mencapai kemampuan tersebut.
@@ -354,7 +358,7 @@ export default function Development({
                         <button
                             type="button"
                             onClick={() => setIsLegendOpen(false)}
-                            className="bg-[var(--accent,#0071E3)] text-white text-xs px-5 py-2 rounded-full font-semibold hover:bg-[#0077ED]"
+                            className="bg-[var(--accent,var(--primary))] text-white text-xs px-5 py-2 rounded-full font-semibold hover:bg-[var(--primary-hover)]"
                         >
                             Saya Mengerti
                         </button>
@@ -372,28 +376,33 @@ export default function Development({
                     <p className="text-xs text-[var(--text-2)] mb-3">
                         Pilih data ananda yang ingin Anda lihat laporannya:
                     </p>
-                    {students.map((child) => (
-                        <button
-                            key={child.id}
-                            type="button"
-                            onClick={() => handleSwitchChild(child.id)}
-                            className={`w-full p-3.5 rounded-2xl flex items-center justify-between border transition-all text-left ${
-                                selectedStudentId === child.id
-                                    ? 'border-[var(--accent)] bg-[#EBF4FE] font-semibold text-[var(--accent)]'
-                                    : 'border-[var(--border)] hover:bg-[#F5F5F7] text-[var(--text)]'
-                            }`}
-                        >
-                            <div>
-                                <p className="text-sm font-semibold">{child.name}</p>
-                                <p className="text-xs text-[var(--text-2)]">NIS {child.nis}</p>
-                            </div>
-                            {selectedStudentId === child.id && (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--accent)] text-white">
-                                    Aktif
-                                </span>
-                            )}
-                        </button>
-                    ))}
+                    <div className="child-options">
+                        {students.map((child) => {
+                            const isCurrent = selectedStudentId === child.id;
+                            return (
+                                <button
+                                    key={child.id}
+                                    type="button"
+                                    onClick={() => handleSwitchChild(child.id)}
+                                    aria-current={isCurrent ? 'true' : undefined}
+                                    className="child-option-card w-full text-left"
+                                >
+                                    <div className="child-option-avatar">
+                                        {child.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}
+                                    </div>
+                                    <div className="child-option-info">
+                                        <strong>{child.name}</strong>
+                                        <span>{child.classroom_name ?? 'Belum ada kelompok'} · NIS {child.nis}</span>
+                                    </div>
+                                    {isCurrent && (
+                                        <span className="child-option-badge">
+                                            <Check size={14} strokeWidth={2.5} /> Aktif
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             </BottomSheet>
         </>

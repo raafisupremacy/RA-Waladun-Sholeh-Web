@@ -11,6 +11,7 @@ import {
     CartesianGrid,
     ResponsiveContainer,
     LabelList,
+    PieChart, Pie, Cell,
 } from 'recharts';
 
 type Point = { label: string; period: string; total: number };
@@ -71,6 +72,7 @@ type Props = {
     activeStudentsCount: number;
     journalCompletion: TeacherCompletion[];
     overdue: OverdueStudent[];
+    semesterProgress: { name: string; start?: string; end?: string; days_total?: number; days_elapsed?: number };
 };
 
 const MONTH_NAMES = [
@@ -100,6 +102,7 @@ export default function Dashboard({
     activeStudentsCount,
     journalCompletion,
     overdue,
+    semesterProgress,
 }: Props) {
     const p = usePage().props as { appName?: string; schoolSettings?: Record<string, string> };
 
@@ -195,30 +198,13 @@ export default function Dashboard({
                     </span>
                 </div>
 
-                {/* Stacked Progress Bar */}
-                <div className="w-full h-4 sm:h-5 rounded-full overflow-hidden flex bg-[#EEEEF1] mb-5">
-                    <div
-                        style={{ width: `${lunasPct}%` }}
-                        className="bg-[#0071E3] transition-all duration-500"
-                        title={`Lunas: ${lunasPct.toFixed(1)}%`}
-                    />
-                    <div
-                        style={{ width: `${pendingPct}%` }}
-                        className="bg-[#F59E0B] transition-all duration-500"
-                        title={`Menunggu: ${pendingPct.toFixed(1)}%`}
-                    />
-                    <div
-                        style={{ width: `${unpaidPct}%` }}
-                        className="bg-[#D1D1D6] transition-all duration-500"
-                        title={`Belum bayar: ${unpaidPct.toFixed(1)}%`}
-                    />
-                </div>
+                <div className="h-52"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={[{name:'Lunas',value:lunasCount},{name:'Menunggu verifikasi',value:pendingCount},{name:'Belum bayar',value:unpaidCount}]} dataKey="value" innerRadius="55%" outerRadius="78%" label={({name,value}) => `${name}: ${value}`}><Cell fill="var(--accent)"/><Cell fill="#F59E0B"/><Cell fill="var(--separator)"/></Pie></PieChart></ResponsiveContainer></div>
 
                 {/* Legend Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm text-[var(--text-2)]">
                     <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                         <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-[#0071E3] inline-block" />
+                            <span className="w-3 h-3 rounded-full bg-[var(--primary)] inline-block" />
                             <span>
                                 {lunasCount} Lunas · Rp {lunasAmount.toLocaleString('id-ID')}
                             </span>
@@ -230,7 +216,7 @@ export default function Dashboard({
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-[#D1D1D6] inline-block" />
+                            <span className="w-3 h-3 rounded-full bg-[var(--border)] inline-block" />
                             <span>
                                 {unpaidCount} Belum bayar · Rp {unpaidAmount.toLocaleString('id-ID')}
                             </span>
@@ -241,6 +227,12 @@ export default function Dashboard({
                         Target Rp {summary.target_amount.toLocaleString('id-ID')} · {summary.total_invoices} siswa
                     </div>
                 </div>
+            </section>
+
+            <section className="tile p-6 sm:p-8 mb-6 bg-[var(--surface)] rounded-[22px] shadow-sm">
+                <h2 className="text-lg font-semibold">Kelangsungan semester</h2>
+                <p className="text-sm text-[var(--text-2)] mt-1">{semesterProgress.name}</p>
+                {semesterProgress.days_total ? <><BigNumber label="waktu terlewati">{Math.round((semesterProgress.days_elapsed! / semesterProgress.days_total!) * 100)}%</BigNumber><div className="h-3 rounded-full bg-[var(--separator)] overflow-hidden"><div className="h-full bg-[var(--accent)]" style={{width:`${Math.min(100,Math.round((semesterProgress.days_elapsed! / semesterProgress.days_total!) * 100))}%`}} /></div><p className="text-sm mt-3">Hari ke {semesterProgress.days_elapsed} dari {semesterProgress.days_total} · Sisa {Math.max(0, semesterProgress.days_total! - semesterProgress.days_elapsed!)} hari</p><p className="text-sm text-[var(--text-2)]">{semesterProgress.start} — {semesterProgress.end}</p></> : <p className="text-base mt-4">{semesterProgress.name}</p>}
             </section>
 
             {/* Bento Grid (2 Columns): Active Student Trend + Journal Completion */}
@@ -262,27 +254,27 @@ export default function Dashboard({
                     <div className="w-full h-[200px] sm:h-[220px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={trend} margin={{ top: 20, right: 20, left: 10, bottom: 5 }}>
-                                <CartesianGrid stroke="#E5E5EA" strokeDasharray="3 3" vertical={false} />
+                                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
                                 <XAxis
                                     dataKey="label"
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fill: '#6E6E73', fontSize: 13 }}
+                                    tick={{ fill: 'var(--muted)', fontSize: 13 }}
                                 />
                                 <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
                                 <Line
                                     type="monotone"
                                     dataKey="total"
-                                    stroke="#0071E3"
+                                    stroke="var(--primary)"
                                     strokeWidth={2.5}
-                                    dot={{ r: 4, fill: '#FFFFFF', stroke: '#0071E3', strokeWidth: 2 }}
+                                    dot={{ r: 4, fill: '#FFFFFF', stroke: 'var(--primary)', strokeWidth: 2 }}
                                     activeDot={{ r: 6 }}
                                 >
                                     <LabelList
                                         dataKey="total"
                                         position="top"
                                         offset={10}
-                                        style={{ fontSize: '13px', fontWeight: 600, fill: '#1D1D1F' }}
+                                        style={{ fontSize: '13px', fontWeight: 600, fill: 'var(--ink)' }}
                                     />
                                 </Line>
                             </LineChart>
@@ -320,7 +312,7 @@ export default function Dashboard({
                                 <div className="w-full h-3 rounded-full bg-[#EEEEF1] overflow-hidden">
                                     <div
                                         style={{ width: `${Math.min(100, row.percentage)}%` }}
-                                        className="h-full bg-[#0071E3] rounded-full transition-all duration-500"
+                                        className="h-full bg-[var(--primary)] rounded-full transition-all duration-500"
                                     />
                                 </div>
                             </div>

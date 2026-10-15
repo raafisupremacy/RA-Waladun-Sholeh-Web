@@ -202,15 +202,15 @@ export default function FinanceReport({
                     <div className="w-full h-[220px] sm:h-[260px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={monthlyReceived} margin={{ top: 25, right: 20, left: 20, bottom: 5 }}>
-                                <CartesianGrid stroke="#E5E5EA" strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#6E6E73', fontSize: 13 }} />
+                                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 13 }} />
                                 <YAxis hide />
-                                <Bar dataKey="total" fill="#0071E3" radius={[8, 8, 0, 0]} maxBarSize={48}>
+                                <Bar dataKey="total" fill="var(--primary)" radius={[8, 8, 0, 0]} maxBarSize={48}>
                                     <LabelList
                                         dataKey="total"
                                         position="top"
                                         formatter={(val: unknown) => (typeof val === 'number' && val > 0 ? `Rp ${val.toLocaleString('id-ID')}` : '')}
-                                        style={{ fontSize: '12px', fontWeight: 600, fill: '#1D1D1F' }}
+                                        style={{ fontSize: '12px', fontWeight: 600, fill: 'var(--ink)' }}
                                     />
                                 </Bar>
                             </BarChart>

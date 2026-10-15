@@ -1,5 +1,5 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { getAdminLayout } from '@/Layouts/AdminLayout';
@@ -48,6 +48,7 @@ export default function Students({
     classrooms: { id: number; name: string }[];
     filters: { search?: string; status?: string; classroom_id?: string };
 }) {
+    const { url } = usePage();
     const [search, setSearch] = useState(filters.search ?? '');
     const [selectedForDeactivate, setSelectedForDeactivate] = useState<Student | null>(null);
     const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
@@ -65,7 +66,7 @@ export default function Students({
     const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
     const [busy, setBusy] = useState(false);
 
-    const handleOpenEdit = (student: Student) => {
+    const handleOpenEdit = useCallback((student: Student) => {
         setEditingStudent(student);
         const matchClass = classrooms.find(c => c.name === student.classroom);
         setEditForm({
@@ -77,7 +78,7 @@ export default function Students({
             status: student.status,
         });
         setEditErrors({});
-    };
+    }, [classrooms]);
 
     const handleSaveEdit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -96,6 +97,12 @@ export default function Students({
             preserveScroll: true,
         });
     };
+
+    useEffect(() => {
+        const editId = new URL(url, window.location.origin).searchParams.get('edit');
+        const requested = editId ? students.data.find((student) => student.id === Number(editId)) : null;
+        if (requested && !editingStudent) handleOpenEdit(requested);
+    }, [url, students.data, editingStudent, handleOpenEdit]);
 
     useEffect(() => {
         if (!viewingStudent && !editingStudent) return;
@@ -148,7 +155,7 @@ export default function Students({
                 </div>
                 <Link
                     href="/admin/siswa/create"
-                    className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm self-start md:self-auto"
+                    className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm self-start md:self-auto"
                 >
                     Tambah siswa
                 </Link>
@@ -171,7 +178,7 @@ export default function Students({
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Cari nama atau NIS"
-                                className="w-full pl-10 pr-20 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400"
+                                className="w-full pl-10 pr-20 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400"
                             />
                             {search && (
                                 <button
@@ -234,7 +241,7 @@ export default function Students({
                                 <button
                                     type="button"
                                     onClick={handleClearFilters}
-                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[#0071E3] hover:underline"
+                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[var(--primary)] hover:underline"
                                 >
                                     Hapus pencarian
                                 </button>
@@ -274,7 +281,7 @@ export default function Students({
                                                         <div
                                                             className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs shrink-0 ${
                                                                 student.status === 'aktif'
-                                                                    ? 'bg-blue-100 text-[#0071E3]'
+                                                                    ? 'bg-blue-100 text-[var(--primary)]'
                                                                     : 'bg-stone-100 text-stone-500'
                                                             }`}
                                                         >
@@ -295,14 +302,14 @@ export default function Students({
                                                         <button
                                                             type="button"
                                                             onClick={() => setViewingStudent(student)}
-                                                            className="text-sm font-semibold text-[#0071E3] hover:underline"
+                                                            className="text-sm font-semibold text-[var(--primary)] hover:underline"
                                                         >
                                                             Lihat
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => handleOpenEdit(student)}
-                                                            className="text-sm font-semibold text-[#0071E3] hover:underline"
+                                                            className="text-sm font-semibold text-[var(--primary)] hover:underline"
                                                         >
                                                             Ubah
                                                         </button>
@@ -364,7 +371,7 @@ export default function Students({
                                                 <div
                                                     className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs shrink-0 ${
                                                         student.status === 'aktif'
-                                                            ? 'bg-blue-100 text-[#0071E3]'
+                                                            ? 'bg-blue-100 text-[var(--primary)]'
                                                             : 'bg-stone-100 text-stone-500'
                                                     }`}
                                                 >
@@ -397,14 +404,14 @@ export default function Students({
                                             <button
                                                 type="button"
                                                 onClick={() => setViewingStudent(student)}
-                                                className="text-xs font-semibold text-[#0071E3] hover:underline"
+                                                className="text-xs font-semibold text-[var(--primary)] hover:underline"
                                             >
                                                 Lihat
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => handleOpenEdit(student)}
-                                                className="text-xs font-semibold text-[#0071E3] hover:underline"
+                                                className="text-xs font-semibold text-[var(--primary)] hover:underline"
                                             >
                                                 Ubah
                                             </button>
@@ -453,7 +460,7 @@ export default function Students({
                                             replace
                                             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                                                 link.active
-                                                    ? 'bg-[#0071E3] text-white shadow-sm'
+                                                    ? 'bg-[var(--primary)] text-white shadow-sm'
                                                     : 'text-stone-700 hover:bg-stone-100'
                                             }`}
                                         >
@@ -485,7 +492,7 @@ export default function Students({
                         {/* Header */}
                         <div className="p-6 pb-4 shrink-0 flex items-center justify-between border-b border-stone-100">
                             <div className="flex items-center gap-3.5">
-                                <div className="w-11 h-11 rounded-full bg-blue-100 text-[#0071E3] flex items-center justify-center font-bold text-sm shrink-0">
+                                <div className="w-11 h-11 rounded-full bg-blue-100 text-[var(--primary)] flex items-center justify-center font-bold text-sm shrink-0">
                                     {getInitials(viewingStudent.name)}
                                 </div>
                                 <div>
@@ -564,7 +571,7 @@ export default function Students({
                                     setViewingStudent(null);
                                     handleOpenEdit(s);
                                 }}
-                                className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors"
+                                className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors"
                             >
                                 Ubah data
                             </button>
@@ -624,7 +631,7 @@ export default function Students({
                                         required
                                         value={editForm.name}
                                         onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                        className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                        className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                     />
                                     {editErrors.name && (
                                         <p className="mt-1 text-xs text-red-600 font-medium">{editErrors.name}</p>
@@ -641,7 +648,7 @@ export default function Students({
                                             required
                                             value={editForm.nis}
                                             onChange={e => setEditForm({ ...editForm, nis: e.target.value })}
-                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 font-mono"
+                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 font-mono"
                                         />
                                         {editErrors.nis && (
                                             <p className="mt-1 text-xs text-red-600 font-medium">{editErrors.nis}</p>
@@ -655,7 +662,7 @@ export default function Students({
                                         <select
                                             value={editForm.classroom_id}
                                             onChange={e => setEditForm({ ...editForm, classroom_id: e.target.value })}
-                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                         >
                                             <option value="">Belum ada kelas</option>
                                             {classrooms.map(c => (
@@ -693,7 +700,7 @@ export default function Students({
                                             type="date"
                                             value={editForm.birth_date}
                                             onChange={e => setEditForm({ ...editForm, birth_date: e.target.value })}
-                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                         />
                                         {editErrors.birth_date && (
                                             <p className="mt-1 text-xs text-red-600 font-medium">{editErrors.birth_date}</p>
@@ -729,7 +736,7 @@ export default function Students({
                                 <button
                                     type="submit"
                                     disabled={editBusy}
-                                    className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors disabled:opacity-50 shadow-sm inline-flex items-center gap-2"
+                                    className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50 shadow-sm inline-flex items-center gap-2"
                                 >
                                     {editBusy && (
                                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

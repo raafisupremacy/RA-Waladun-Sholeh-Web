@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, ChartNoAxesCombined, ChevronDown, FileText, Home, Menu, NotebookPen, Receipt, UserRound } from 'lucide-react';
 import BottomSheet from '@/Components/BottomSheet';
+import BrandMark from '@/Components/BrandMark';
 
 export type NavItem = { label: string; href: string; matchPrefixes?: string[]; children?: NavItem[] };
 const icons: Record<string, typeof Home> = {
@@ -43,7 +44,7 @@ export default function RoleLayout({
         auth?: { user?: { name?: string } };
     };
     const user = pageProps.auth?.user;
-    const effectiveAppName = appName || pageProps.appName || 'SKMS';
+    const effectiveAppName = appName || pageProps.appName || '';
     const effectiveSchoolName = schoolName || pageProps.schoolName || pageProps.schoolSettings?.school_name || '';
     const hasMenuSheet = role === 'Admin';
     const pathname = page.url.split('?')[0];
@@ -95,6 +96,68 @@ export default function RoleLayout({
         setOpenDropdown(null);
     }, [pathname]);
 
+    // Sliding capsule indicator for top desktop nav bar
+    const navRef = useRef<HTMLElement>(null);
+    const navItemRefs = useRef<Record<number, HTMLElement | null>>({});
+    const activeNavIdx = items.findIndex(item => isItemActive(item));
+    const [pillStyle, setPillStyle] = useState<{ left: number; top: number; width: number; height: number }>({
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+    });
+    const [isPillReady, setIsPillReady] = useState(false);
+
+    const measureNavItem = useCallback((idx: number) => {
+        const container = navRef.current;
+        const targetEl = navItemRefs.current[idx];
+        if (!container || !targetEl || idx < 0) return null;
+
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = targetEl.getBoundingClientRect();
+
+        return {
+            left: targetRect.left - containerRect.left,
+            top: targetRect.top - containerRect.top,
+            width: targetRect.width,
+            height: targetRect.height,
+        };
+    }, []);
+
+    useLayoutEffect(() => {
+        if (activeNavIdx >= 0) {
+            const rect = measureNavItem(activeNavIdx);
+            if (rect && rect.width > 0) {
+                setPillStyle(rect);
+                if (!isPillReady) {
+                    const raf = requestAnimationFrame(() => setIsPillReady(true));
+                    return () => cancelAnimationFrame(raf);
+                }
+            }
+        } else {
+            setPillStyle(prev => ({ ...prev, width: 0 }));
+        }
+    }, [activeNavIdx, isPillReady, measureNavItem, pathname]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (activeNavIdx >= 0) {
+                const rect = measureNavItem(activeNavIdx);
+                if (rect && rect.width > 0) setPillStyle(rect);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [activeNavIdx, measureNavItem]);
+
+    const handleNavClick = (idx: number) => {
+        const rect = measureNavItem(idx);
+        if (rect && rect.width > 0) {
+            setIsPillReady(true);
+            setPillStyle(rect);
+        }
+    };
+
     return (
         <div
             className={
@@ -106,22 +169,45 @@ export default function RoleLayout({
         >
             <header className="global-nav" ref={headerRef}>
                 <Link href="/" className="wordmark">
-                    {effectiveAppName}
+                    <BrandMark appName={effectiveAppName} schoolName={effectiveSchoolName} />
                 </Link>
-                <nav className="desktop-nav" aria-label="Navigasi utama">
-                    {items.map(item => {
+                <nav
+                    ref={navRef}
+                    className="desktop-nav relative has-sliding-indicator"
+                    aria-label="Navigasi utama"
+                >
+                    {/* Sliding Adaptive Pill Indicator */}
+                    <div
+                        aria-hidden="true"
+                        style={{
+                            transform: `translate3d(${pillStyle.left}px, ${pillStyle.top}px, 0)`,
+                            width: `${pillStyle.width}px`,
+                            height: `${pillStyle.height}px`,
+                            opacity: isPillReady && activeNavIdx >= 0 && pillStyle.width > 0 ? 1 : 0,
+                            transition: isPillReady
+                                ? 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+                                : 'none',
+                        }}
+                        className="desktop-nav-indicator absolute left-0 top-0 rounded-full bg-[var(--accent-soft)] shadow-[0_1px_2px_rgba(0,113,227,0.1)] pointer-events-none z-0"
+                    />
+
+                    {items.map((item, idx) => {
                         const isActive = isItemActive(item);
 
                         if (item.children && item.children.length > 0) {
                             const isOpen = openDropdown === item.label;
                             return (
-                                <div key={item.href} className="nav-dropdown">
+                                <div key={item.href} className="nav-dropdown relative z-10">
                                     <button
+                                        ref={el => { navItemRefs.current[idx] = el; }}
                                         type="button"
-                                        onClick={() => setOpenDropdown(isOpen ? null : item.label)}
+                                        onClick={() => {
+                                            handleNavClick(idx);
+                                            setOpenDropdown(isOpen ? null : item.label);
+                                        }}
                                         aria-expanded={isOpen}
                                         aria-haspopup="true"
-                                        className={`nav-dropdown-trigger ${isActive ? 'is-active' : ''}`}
+                                        className={`nav-dropdown-trigger relative z-10 ${isActive ? 'is-active' : ''}`}
                                     >
                                         <span>{item.label}</span>
                                         <ChevronDown
@@ -138,7 +224,10 @@ export default function RoleLayout({
                                                     key={child.href}
                                                     href={child.href}
                                                     role="menuitem"
-                                                    onClick={() => setOpenDropdown(null)}
+                                                    onClick={() => {
+                                                        setOpenDropdown(null);
+                                                        handleNavClick(idx);
+                                                    }}
                                                     className={pathname === child.href ? 'is-active' : ''}
                                                 >
                                                     {child.label}
@@ -153,9 +242,11 @@ export default function RoleLayout({
                         return (
                             <Link
                                 key={item.href}
+                                ref={el => { navItemRefs.current[idx] = (el as unknown as HTMLElement | null); }}
                                 href={item.href}
                                 aria-current={isActive ? 'page' : undefined}
-                                className={isActive ? 'is-active' : ''}
+                                className={`relative z-10 ${isActive ? 'is-active' : ''}`}
+                                onClick={() => handleNavClick(idx)}
                             >
                                 {item.label}
                             </Link>
@@ -166,6 +257,7 @@ export default function RoleLayout({
                     <button
                         type="button"
                         onClick={() => setOpenDropdown(openDropdown === 'user' ? null : 'user')}
+                        aria-label={`Menu pengguna ${user?.name ?? role}`}
                         aria-expanded={openDropdown === 'user'}
                         aria-haspopup="true"
                         className="user-menu-trigger"

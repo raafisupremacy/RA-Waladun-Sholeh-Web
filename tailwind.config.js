@@ -14,8 +14,8 @@ export default {
         container: { center: true, padding: '20px', screens: { sm: '640px', lg: '1024px' } },
         extend: {
             colors: {
-                background: 'var(--bg)', foreground: 'var(--text)', border: 'var(--separator)', input: 'var(--separator)', ring: 'var(--accent)',
-                primary: { DEFAULT: 'var(--accent)', foreground: '#FFFFFF' }, secondary: { DEFAULT: 'var(--accent-soft)', foreground: 'var(--accent)' }, muted: { DEFAULT: 'var(--bg)', foreground: 'var(--text-2)' },
+                background: 'var(--background)', foreground: 'var(--ink)', border: 'var(--border)', input: 'var(--border)', ring: 'var(--primary)',
+                primary: { DEFAULT: 'var(--primary)', foreground: '#FFFFFF' }, secondary: { DEFAULT: 'var(--primary-soft)', foreground: 'var(--primary)' }, muted: { DEFAULT: 'var(--background)', foreground: 'var(--muted)' },
                 destructive: { DEFAULT: '#C4271B', foreground: '#FFFFFF' }, card: { DEFAULT: 'var(--surface)', foreground: 'var(--text)' }, popover: { DEFAULT: 'var(--surface)', foreground: 'var(--text)' },
             },
             fontFamily: { sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', '"Inter Variable"', 'Inter', 'system-ui', ...defaultTheme.fontFamily.sans] },

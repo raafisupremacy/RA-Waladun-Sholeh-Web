@@ -222,6 +222,10 @@ export default function Invoices({ invoices, academicYears, classrooms, filters,
                 <form onSubmit={apply}>
                     <div className="invoice-generator-grid">
                         <label className="form-field">
+                            Cari siswa
+                            <input name="search" defaultValue={String(filters.search ?? '')} placeholder="Cari nama atau NIS" className="h-12 rounded-[12px] border border-stone-200 px-3" />
+                        </label>
+                        <label className="form-field">
                             Bulan
                             <CustomSelect
                                 className="w-full"
@@ -407,14 +411,14 @@ export default function Invoices({ invoices, academicYears, classrooms, filters,
                                             setEditAmount(e.target.value);
                                             setEditError('');
                                         }}
-                                        className="w-full px-4 py-3 rounded-2xl border border-stone-200 text-stone-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent transition-all"
+                                        className="w-full px-4 py-3 rounded-2xl border border-stone-200 text-stone-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
                                         placeholder="0"
                                         required
                                         autoFocus
                                     />
                                     {editAmount && !isNaN(Number(editAmount)) && (
                                         <p className="text-xs text-stone-500 mt-1.5 font-medium">
-                                            Terbaca: <span className="text-[#0071E3] font-semibold">{rupiah(Number(editAmount))}</span>
+                                            Terbaca: <span className="text-[var(--primary)] font-semibold">{rupiah(Number(editAmount))}</span>
                                         </p>
                                     )}
                                     {editError && (
@@ -436,7 +440,7 @@ export default function Invoices({ invoices, academicYears, classrooms, filters,
                                 <button
                                     type="submit"
                                     disabled={editSubmitting}
-                                    className="px-6 py-2.5 rounded-full text-xs font-semibold text-white bg-[#0071E3] hover:bg-[#0077ED] shadow-sm transition-all disabled:opacity-50 inline-flex items-center gap-2"
+                                    className="px-6 py-2.5 rounded-full text-xs font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] shadow-sm transition-all disabled:opacity-50 inline-flex items-center gap-2"
                                 >
                                     {editSubmitting ? 'Menyimpan…' : 'Simpan Perubahan'}
                                 </button>

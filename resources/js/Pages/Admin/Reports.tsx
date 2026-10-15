@@ -39,6 +39,9 @@ type ClassSummaryRow = {
     student_count: number;
     paid_count: number;
     unpaid_count: number;
+    invoice_count: number;
+    pending_count: number;
+    overdue_count: number;
     received_amount: number;
     outstanding_amount: number;
     achievement_percentage: number;
@@ -50,6 +53,9 @@ type ClassSummary = {
         student_count: number;
         paid_count: number;
         unpaid_count: number;
+        invoice_count: number;
+        pending_count: number;
+        overdue_count: number;
         received_amount: number;
         outstanding_amount: number;
         achievement_percentage: number;
@@ -267,7 +273,7 @@ export default function Reports({
                                     label: 'Siswa',
                                     render: (_, row) => (
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#E8F1FD] text-[#0071E3] font-semibold text-xs flex items-center justify-center flex-shrink-0">
+                                            <div className="w-8 h-8 rounded-full bg-[var(--primary-soft)] text-[var(--primary)] font-semibold text-xs flex items-center justify-center flex-shrink-0">
                                                 {row.student?.name ? row.student.name.substring(0, 2).toUpperCase() : '??'}
                                             </div>
                                             <div>
@@ -436,20 +442,20 @@ export default function Reports({
                                     ),
                                 },
                                 {
-                                    key: 'paid_count',
-                                    label: 'Lunas',
+                                    key: 'invoice_count',
+                                    label: 'Jumlah tagihan',
                                     render: (_, row) => (
                                         <span className="text-sm text-[#1D7A3C] font-medium">
-                                            {row.paid_count}
+                                            {row.invoice_count}
                                         </span>
                                     ),
                                 },
                                 {
-                                    key: 'unpaid_count',
-                                    label: 'Belum Lunas',
+                                    key: 'invoice_count',
+                                    label: 'Total tagihan',
                                     render: (_, row) => (
                                         <span className="text-sm text-[#C4271B] font-medium">
-                                            {row.unpaid_count}
+                                            Rp {(row.received_amount + row.outstanding_amount).toLocaleString('id-ID')}
                                         </span>
                                     ),
                                 },
@@ -464,13 +470,15 @@ export default function Reports({
                                 },
                                 {
                                     key: 'outstanding_amount',
-                                    label: 'Total Tunggakan',
+                                    label: 'Belum diterima',
                                     render: (_, row) => (
                                         <span className="text-sm text-[var(--text-2)]">
                                             Rp {row.outstanding_amount.toLocaleString('id-ID')}
                                         </span>
                                     ),
                                 },
+                                { key: 'pending_count', label: 'Menunggu', render: (_, row) => <span>{row.pending_count}</span> },
+                                { key: 'overdue_count', label: 'Menunggak', render: (_, row) => <span>{row.overdue_count}</span> },
                                 {
                                     key: 'achievement_percentage',
                                     label: '% Capaian',

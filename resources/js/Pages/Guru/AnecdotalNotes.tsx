@@ -198,7 +198,7 @@ export default function AnecdotalNotes({
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Cari siswa..."
-                                    className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-[var(--border)] bg-[#F5F5F7] focus:bg-white focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+                                    className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-[var(--border)] bg-[var(--background)] focus:bg-white focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
                                 />
                                 <svg
                                     className="w-4 h-4 text-[var(--text-2)] absolute left-3 top-2.5"
@@ -227,7 +227,7 @@ export default function AnecdotalNotes({
                                             className={`w-full text-left p-2.5 rounded-xl flex items-center justify-between transition-colors ${
                                                 isSelected
                                                     ? 'bg-[#EBF4FE] text-[var(--accent)]'
-                                                    : 'hover:bg-[#F5F5F7] text-[var(--text)]'
+                                                    : 'hover:bg-[var(--background)] text-[var(--text)]'
                                             }`}
                                         >
                                             <div className="flex items-center gap-2.5 min-w-0">
@@ -280,7 +280,7 @@ export default function AnecdotalNotes({
                                     <button
                                         type="button"
                                         onClick={handleOpenAddDrawer}
-                                        className="bg-[var(--accent,#0071E3)] text-white text-sm px-5 py-2.5 rounded-full font-semibold hover:bg-[#0077ED] transition-colors shadow-sm inline-flex items-center gap-1.5 self-start sm:self-auto"
+                                        className="bg-[var(--accent,var(--primary))] text-white text-sm px-5 py-2.5 rounded-full font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm inline-flex items-center gap-1.5 self-start sm:self-auto"
                                     >
                                         + Tambah Catatan
                                     </button>
@@ -311,7 +311,7 @@ export default function AnecdotalNotes({
                                 {/* Notes Timeline */}
                                 {notes.data.length === 0 ? (
                                     <div className="tile p-12 bg-white rounded-[28px] border border-[var(--border)] text-center space-y-4 shadow-xs">
-                                        <div className="w-14 h-14 rounded-full bg-[#F5F5F7] text-stone-400 mx-auto flex items-center justify-center">
+                                        <div className="w-14 h-14 rounded-full bg-[var(--background)] text-stone-400 mx-auto flex items-center justify-center">
                                             <NotebookPen size={24} strokeWidth={1.5} />
                                         </div>
                                         <div>
@@ -359,7 +359,7 @@ export default function AnecdotalNotes({
                                                     </p>
                                                 </div>
 
-                                                <div className="p-4 bg-[#F5F5F7] rounded-2xl space-y-1">
+                                                <div className="p-4 bg-[var(--background)] rounded-2xl space-y-1">
                                                     <p className="text-xs font-semibold text-[var(--text-2)] uppercase tracking-wider">
                                                         Interpretasi guru
                                                     </p>
@@ -469,7 +469,7 @@ export default function AnecdotalNotes({
                                             type="date"
                                             value={formDate}
                                             onChange={(e) => setFormDate(e.target.value)}
-                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                             required
                                         />
                                     </div>
@@ -482,7 +482,7 @@ export default function AnecdotalNotes({
                                             type="time"
                                             value={formTime}
                                             onChange={(e) => setFormTime(e.target.value)}
-                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                             required
                                         />
                                     </div>
@@ -498,7 +498,7 @@ export default function AnecdotalNotes({
                                         value={observedBehavior}
                                         onChange={(e) => setObservedBehavior(e.target.value)}
                                         placeholder="Deskripsikan apa yang dilakukan atau dikatakan anak secara faktual..."
-                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 resize-none"
                                         required
                                     />
                                     {formErrors.observed_behavior && (
@@ -516,7 +516,7 @@ export default function AnecdotalNotes({
                                         value={interpretation}
                                         onChange={(e) => setInterpretation(e.target.value)}
                                         placeholder="Makna atau capaian perkembangan yang terindikasi dari perilaku..."
-                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 resize-none"
                                         required
                                     />
                                     {formErrors.interpretation && (
@@ -534,7 +534,7 @@ export default function AnecdotalNotes({
                                         value={followUp}
                                         onChange={(e) => setFollowUp(e.target.value)}
                                         placeholder="Rencana stimulasi atau dukungan pembelajaran selanjutnya..."
-                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 resize-none"
                                     />
                                 </div>
 
@@ -548,7 +548,7 @@ export default function AnecdotalNotes({
                                         type="file"
                                         accept="image/png, image/jpeg, image/jpg"
                                         onChange={(e) => setSelectedPhoto(e.target.files?.[0] ?? null)}
-                                        className="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#EBF4FE] file:text-[#0071E3] hover:file:bg-[#DCEAFE]"
+                                        className="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#EBF4FE] file:text-[var(--primary)] hover:file:bg-[#DCEAFE]"
                                     />
                                     {formErrors.photo && (
                                         <p className="text-xs text-rose-600 mt-1 font-medium">{formErrors.photo}</p>
@@ -568,7 +568,7 @@ export default function AnecdotalNotes({
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                    className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     {isSubmitting ? 'Menyimpan...' : 'Simpan'}
                                 </button>

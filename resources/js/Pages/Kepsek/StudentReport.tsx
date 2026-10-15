@@ -1,6 +1,7 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import PrincipalLayout from '@/Layouts/PrincipalLayout';
 import CustomSelect from '@/Components/CustomSelect';
+import SegmentedControl from '@/Components/SegmentedControl';
 
 type StudentOption = {
     id: number;
@@ -67,32 +68,27 @@ const ASPECT_CONFIG = [
     {
         key: 'nilai_agama_moral',
         title: '1. Nilai Agama dan Moral',
-        fallback:
-            'Aisyah terbiasa berdoa sebelum dan sesudah kegiatan dengan khidmat. Mulai mandiri dalam membedakan perilaku baik dan peduli terhadap teman.',
+        fallback: 'Belum ada data penilaian pada periode ini.',
     },
     {
         key: 'fisik_motorik',
         title: '2. Fisik Motorik',
-        fallback:
-            'Keterampilan motorik halus berkembang sangat baik saat menggunting dan meronce. Mampu melakukan gerakan fisik lokomotor dengan seimbang.',
+        fallback: 'Belum ada data penilaian pada periode ini.',
     },
     {
         key: 'kognitif',
         title: '3. Kognitif',
-        fallback:
-            'Menunjukkan rasa ingin tahu tinggi dalam eksplorasi sains sederhana. Mampu mengelompokkan benda berdasarkan bentuk dan warna secara konsisten.',
+        fallback: 'Belum ada data penilaian pada periode ini.',
     },
     {
         key: 'bahasa',
         title: '4. Bahasa',
-        fallback:
-            'Mampu menyampaikan ide dan bercerita kembali dengan kalimat terstruktur. Menyimak cerita guru dengan penuh perhatian hingga selesai.',
+        fallback: 'Belum ada data penilaian pada periode ini.',
     },
     {
         key: 'sosial_emosional',
         title: '5. Sosial Emosional',
-        fallback:
-            'Sangat ramah, mudah berbagi alat bermain, dan mampu mengantre giliran dengan tertib bersama teman sekelas.',
+        fallback: 'Belum ada data penilaian pada periode ini.',
     },
 ];
 
@@ -198,20 +194,19 @@ export default function StudentReport({
                             />
                         </div>
 
-                        {/* Periode Dropdown */}
+                        {/* Periode Segmented Control */}
                         <div className="flex flex-col">
                             <label className="text-xs font-medium text-[var(--text-2)] mb-1.5">
                                 Periode
                             </label>
-                            <CustomSelect
-                                className="w-full"
-                                buttonClassName="h-11 rounded-[12px]"
+                            <SegmentedControl
+                                className="w-full justify-between"
+                                options={[
+                                    { key: 'semester_1', label: 'Semester 1' },
+                                    { key: 'semester_2', label: 'Semester 2' },
+                                ]}
                                 value={period}
                                 onChange={(val) => handleFilterChange({ period: String(val) })}
-                                options={[
-                                    { value: 'semester_1', label: 'Semester 1' },
-                                    { value: 'semester_2', label: 'Semester 2' },
-                                ]}
                             />
                         </div>
                     </form>
@@ -242,7 +237,7 @@ export default function StudentReport({
                             {/* 1. Header / Kop Laporan */}
                             <header className="text-center">
                                 <p className="text-xs font-semibold tracking-wider text-[var(--text-2)] uppercase">
-                                    {report.school_name || p.schoolSettings?.school_name || 'TK TUNAS HARAPAN'}
+                                    {report.school_name || p.schoolSettings?.school_name || ''}
                                 </p>
                                 <h2 className="text-xl sm:text-2xl font-bold text-[var(--text-1)] mt-1">
                                     Laporan Perkembangan Anak

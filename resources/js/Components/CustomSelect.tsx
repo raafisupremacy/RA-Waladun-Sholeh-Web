@@ -61,7 +61,7 @@ export default function CustomSelect({
                 onClick={() => setIsOpen(!isOpen)}
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
-                className={`h-10 px-4 rounded-full border border-[var(--separator)] bg-[var(--surface)] text-sm font-medium text-[var(--text-1,#1D1D1F)] flex items-center justify-between gap-2.5 cursor-pointer shadow-xs hover:border-stone-400 hover:bg-[#F5F5F7] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap ${
+                className={`h-10 px-4 rounded-full border border-[var(--separator)] bg-[var(--surface)] text-sm font-medium text-[var(--text-1,var(--ink))] flex items-center justify-between gap-2.5 cursor-pointer shadow-xs hover:border-stone-400 hover:bg-[var(--background)] transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap ${
                     isFullWidth ? 'w-full' : ''
                 } ${buttonClassName}`}
             >
@@ -69,7 +69,7 @@ export default function CustomSelect({
                 <ChevronDown
                     size={16}
                     strokeWidth={1.5}
-                    className={`text-[var(--text-3,#86868B)] transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+                    className={`text-[var(--text-3,var(--muted))] transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`}
                 />
             </button>
 
@@ -78,7 +78,7 @@ export default function CustomSelect({
                     role="listbox"
                     className={`absolute z-50 mt-1.5 min-w-full ${
                         isFullWidth ? 'w-full' : 'w-max max-w-[280px]'
-                    } bg-[var(--surface,#FFFFFF)] rounded-2xl border border-[var(--separator,#E5E5EA)] shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-1.5 max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 right-0 sm:right-auto sm:left-0 ${menuClassName}`}
+                    } bg-[var(--surface,#FFFFFF)] rounded-2xl border border-[var(--separator,var(--border))] shadow-[0_8px_30px_rgba(0,0,0,0.12)] p-1.5 max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-150 right-0 sm:right-auto sm:left-0 ${menuClassName}`}
                 >
                     {options.map((opt) => {
                         const isSelected = String(opt.value) === String(value);
@@ -98,13 +98,13 @@ export default function CustomSelect({
                                     isDisabled
                                         ? 'opacity-40 cursor-not-allowed text-stone-400'
                                         : isSelected
-                                        ? 'bg-[var(--accent-soft,#E8F1FD)] text-[var(--accent,#0071E3)] font-semibold cursor-pointer'
-                                        : 'text-[var(--text,#1D1D1F)] hover:bg-[#F5F5F7] cursor-pointer'
+                                        ? 'bg-[var(--accent-soft,var(--primary-soft))] text-[var(--accent,var(--primary))] font-semibold cursor-pointer'
+                                        : 'text-[var(--text,var(--ink))] hover:bg-[var(--background)] cursor-pointer'
                                 }`}
                             >
                                 <span className="truncate">{opt.label}</span>
                                 {isSelected && (
-                                    <Check size={14} strokeWidth={1.5} className="shrink-0 text-[var(--accent,#0071E3)]" />
+                                    <Check size={14} strokeWidth={1.5} className="shrink-0 text-[var(--accent,var(--primary))]" />
                                 )}
                             </div>
                         );

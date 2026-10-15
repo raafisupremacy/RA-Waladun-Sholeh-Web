@@ -53,6 +53,8 @@ export default function Teachers({
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
     const [resetBusy, setResetBusy] = useState(false);
+    const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+    const [accountAction, setAccountAction] = useState<Teacher | null>(null);
 
     // Class assignment modal state
     const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -70,6 +72,12 @@ export default function Teachers({
         phone: '',
         classroom_id: '',
     });
+    const editForm = useForm({ name: '', nip: '', email: '', phone: '' });
+    const openEditTeacher = (teacher: Teacher) => {
+        setEditingTeacher(teacher);
+        editForm.setData({ name: teacher.name, nip: teacher.nip, email: teacher.email, phone: teacher.phone ?? '' });
+        editForm.clearErrors();
+    };
 
     const handleOpenAssignClass = (teacher: Teacher) => {
         setAssignTeacher(teacher);
@@ -152,7 +160,7 @@ export default function Teachers({
                         form.clearErrors();
                         setDrawerOpen(true);
                     }}
-                    className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm self-start md:self-auto"
+                    className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm self-start md:self-auto"
                 >
                     Tambah guru
                 </button>
@@ -175,7 +183,7 @@ export default function Teachers({
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Cari nama, NIP, atau wali kelas"
-                                className="w-full pl-10 pr-20 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400"
+                                className="w-full pl-10 pr-20 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400"
                             />
                             {search && (
                                 <button
@@ -213,7 +221,7 @@ export default function Teachers({
                                 <button
                                     type="button"
                                     onClick={handleClearSearch}
-                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[#0071E3] hover:underline"
+                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[var(--primary)] hover:underline"
                                 >
                                     Hapus pencarian
                                 </button>
@@ -273,8 +281,18 @@ export default function Teachers({
                                                     <div className="flex items-center justify-end gap-2.5">
                                                         <button
                                                             type="button"
+                                                            onClick={() => openEditTeacher(teacher)}
+                                                            className="text-xs font-semibold text-[var(--primary)] hover:underline"
+                                                        >Ubah</button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setAccountAction(teacher)}
+                                                            className="text-xs font-semibold text-stone-600 hover:underline"
+                                                        >{teacher.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button>
+                                                        <button
+                                                            type="button"
                                                             onClick={() => handleOpenAssignClass(teacher)}
-                                                            className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-[#0071E3] hover:bg-blue-100 transition-colors shadow-2xs"
+                                                            className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-[var(--primary)] hover:bg-blue-100 transition-colors shadow-2xs"
                                                         >
                                                             {teacher.classroom ? 'Ubah kelas' : 'Tugaskan kelas'}
                                                         </button>
@@ -324,7 +342,7 @@ export default function Teachers({
                                             replace
                                             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                                                 link.active
-                                                    ? 'bg-[#0071E3] text-white shadow-sm'
+                                                    ? 'bg-[var(--primary)] text-white shadow-sm'
                                                     : 'text-stone-700 hover:bg-stone-100'
                                             }`}
                                         >
@@ -375,7 +393,7 @@ export default function Teachers({
                                             value={form.data.name}
                                             onChange={e => form.setData('name', e.target.value)}
                                             placeholder="Contoh: Siti Rahmawati, S.Pd."
-                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                         />
                                         {form.errors.name && (
                                             <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.name}</p>
@@ -393,7 +411,7 @@ export default function Teachers({
                                             value={form.data.nip}
                                             onChange={e => form.setData('nip', e.target.value)}
                                             placeholder="18 digit NIP"
-                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                         />
                                         {form.errors.nip && (
                                             <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.nip}</p>
@@ -410,8 +428,8 @@ export default function Teachers({
                                             required
                                             value={form.data.email}
                                             onChange={e => form.setData('email', e.target.value)}
-                                            placeholder="nama@waladun-sholeh.sch.id"
-                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            placeholder="nama@sekolah.sch.id"
+                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                         />
                                         {form.errors.email && (
                                             <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.email}</p>
@@ -429,7 +447,7 @@ export default function Teachers({
                                             value={form.data.phone}
                                             onChange={e => form.setData('phone', e.target.value)}
                                             placeholder="0812-xxxx-xxxx"
-                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                         />
                                         {form.errors.phone && (
                                             <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.phone}</p>
@@ -496,7 +514,7 @@ export default function Teachers({
                                     <button
                                         type="submit"
                                         disabled={form.processing}
-                                        className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                        className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm disabled:opacity-50"
                                     >
                                         {form.processing ? 'Menyimpan…' : 'Simpan'}
                                     </button>
@@ -649,7 +667,7 @@ export default function Teachers({
                                 <button
                                     type="submit"
                                     disabled={assignForm.processing}
-                                    className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                    className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     {assignForm.processing ? 'Menyimpan…' : 'Simpan penugasan'}
                                 </button>
@@ -687,6 +705,23 @@ export default function Teachers({
                     }
                 }}
             />
+            <ConfirmDialog
+                open={!!accountAction}
+                title={`${accountAction?.is_active ? 'Nonaktifkan' : 'Aktifkan kembali'} akun ${accountAction?.name}?`}
+                description={accountAction?.is_active ? 'Guru akan dilepas dari kelas dan kehilangan akses.' : 'Guru dapat masuk kembali setelah diaktifkan.'}
+                confirmLabel={accountAction?.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                onCancel={() => setAccountAction(null)}
+                onConfirm={() => { if (accountAction) router.post(`/admin/guru/${accountAction.id}/${accountAction.is_active ? 'nonaktifkan' : 'aktifkan'}`, {}, { onSuccess: () => setAccountAction(null) }); }}
+            />
+            {editingTeacher && (
+                <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+                    <form className="w-full max-w-lg rounded-3xl bg-white p-6 space-y-4" onSubmit={(event) => { event.preventDefault(); editForm.put(`/admin/guru/${editingTeacher.id}`, { onSuccess: () => setEditingTeacher(null) }); }}>
+                        <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Ubah data guru</h2><button type="button" onClick={() => setEditingTeacher(null)}><X /></button></div>
+                        {(['name', 'nip', 'email', 'phone'] as const).map((field) => <div key={field}><label className="block text-sm font-medium mb-1" htmlFor={`teacher-edit-${field}`}>{field === 'name' ? 'Nama' : field.toUpperCase() === 'NIP' ? 'NIP' : field === 'email' ? 'Email' : 'Nomor HP'}</label><input id={`teacher-edit-${field}`} value={editForm.data[field]} onChange={(event) => editForm.setData(field, event.target.value)} className="w-full rounded-xl border border-stone-200 px-4 py-3" required />{editForm.errors[field] && <p className="text-sm text-red-600 mt-1">{editForm.errors[field]}</p>}</div>)}
+                        <div className="flex justify-end gap-3"><button type="button" className="button-secondary" onClick={() => setEditingTeacher(null)}>Batal</button><button className="button-primary" disabled={editForm.processing}>Simpan</button></div>
+                    </form>
+                </div>
+            )}
         </>
     );
 }

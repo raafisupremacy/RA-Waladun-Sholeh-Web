@@ -191,7 +191,7 @@ export default function JournalHistory({
                             <h2 className="text-lg font-bold text-[var(--text)]">
                                 Matriks Aspek Perkembangan
                             </h2>
-                            <span className="text-xs px-3 py-1 bg-[#F5F5F7] text-[var(--text-2)] rounded-full font-medium">
+                            <span className="text-xs px-3 py-1 bg-[var(--background)] text-[var(--text-2)] rounded-full font-medium">
                                 1 – {school_days.length} {month_name} (Hari Efektif)
                             </span>
                         </div>
@@ -211,7 +211,7 @@ export default function JournalHistory({
                                                     key={day.date}
                                                     onClick={() => setSelectedDate(day.date)}
                                                     className={`py-2 px-1 text-center cursor-pointer transition-colors ${
-                                                        isSelected ? 'bg-[#EBF4FE] rounded-t-xl' : 'hover:bg-[#F5F5F7]'
+                                                        isSelected ? 'bg-[#EBF4FE] rounded-t-xl' : 'hover:bg-[var(--background)]'
                                                     }`}
                                                 >
                                                     <div className={`text-[11px] font-medium ${isSelected ? 'text-[var(--accent)] font-bold' : 'text-[var(--text-2)]'}`}>
@@ -242,7 +242,7 @@ export default function JournalHistory({
                                                         key={day.date}
                                                         onClick={() => setSelectedDate(day.date)}
                                                         className={`py-2 px-1 text-center cursor-pointer transition-colors ${
-                                                            isSelected ? 'bg-[#EBF4FE]' : 'hover:bg-[#F5F5F7]'
+                                                            isSelected ? 'bg-[#EBF4FE]' : 'hover:bg-[var(--background)]'
                                                         }`}
                                                     >
                                                         {level ? (
@@ -290,7 +290,7 @@ export default function JournalHistory({
                         {activeJournal ? (
                             <div className="space-y-4">
                                 {/* Kegiatan Hari Ini */}
-                                <div className="p-4 bg-[#F5F5F7] rounded-2xl">
+                                <div className="p-4 bg-[var(--background)] rounded-2xl">
                                     <p className="text-xs uppercase tracking-wider font-semibold text-[var(--text-2)] mb-1">
                                         Kegiatan Hari Ini
                                     </p>

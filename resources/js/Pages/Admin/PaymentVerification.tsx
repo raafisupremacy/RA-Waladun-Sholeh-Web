@@ -40,10 +40,12 @@ export default function PaymentVerification({
     payments,
     selected,
     detailOpen,
+    filters,
 }: {
     payments: PageData<QueuePayment>;
     selected: Detail | null;
     detailOpen: boolean;
+    filters?: { search?: string };
 }) {
     const p = usePage().props as {
         appName?: string;
@@ -104,6 +106,7 @@ export default function PaymentVerification({
 
             <div className="verification-layout">
                 <section className="payment-queue">
+                    <form method="get" className="p-4"><input name="search" defaultValue={filters?.search ?? ''} placeholder="Cari nama atau NIS" className="w-full h-11 rounded-xl border px-3" /></form>
                     <div className="queue-heading">
                         <h2>Antrean pembayaran</h2>
                         <span>{payments.total} menunggu</span>
@@ -362,7 +365,7 @@ export default function PaymentVerification({
                             <button
                                 type="button"
                                 onClick={() => setLightboxOpen(false)}
-                                className="p-1 rounded-full text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[#F5F5F7] transition-colors"
+                                className="p-1 rounded-full text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--background)] transition-colors"
                                 aria-label="Tutup pratinjau"
                             >
                                 <X size={18} />

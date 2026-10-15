@@ -100,7 +100,7 @@ export default function Journal({ classroom, today_stats, filters, journals }: P
                         </div>
 
                         {/* Quick CTA Card */}
-                        <div className="bg-[#F5F5F7] rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center justify-between gap-4 border border-[var(--separator)] shrink-0 min-w-[280px]">
+                        <div className="bg-[var(--background)] rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center justify-between gap-4 border border-[var(--separator)] shrink-0 min-w-[280px]">
                             <div>
                                 <p className="text-xs text-[var(--text-2)] font-medium">
                                     Hari ini · {today_stats.date_formatted}
@@ -112,7 +112,7 @@ export default function Journal({ classroom, today_stats, filters, journals }: P
                             </div>
                             <Link
                                 href={today_stats.next_student_id ? `/guru/jurnal/${today_stats.next_student_id}` : '/guru'}
-                                className="bg-[var(--accent,#0071E3)] text-white text-xs md:text-sm px-4 py-2 rounded-full font-semibold hover:bg-[#0077ED] transition-colors shadow-xs inline-flex items-center gap-1.5 shrink-0"
+                                className="bg-[var(--accent,var(--primary))] text-white text-xs md:text-sm px-4 py-2 rounded-full font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-xs inline-flex items-center gap-1.5 shrink-0"
                             >
                                 <span>{today_stats.next_student_id ? 'Isi Jurnal Hari Ini' : 'Buka Beranda'}</span>
                                 <ArrowRight size={14} />
@@ -134,12 +134,12 @@ export default function Journal({ classroom, today_stats, filters, journals }: P
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Cari nama siswa atau NIS..."
-                                    className="w-full pl-9 pr-4 py-2 text-sm rounded-full border border-[var(--border)] bg-[#F5F5F7] focus:bg-white focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all"
+                                    className="w-full pl-9 pr-4 py-2 text-sm rounded-full border border-[var(--border)] bg-[var(--background)] focus:bg-white focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all"
                                 />
                             </div>
 
                             {/* Date Picker */}
-                            <div className="relative flex items-center bg-[#F5F5F7] border border-[var(--border)] rounded-full px-3 py-1.5 text-sm">
+                            <div className="relative flex items-center bg-[var(--background)] border border-[var(--border)] rounded-full px-3 py-1.5 text-sm">
                                 <Calendar size={15} className="text-[var(--text-2)] mr-2 shrink-0 pointer-events-none" />
                                 <input
                                     type="date"
@@ -261,8 +261,8 @@ export default function Journal({ classroom, today_stats, filters, journals }: P
                                         href={link.url}
                                         className={`px-3 py-1.5 text-xs rounded-full transition-colors ${
                                             link.active
-                                                ? 'bg-[var(--accent,#0071E3)] text-white font-semibold'
-                                                : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[#F5F5F7]'
+                                                ? 'bg-[var(--accent,var(--primary))] text-white font-semibold'
+                                                : 'text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--background)]'
                                         }`}
                                     >
                                         {cleanLabel}

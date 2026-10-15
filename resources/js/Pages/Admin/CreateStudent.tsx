@@ -83,7 +83,7 @@ export default function CreateStudent({
                                 value={form.data.name}
                                 onChange={e => form.setData('name', e.target.value)}
                                 placeholder="Contoh: Raditya Arka Wardhana"
-                                className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                             />
                             {form.errors.name && (
                                 <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.name}</p>
@@ -102,7 +102,7 @@ export default function CreateStudent({
                                     value={form.data.nis}
                                     onChange={e => form.setData('nis', e.target.value)}
                                     placeholder="2425-079"
-                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                 />
                                 {form.errors.nis && (
                                     <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.nis}</p>
@@ -119,7 +119,7 @@ export default function CreateStudent({
                                     required
                                     value={form.data.entry_year}
                                     onChange={e => form.setData('entry_year', e.target.value)}
-                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                 />
                                 {form.errors.entry_year && (
                                     <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.entry_year}</p>
@@ -138,7 +138,7 @@ export default function CreateStudent({
                                     required
                                     value={form.data.birth_date}
                                     onChange={e => form.setData('birth_date', e.target.value)}
-                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                    className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                 />
                                 {form.errors.birth_date && (
                                     <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.birth_date}</p>
@@ -203,7 +203,7 @@ export default function CreateStudent({
                                     }}
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0071E3]"></div>
+                                <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--primary)]"></div>
                             </label>
                         </div>
 
@@ -238,14 +238,14 @@ export default function CreateStudent({
                                     value={guardianSearch}
                                     onChange={e => setGuardianSearch(e.target.value)}
                                     placeholder="Cari nama atau email orang tua..."
-                                    className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                    className="w-full px-4 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                 />
                                 <select
                                     required
                                     size={4}
                                     value={form.data.guardian_id}
                                     onChange={e => form.setData('guardian_id', e.target.value)}
-                                    className="w-full p-2 text-sm bg-white border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] text-stone-900"
+                                    className="w-full p-2 text-sm bg-white border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-stone-900"
                                 >
                                     {filteredGuardians.length === 0 ? (
                                         <option disabled value="">Tidak ada akun yang cocok</option>
@@ -274,7 +274,7 @@ export default function CreateStudent({
                                         value={form.data.guardian_name}
                                         onChange={e => form.setData('guardian_name', e.target.value)}
                                         placeholder="Contoh: Bambang Wardhana"
-                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                     />
                                     {form.errors.guardian_name && (
                                         <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.guardian_name}</p>
@@ -292,7 +292,7 @@ export default function CreateStudent({
                                         value={form.data.guardian_phone}
                                         onChange={e => form.setData('guardian_phone', e.target.value)}
                                         placeholder="0812-9844-3321"
-                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                                     />
                                     {form.errors.guardian_phone && (
                                         <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.guardian_phone}</p>
@@ -313,7 +313,7 @@ export default function CreateStudent({
                                         className={`w-full px-4 py-3 text-sm bg-stone-50 border rounded-2xl focus:outline-none focus:ring-2 focus:bg-white transition-all text-stone-900 ${
                                             form.errors.guardian_email
                                                 ? 'border-red-500 focus:ring-red-500 bg-red-50/30'
-                                                : 'border-stone-200 focus:ring-[#0071E3]'
+                                                : 'border-stone-200 focus:ring-[var(--primary)]'
                                         }`}
                                     />
                                     {form.errors.guardian_email && (
@@ -332,7 +332,7 @@ export default function CreateStudent({
                                         value={form.data.guardian_address}
                                         onChange={e => form.setData('guardian_address', e.target.value)}
                                         placeholder="Jl. Cempaka Putih No. 14, Jakarta Pusat"
-                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none"
+                                        className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 resize-none"
                                     />
                                     {form.errors.guardian_address && (
                                         <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.guardian_address}</p>
@@ -359,7 +359,7 @@ export default function CreateStudent({
                             <button
                                 type="submit"
                                 disabled={form.processing}
-                                className="px-7 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                className="px-7 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm disabled:opacity-50"
                             >
                                 {form.processing ? 'Menyimpan…' : 'Simpan'}
                             </button>

@@ -32,6 +32,7 @@ export default function CashLedger({entries,summary,filters}:Props){
                     <p>{summary.count} transaksi · Saldo awal {rupiah(summary.opening_balance)}</p>
                 </div>
                 <form className="date-range">
+                    <label className="form-field">Cari siswa<input type="search" name="search" placeholder="Cari nama atau NIS" defaultValue={filters.search}/></label>
                     <label className="form-field">Dari<input type="date" name="start_date" defaultValue={filters.start_date}/></label>
                     <label className="form-field">Sampai<input type="date" name="end_date" defaultValue={filters.end_date}/></label>
                     <button className="button-secondary">Terapkan</button>

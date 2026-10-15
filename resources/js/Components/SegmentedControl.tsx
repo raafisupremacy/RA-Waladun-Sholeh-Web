@@ -22,7 +22,7 @@ const LEVEL_COLORS: Record<string, { bg: string; text: string; border?: string; 
         shadow: '0 1px 3px rgba(11, 107, 197, 0.15)',
     },
     BSB: {
-        bg: '#0071E3',
+        bg: 'var(--primary)',
         text: '#FFFFFF',
         border: 'transparent',
         shadow: '0 2px 6px rgba(0, 113, 227, 0.25)',
@@ -44,6 +44,7 @@ export default function SegmentedControl({
 }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const buttonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+    const [selectedKey, setSelectedKey] = useState(value);
     const [pillStyle, setPillStyle] = useState<{ left: number; width: number; height: number; top: number }>({
         left: 0,
         width: 0,
@@ -52,33 +53,63 @@ export default function SegmentedControl({
     });
     const [isReady, setIsReady] = useState(false);
 
-    const updatePill = useCallback(() => {
+    // Synchronize with external value prop
+    useEffect(() => {
+        setSelectedKey(value);
+    }, [value]);
+
+    const measurePill = useCallback((targetKey: string) => {
         const container = containerRef.current;
-        const targetBtn = buttonRefs.current[value];
+        const targetBtn = buttonRefs.current[targetKey];
 
         if (container && targetBtn) {
             const containerRect = container.getBoundingClientRect();
             const btnRect = targetBtn.getBoundingClientRect();
-            setPillStyle({
+            return {
                 left: btnRect.left - containerRect.left,
                 width: btnRect.width,
                 height: btnRect.height,
                 top: btnRect.top - containerRect.top,
-            });
-            setIsReady(true);
+            };
+        }
+        return null;
+    }, []);
+
+    // Update pill position when selectedKey or options change
+    useEffect(() => {
+        const rect = measurePill(selectedKey);
+        if (rect) {
+            setPillStyle(rect);
+            if (!isReady) {
+                const raf = requestAnimationFrame(() => setIsReady(true));
+                return () => cancelAnimationFrame(raf);
+            }
         } else {
             setPillStyle((prev) => ({ ...prev, width: 0 }));
         }
-    }, [value]);
 
-    useEffect(() => {
-        updatePill();
-        const handleResize = () => updatePill();
+        const handleResize = () => {
+            const resizedRect = measurePill(selectedKey);
+            if (resizedRect) setPillStyle(resizedRect);
+        };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, [updatePill, options]);
+    }, [selectedKey, isReady, measurePill, options]);
 
-    const activeColor = LEVEL_COLORS[value];
+    // Optimistic instant movement on click
+    const handleSelect = (key: string) => {
+        if (disabled || key === selectedKey) return;
+        setSelectedKey(key);
+
+        const rect = measurePill(key);
+        if (rect) {
+            setIsReady(true);
+            setPillStyle(rect);
+        }
+        onChange(key);
+    };
+
+    const activeColor = LEVEL_COLORS[selectedKey];
 
     return (
         <div
@@ -98,7 +129,7 @@ export default function SegmentedControl({
                     borderColor: activeColor?.border ?? 'transparent',
                     boxShadow: activeColor?.shadow ?? '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04)',
                     transition: isReady
-                        ? 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease-out, border-color 0.18s ease-out, box-shadow 0.18s ease-out'
+                        ? 'transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), width 0.24s cubic-bezier(0.16, 1, 0.3, 1), height 0.24s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.18s ease-out, border-color 0.18s ease-out, box-shadow 0.18s ease-out'
                         : 'none',
                 }}
                 className="absolute left-0 top-0 rounded-full border pointer-events-none z-0"
@@ -107,15 +138,15 @@ export default function SegmentedControl({
             {options.map((option) => {
                 const key = typeof option === 'string' ? option : option.key;
                 const label = typeof option === 'string' ? option : option.label;
-                const isSelected = key === value;
+                const isSelected = key === selectedKey;
                 const optionColor = LEVEL_COLORS[key];
 
-                let textColor = 'text-[var(--text-2,#6E6E73)] hover:text-[var(--text,#1D1D1F)]';
+                let textColor = 'text-[var(--text-2,var(--muted))] hover:text-[var(--text,var(--ink))]';
                 if (isSelected) {
                     if (optionColor) {
                         textColor = optionColor.text === '#FFFFFF' ? 'text-white font-bold' : 'font-bold';
                     } else {
-                        textColor = 'text-[var(--text,#1D1D1F)] font-semibold';
+                        textColor = 'text-[var(--text,var(--ink))] font-semibold';
                     }
                 }
 
@@ -133,7 +164,7 @@ export default function SegmentedControl({
                             color: isSelected && optionColor ? optionColor.text : undefined,
                         }}
                         className={`relative z-10 min-h-[38px] px-3.5 py-1.5 text-sm rounded-full border-0 bg-transparent cursor-pointer whitespace-nowrap transition-colors duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${textColor}`}
-                        onClick={() => onChange(key)}
+                        onClick={() => handleSelect(key)}
                     >
                         {label}
                     </button>

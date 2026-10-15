@@ -16,8 +16,7 @@ const date = (value?: string | null, withTime = false) => value ? new Date(value
 
 export default function InvoiceDetail({ invoice }: Props) {
     const p = usePage().props as { appName?: string; schoolSettings?: Record<string, string>; flash?: { success?: string } };
-    const form = useForm<{ proof: File | null; note: string }>({ proof: null, note: '' });
-    const cameraRef = useRef<HTMLInputElement>(null);
+    const form = useForm<{ proof: File | null; amount_transferred: string; transfer_date: string; sender_name: string; note: string }>({ proof: null, amount_transferred: '', transfer_date: '', sender_name: '', note: '' });
     const galleryRef = useRef<HTMLInputElement>(null);
     const [clientError, setClientError] = useState('');
     const [preview, setPreview] = useState('');
@@ -101,14 +100,24 @@ export default function InvoiceDetail({ invoice }: Props) {
                         <>
                             <span>Pilih foto bukti transfer</span>
                             <div>
-                                <button type="button" className="button-secondary" onClick={() => cameraRef.current?.click()}>Kamera</button>
-                                <button type="button" className="button-secondary" onClick={() => galleryRef.current?.click()}>Galeri</button>
+                                <button type="button" className="button-primary" onClick={() => galleryRef.current?.click()}>Pilih dari galeri</button>
                             </div>
                         </>
                     )}
-                    <input ref={cameraRef} type="file" accept="image/jpeg,image/png,application/pdf" capture="environment" hidden onChange={event => pickFile(event.target.files?.[0])} />
                     <input ref={galleryRef} type="file" accept="image/jpeg,image/png,application/pdf" hidden onChange={event => pickFile(event.target.files?.[0])} />
                 </div>
+                <label className="form-field">
+                    Nominal transfer (rupiah)
+                    <input type="number" min="0" value={form.data.amount_transferred} onChange={event => form.setData('amount_transferred', event.target.value)} placeholder="Masukkan nominal transfer" required />
+                </label>
+                <label className="form-field">
+                    Tanggal transfer
+                    <input type="date" max={new Date().toISOString().slice(0, 10)} value={form.data.transfer_date} onChange={event => form.setData('transfer_date', event.target.value)} required />
+                </label>
+                <label className="form-field">
+                    Nama pengirim (opsional)
+                    <input value={form.data.sender_name} onChange={event => form.setData('sender_name', event.target.value)} placeholder="Nama wali" />
+                </label>
                 <label className="form-field">
                     Catatan (opsional)
                     <textarea value={form.data.note} onChange={event => form.setData('note', event.target.value)} placeholder="Misal: transfer dari rekening Ayah" />
@@ -237,7 +246,7 @@ export default function InvoiceDetail({ invoice }: Props) {
                             <button
                                 type="button"
                                 onClick={() => setLightboxOpen(false)}
-                                className="p-1 rounded-full text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[#F5F5F7] transition-colors"
+                                className="p-1 rounded-full text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--background)] transition-colors"
                                 aria-label="Tutup pratinjau"
                             >
                                 <X size={18} />

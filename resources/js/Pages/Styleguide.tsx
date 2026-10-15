@@ -20,16 +20,16 @@ import Checkbox from '@/Components/Checkbox';
 
 type PreviewProps = { appName?: string; schoolName?: string; schoolSettings?: Record<string, string> };
 type Person = { id: number; name: string; detail: string; status: string };
-const rows: Person[] = [{ id: 1, name: 'Contoh siswa', detail: 'Kelompok A', status: 'lunas' }, { id: 2, name: 'Contoh siswa lain', detail: 'Kelompok B', status: 'menunggu_verifikasi' }];
+const rows: Person[] = [{ id: 1, name: 'Contoh siswa', detail: 'Kelompok A-1', status: 'lunas' }, { id: 2, name: 'Contoh siswa lain', detail: 'Kelompok B-1', status: 'menunggu_verifikasi' }];
 
 function Showcase() {
     const [segment, setSegment] = useState('Semua');
     const [sheetOpen, setSheetOpen] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     return <div className="styleguide-content">
-        <div className="styleguide-intro"><p className="eyebrow">Fondasi M0</p><h1>Komponen SKMS</h1><p>Pratinjau bersama untuk tiga lebar layar yang ditetapkan desain.</p></div>
+        <div className="styleguide-intro"><p className="eyebrow">Fondasi M0</p><h1>Komponen aplikasi</h1><p>Pratinjau bersama untuk tiga lebar layar yang ditetapkan desain.</p></div>
         <div className="component-grid">
-            <Tile title="Fondasi formulir"><div className="styleguide-form"><InputLabel htmlFor="styleguide-email" value="Email" /><TextInput id="styleguide-email" type="email" placeholder="nama@sekolah.sch.id" /><InputError message="Email atau kata sandi tidak sesuai." /><label className="checkbox-row"><Checkbox /> Ingat pilihan ini</label></div></Tile>
+            <Tile title="Fondasi formulir"><div className="styleguide-form"><InputLabel htmlFor="styleguide-email" value="Email" /><TextInput id="styleguide-email" type="email" placeholder="nama@email.com" /><InputError message="Email atau kata sandi tidak sesuai." /><label className="checkbox-row"><Checkbox /> Ingat pilihan ini</label></div></Tile>
             <Tile title="Varian tombol"><div className="action-stack"><PrimaryButton type="button">Utama</PrimaryButton><SecondaryButton type="button">Sekunder</SecondaryButton><DangerButton type="button">Destruktif</DangerButton><a href="#" className="auth-link">Tautan biru</a></div></Tile>
             <Tile title="Status"><div className="capsule-stack"><StatusCapsule status="lunas" /><StatusCapsule status="menunggu_verifikasi" /><StatusCapsule status="belum_bayar" /><StatusCapsule status="ditolak" /></div></Tile>
             <Tile title="Angka utama"><BigNumber label="pembayaran menunggu">9</BigNumber></Tile>

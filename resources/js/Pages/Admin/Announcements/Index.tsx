@@ -13,6 +13,7 @@ type Announcement = {
     status: string;
     is_pinned: boolean;
     classroom_name?: string | null;
+    target_level?: string | null;
     published_at?: string | null;
     expires_at?: string | null;
 };
@@ -104,7 +105,7 @@ export default function Index({
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Cari pengumuman..."
-                            className="w-full sm:w-64 pl-9 pr-8 py-2 text-sm bg-white border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#0071E3] text-stone-900 placeholder:text-stone-400"
+                            className="w-full sm:w-64 pl-9 pr-8 py-2 text-sm bg-white border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-stone-900 placeholder:text-stone-400"
                         />
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +125,7 @@ export default function Index({
 
                     <Link
                         href="/admin/pengumuman/create"
-                        className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm shrink-0"
+                        className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm shrink-0"
                     >
                         <Plus size={16} strokeWidth={2} />
                         <span>Buat Pengumuman</span>
@@ -164,7 +165,7 @@ export default function Index({
                                 <button
                                     type="button"
                                     onClick={handleClearFilters}
-                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[#0071E3] hover:underline"
+                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[var(--primary)] hover:underline"
                                 >
                                     Hapus pencarian
                                 </button>
@@ -196,7 +197,7 @@ export default function Index({
                                         {item.status === 'terbit'
                                             ? `Terbit ${formatDate(item.published_at)}`
                                             : 'Draf'}
-                                        {' · '}Untuk: {item.classroom_name ?? 'Semua orang tua'}
+                                        {' · '}Untuk: {item.classroom_name ?? (item.target_level ? `Kelompok ${item.target_level}` : 'Semua orang tua')}
                                         {item.expires_at && ` · Berakhir ${formatDate(item.expires_at)}`}
                                     </p>
                                 </div>
@@ -204,7 +205,7 @@ export default function Index({
                                 <div className="flex flex-row items-center justify-end gap-2 shrink-0 self-end md:self-auto">
                                     <Link
                                         href={`/admin/pengumuman/${item.id}/edit`}
-                                        className="inline-flex items-center justify-center !min-h-0 h-8 px-3.5 rounded-full text-xs font-semibold text-[#0071E3] bg-[#0071E3]/10 hover:bg-[#0071E3]/20 active:scale-[0.98] transition-all"
+                                        className="inline-flex items-center justify-center !min-h-0 h-8 px-3.5 rounded-full text-xs font-semibold text-[var(--primary)] bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 active:scale-[0.98] transition-all"
                                     >
                                         Ubah
                                     </Link>
@@ -256,7 +257,7 @@ export default function Index({
                                         replace
                                         className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-semibold transition-colors ${
                                             link.active
-                                                ? 'bg-[#0071E3] text-white shadow-sm'
+                                                ? 'bg-[var(--primary)] text-white shadow-sm'
                                                 : 'text-stone-700 hover:bg-stone-100'
                                         }`}
                                     >

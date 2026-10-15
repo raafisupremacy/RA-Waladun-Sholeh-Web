@@ -298,7 +298,7 @@ export default function JournalForm({
 
                 {/* Locked Banner Notification */}
                 {isFinalized && (
-                    <div className="tile p-5 bg-[#F5F5F7] rounded-2xl border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="tile p-5 bg-[var(--background)] rounded-2xl border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                             <p className="font-semibold text-sm text-[var(--text)]">
                                 {is_locked
@@ -336,7 +336,7 @@ export default function JournalForm({
                         value={activitySummary}
                         onChange={(e) => setActivitySummary(e.target.value)}
                         placeholder="Mengenal huruf vokal A-I-U-E-O, menyusun balok menara, dan bercerita tentang hewan peliharaan."
-                        className="w-full rounded-2xl border border-[var(--border)] p-4 text-[15px] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] disabled:bg-[#F5F5F7] disabled:text-[var(--text-2)] resize-none"
+                        className="w-full rounded-2xl border border-[var(--border)] p-4 text-[15px] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] disabled:bg-[var(--background)] disabled:text-[var(--text-2)] resize-none"
                     />
                 </section>
 
@@ -391,7 +391,7 @@ export default function JournalForm({
                                         value={assessments[aspect.key]?.note || ''}
                                         onChange={(e) => handleNoteChange(aspect.key, e.target.value)}
                                         placeholder="Catatan perkembangan atau pengamatan guru untuk aspek ini..."
-                                        className="w-full rounded-xl border border-[var(--border)] p-3 text-sm focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] disabled:bg-[#F5F5F7] disabled:text-[var(--text-2)] resize-none"
+                                        className="w-full rounded-xl border border-[var(--border)] p-3 text-sm focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] disabled:bg-[var(--background)] disabled:text-[var(--text-2)] resize-none"
                                     />
                                 </div>
                             </section>
@@ -422,7 +422,7 @@ export default function JournalForm({
                             )
                         ) : isEditingUnlocked && !is_locked ? (
                             <span className="text-[var(--text-2)] font-medium flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#0071E3] inline-block" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] inline-block" />
                                 Mode edit jurnal · Batas 24 jam
                             </span>
                         ) : (
@@ -448,7 +448,7 @@ export default function JournalForm({
                                     type="button"
                                     disabled={isSubmitting}
                                     onClick={handleFinalize}
-                                    className="bg-[var(--accent,#0071E3)] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[#0077ED] active:scale-[0.98] transition-all duration-150 shadow-xs disabled:opacity-50"
+                                    className="bg-[var(--accent,var(--primary))] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[var(--primary-hover)] active:scale-[0.98] transition-all duration-150 shadow-xs disabled:opacity-50"
                                 >
                                     {isSubmitting ? 'Menyimpan...' : 'Simpan jurnal'}
                                 </button>
@@ -466,7 +466,7 @@ export default function JournalForm({
                                     type="button"
                                     disabled={isSubmitting}
                                     onClick={handleFinalize}
-                                    className="bg-[var(--accent,#0071E3)] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                                    className="bg-[var(--accent,var(--primary))] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm disabled:opacity-50"
                                 >
                                     {isSubmitting ? 'Menyimpan...' : 'Simpan perubahan'}
                                 </button>
@@ -491,7 +491,7 @@ export default function JournalForm({
                                 {next_student && (
                                     <Link
                                         href={`/guru/jurnal/${next_student.id}?date=${selectedDate}`}
-                                        className="bg-[var(--accent,#0071E3)] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[#0077ED] transition-colors shadow-sm inline-flex items-center gap-1"
+                                        className="bg-[var(--accent,var(--primary))] text-white text-sm px-6 py-2.5 rounded-full font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm inline-flex items-center gap-1"
                                     >
                                         Siswa Berikutnya &gt;
                                     </Link>

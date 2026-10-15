@@ -15,4 +15,19 @@ export default defineConfig({
         }),
         react(),
     ],
+    optimizeDeps: {
+        include: [
+            'react',
+            'react/jsx-runtime',
+            'react-dom',
+            'react-dom/client',
+            '@inertiajs/react',
+            'laravel-vite-plugin/inertia-helpers',
+            'lucide-react',
+            'clsx',
+            'tailwind-merge',
+            'class-variance-authority',
+            'axios',
+        ],
+    },
 });

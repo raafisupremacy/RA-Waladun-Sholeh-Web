@@ -6,7 +6,7 @@
     <style>
         @page {
             margin: 15mm;
-            size: a4 portrait;
+            size: {{ ($tab ?? 'rekap') === 'ringkasan_kelas' ? 'a4 landscape' : 'a4 portrait' }};
         }
         body {
             font-family: 'DejaVu Sans', sans-serif;
@@ -73,8 +73,9 @@
     </style>
 </head>
 <body>
+@include('exports.partials.school-logo')
     <div class="header">
-        <div class="school-name">TK Tunas Harapan</div>
+        <div class="school-name">{{ $school_name ?? '' }}</div>
         <div class="title">{{ $title ?? 'Laporan Keuangan Sekolah' }}</div>
         <div class="meta">Dicetak pada: {{ now()->locale('id')->isoFormat('D MMMM Y, HH:mm') }} WIB</div>
     </div>
@@ -131,12 +132,14 @@
                 <tr>
                     <th>Kelas</th>
                     <th>Wali Kelas</th>
-                    <th class="text-right">Siswa</th>
-                    <th class="text-right">Lunas</th>
-                    <th class="text-right">Belum</th>
+                    <th class="text-right">Jumlah siswa</th>
+                    <th class="text-right">Jumlah tagihan</th>
+                    <th class="text-right">Total tagihan</th>
                     <th class="text-right">Diterima</th>
-                    <th class="text-right">Tunggakan</th>
-                    <th class="text-right">Capaian</th>
+                    <th class="text-right">Belum diterima</th>
+                    <th class="text-right">Menunggu verifikasi</th>
+                    <th class="text-right">Menunggak</th>
+                    <th class="text-right">Persentase lunas</th>
                 </tr>
             </thead>
             <tbody>
@@ -145,20 +148,24 @@
                         <td><strong>{{ $cls['name'] }}</strong></td>
                         <td>{{ $cls['teacher_name'] }}</td>
                         <td class="text-right">{{ $cls['student_count'] }}</td>
-                        <td class="text-right">{{ $cls['paid_count'] }}</td>
-                        <td class="text-right">{{ $cls['unpaid_count'] }}</td>
+                        <td class="text-right">{{ $cls['invoice_count'] }}</td>
+                        <td class="text-right">Rp {{ number_format($cls['received_amount'] + $cls['outstanding_amount'], 0, ',', '.') }}</td>
                         <td class="text-right">Rp {{ number_format($cls['received_amount'], 0, ',', '.') }}</td>
                         <td class="text-right">Rp {{ number_format($cls['outstanding_amount'], 0, ',', '.') }}</td>
+                        <td class="text-right">{{ $cls['pending_count'] }}</td>
+                        <td class="text-right">{{ $cls['overdue_count'] }}</td>
                         <td class="text-right">{{ $cls['achievement_percentage'] }}%</td>
                     </tr>
                 @endforeach
                 <tr class="total-row">
-                    <td colspan="2">Total Keseluruhan</td>
+                    <td colspan="2">Total</td>
                     <td class="text-right">{{ $classSummary['totals']['student_count'] ?? 0 }}</td>
-                    <td class="text-right">{{ $classSummary['totals']['paid_count'] ?? 0 }}</td>
-                    <td class="text-right">{{ $classSummary['totals']['unpaid_count'] ?? 0 }}</td>
+                    <td class="text-right">{{ $classSummary['totals']['invoice_count'] ?? 0 }}</td>
+                    <td class="text-right">Rp {{ number_format(($classSummary['totals']['received_amount'] ?? 0) + ($classSummary['totals']['outstanding_amount'] ?? 0), 0, ',', '.') }}</td>
                     <td class="text-right">Rp {{ number_format($classSummary['totals']['received_amount'] ?? 0, 0, ',', '.') }}</td>
                     <td class="text-right">Rp {{ number_format($classSummary['totals']['outstanding_amount'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ $classSummary['totals']['pending_count'] ?? 0 }}</td>
+                    <td class="text-right">{{ $classSummary['totals']['overdue_count'] ?? 0 }}</td>
                     <td class="text-right">{{ $classSummary['totals']['achievement_percentage'] ?? 0 }}%</td>
                 </tr>
             </tbody>
@@ -202,5 +209,6 @@
             </tbody>
         </table>
     @endif
+@include('exports.partials.pdf-footer')
 </body>
 </html>

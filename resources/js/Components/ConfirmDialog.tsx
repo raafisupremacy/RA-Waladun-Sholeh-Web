@@ -71,7 +71,7 @@ export default function ConfirmDialog({
                         onClick={onConfirm}
                         disabled={busy}
                         className={`px-6 py-2.5 rounded-full text-white text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:opacity-50 ${
-                            danger ? 'bg-red-600 hover:bg-red-700' : 'bg-[#0071E3] hover:bg-[#0077ED]'
+                            danger ? 'bg-red-600 hover:bg-red-700' : 'bg-[var(--primary)] hover:bg-[var(--primary-hover)]'
                         }`}
                     >
                         {busy ? 'Memproses…' : confirmLabel}

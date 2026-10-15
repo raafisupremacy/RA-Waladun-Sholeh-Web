@@ -4,7 +4,7 @@ import { ArrowLeft, ChevronRight, Pin } from 'lucide-react';
 import { getAdminLayout } from '@/Layouts/AdminLayout';
 import SegmentedControl from '@/Components/SegmentedControl';
 
-type Classroom = { id: number; name: string };
+type Classroom = { id: number; name: string; level?: string | null };
 
 type Announcement = {
     id: number;
@@ -13,6 +13,7 @@ type Announcement = {
     status: string;
     is_pinned: boolean;
     classroom_id?: number | null;
+    target_level?: string | null;
     classroom_name?: string | null;
     expires_at?: string | null;
 } | null;
@@ -29,18 +30,19 @@ export default function Form({
     const form = useForm({
         title: announcement?.title ?? '',
         body: announcement?.body ?? '',
-        target: announcement?.classroom_id ? 'classroom' : 'all',
+        target: announcement?.classroom_id ? 'classroom' : announcement?.target_level ? 'level' : 'all',
+        target_level: announcement?.target_level ?? '',
         classroom_id: announcement?.classroom_id ? String(announcement.classroom_id) : '',
         is_pinned: announcement?.is_pinned ?? false,
         status: announcement?.status ?? 'draf',
         expires_at: announcement?.expires_at ? announcement.expires_at.replace(' ', 'T').slice(0, 16) : '',
     });
 
-    const targetOptions = ['Semua', ...classrooms.map(c => c.name)];
+    const targetOptions = ['Semua', 'Kelompok A', 'Kelompok B', ...classrooms.map(c => c.name)];
     const currentTargetValue =
         form.data.target === 'all'
             ? 'Semua'
-            : classrooms.find(c => String(c.id) === form.data.classroom_id)?.name ?? 'Semua';
+            : form.data.target === 'level' ? `Kelompok ${form.data.target_level}` : classrooms.find(c => String(c.id) === form.data.classroom_id)?.name ?? 'Semua';
 
     const selectedClassroomName = classrooms.find(
         c => String(c.id) === form.data.classroom_id
@@ -65,6 +67,7 @@ export default function Form({
             ...data,
             status: statusValue,
             classroom_id: data.target === 'classroom' ? (data.classroom_id ? Number(data.classroom_id) : null) : null,
+            target_level: data.target === 'level' ? data.target_level : null,
             expires_at: data.expires_at ? data.expires_at : null,
         }));
 
@@ -122,7 +125,7 @@ export default function Form({
                             value={form.data.title}
                             onChange={e => form.setData('title', e.target.value)}
                             placeholder="Contoh: Jadwal Kunjungan Edukasi ke Kebun Raya"
-                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                         />
                         {form.errors.title && (
                             <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.title}</p>
@@ -145,7 +148,7 @@ export default function Form({
                             value={form.data.body}
                             onChange={e => form.setData('body', e.target.value)}
                             placeholder="Tuliskan isi pengumuman lengkap di sini..."
-                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 resize-none leading-relaxed"
+                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 resize-none leading-relaxed"
                         />
                         {form.errors.body && (
                             <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.body}</p>
@@ -162,6 +165,8 @@ export default function Form({
                             onChange={val => {
                                 if (val === 'Semua') {
                                     form.setData({ ...form.data, target: 'all', classroom_id: '' });
+                                } else if (val === 'Kelompok A' || val === 'Kelompok B') {
+                                    form.setData({ ...form.data, target: 'level', target_level: val.endsWith('A') ? 'A' : 'B', classroom_id: '' });
                                 } else {
                                     const match = classrooms.find(c => c.name === val);
                                     if (match) {
@@ -181,7 +186,7 @@ export default function Form({
                             type="checkbox"
                             checked={form.data.is_pinned}
                             onChange={e => form.setData('is_pinned', e.target.checked)}
-                            className="w-5 h-5 mt-0.5 rounded text-[#0071E3] focus:ring-[#0071E3] border-stone-300"
+                            className="w-5 h-5 mt-0.5 rounded text-[var(--primary)] focus:ring-[var(--primary)] border-stone-300"
                         />
                         <div>
                             <span className="block text-sm font-semibold text-stone-900">
@@ -202,7 +207,7 @@ export default function Form({
                             type="datetime-local"
                             value={form.data.expires_at}
                             onChange={e => form.setData('expires_at', e.target.value)}
-                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900"
+                            className="w-full px-4 py-3 text-sm bg-stone-50 border border-stone-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900"
                         />
                         {form.errors.expires_at && (
                             <p className="mt-1.5 text-xs text-red-600 font-medium">{form.errors.expires_at}</p>
@@ -250,13 +255,14 @@ export default function Form({
                             </p>
 
                             <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-xs">
-                                <span className="font-semibold text-[#0071E3] inline-flex items-center gap-1">
+                                <span className="font-semibold text-[var(--primary)] inline-flex items-center gap-1">
                                     <span>Baca selengkapnya</span>
                                     <ChevronRight size={13} strokeWidth={2} />
                                 </span>
                                 <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-medium text-[11px]">
                                     {form.data.target === 'classroom' && selectedClassroomName
                                         ? selectedClassroomName
+                                        : form.data.target === 'level' ? `Kelompok ${form.data.target_level}`
                                         : 'Semua Siswa'}
                                 </span>
                             </div>
@@ -288,7 +294,7 @@ export default function Form({
                             type="button"
                             onClick={() => submit('terbit')}
                             disabled={form.processing}
-                            className="px-6 py-2.5 rounded-full bg-[#0071E3] text-white text-sm font-semibold hover:bg-[#0077ED] transition-colors shadow-sm disabled:opacity-50"
+                            className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-colors shadow-sm disabled:opacity-50"
                         >
                             {form.processing ? 'Menyimpan…' : 'Terbitkan'}
                         </button>

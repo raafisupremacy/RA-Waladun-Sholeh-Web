@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ArrowLeftRight, Check, ChevronRight } from 'lucide-react';
 import { getParentLayout } from '@/Layouts/ParentLayout';
 import BottomSheet from '@/Components/BottomSheet';
 import EmptyState from '@/Components/EmptyState';
@@ -30,18 +30,33 @@ export default function Invoices({ invoices, students, activeStudentId, academic
     return (
         <div className="parent-invoices-wrapper">
             <Head title="Tagihan" />
-            <BottomSheet open={switching} title="Ganti anak" onClose={() => setSwitching(false)}>
+            <BottomSheet open={switching} title="Pilih Anak" onClose={() => setSwitching(false)}>
                 <div className="child-options">
-                    {students.map(child => (
-                        <Link
-                            key={child.id}
-                            href={`/ortu/tagihan?student_id=${child.id}&academic_year_id=${selectedAcademicYearId ?? ''}`}
-                            aria-current={child.id === activeStudentId ? 'true' : undefined}
-                            onClick={() => setSwitching(false)}
-                        >
-                            {child.name}<span>{child.classroom ?? 'Belum ada kelompok'}</span>
-                        </Link>
-                    ))}
+                    {students.map(child => {
+                        const isCurrent = child.id === activeStudentId;
+                        return (
+                            <Link
+                                key={child.id}
+                                href={`/ortu/tagihan?student_id=${child.id}&academic_year_id=${selectedAcademicYearId ?? ''}`}
+                                aria-current={isCurrent ? 'true' : undefined}
+                                onClick={() => setSwitching(false)}
+                                className="child-option-card"
+                            >
+                                <div className="child-option-avatar">
+                                    {child.name.split(' ').map(part => part[0]).slice(0, 2).join('')}
+                                </div>
+                                <div className="child-option-info">
+                                    <strong>{child.name}</strong>
+                                    <span>{child.classroom ?? 'Belum ada kelompok'} · NIS {child.nis}</span>
+                                </div>
+                                {isCurrent && (
+                                    <span className="child-option-badge">
+                                        <Check size={14} strokeWidth={2.5} /> Aktif
+                                    </span>
+                                )}
+                            </Link>
+                        );
+                    })}
                 </div>
             </BottomSheet>
 
@@ -52,7 +67,7 @@ export default function Invoices({ invoices, students, activeStudentId, academic
                         Tagihan
                     </h1>
 
-                    <div className="mt-2.5 flex flex-wrap items-center text-[var(--text-2)] text-base md:text-lg">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[var(--text-2)] text-base md:text-lg">
                         <span>
                             {student?.name ?? 'Belum ada anak aktif'} · {student?.classroom ?? 'Belum ada kelompok'}
                         </span>
@@ -60,9 +75,11 @@ export default function Invoices({ invoices, students, activeStudentId, academic
                             <button
                                 type="button"
                                 onClick={() => setSwitching(true)}
-                                className="ml-3 text-[var(--accent)] font-semibold hover:underline cursor-pointer"
+                                className="parent-switcher"
+                                aria-label="Pilih profil anak"
                             >
-                                Ganti anak &gt;
+                                <ArrowLeftRight size={13} strokeWidth={2.2} aria-hidden="true" />
+                                <span>Pilih Anak</span>
                             </button>
                         )}
                     </div>

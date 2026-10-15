@@ -5,13 +5,13 @@
     <title>Laporan Perkembangan Anak - {{ $report['student']['name'] }}</title>
     <style>
         @page {
-            margin: 18mm 18mm 18mm 18mm;
+            margin: 14mm 14mm 16mm 14mm;
             size: a4 portrait;
         }
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 10pt;
-            line-height: 1.45;
+            font-size: 9.5pt;
+            line-height: 1.3;
             color: #1D1D1F;
         }
         .header {
@@ -103,6 +103,7 @@
             width: 100%;
             margin-top: 24px;
             border-collapse: collapse;
+            page-break-inside: avoid;
         }
         .sign-table td {
             width: 50%;
@@ -122,8 +123,9 @@
     </style>
 </head>
 <body>
+@include('exports.partials.school-logo')
     <div class="header">
-        <div class="school-name">{{ $report['school_name'] ?? 'TK TUNAS HARAPAN' }}</div>
+        <div class="school-name">{{ $report['school_name'] ?? '' }}</div>
         <div class="title">Laporan Perkembangan Anak</div>
         <div class="subtitle">Tahun Ajaran {{ $report['academic_year']['name'] ?? '2026/2027' }}</div>
     </div>
@@ -149,26 +151,11 @@
 
     @php
         $aspectDefinitions = [
-            'nilai_agama_moral' => [
-                'title' => '1. Nilai Agama dan Moral',
-                'default' => 'Aisyah terbiasa berdoa sebelum dan sesudah kegiatan dengan khidmat. Mulai mandiri dalam membedakan perilaku baik dan peduli terhadap teman.',
-            ],
-            'fisik_motorik' => [
-                'title' => '2. Fisik Motorik',
-                'default' => 'Keterampilan motorik halus berkembang sangat baik saat menggunting dan meronce. Mampu melakukan gerakan fisik lokomotor dengan seimbang.',
-            ],
-            'kognitif' => [
-                'title' => '3. Kognitif',
-                'default' => 'Menunjukkan rasa ingin tahu tinggi dalam eksplorasi sains sederhana. Mampu mengelompokkan benda berdasarkan bentuk dan warna secara konsisten.',
-            ],
-            'bahasa' => [
-                'title' => '4. Bahasa',
-                'default' => 'Mampu menyampaikan ide dan bercerita kembali dengan kalimat terstruktur. Menyimak cerita guru dengan penuh perhatian hingga selesai.',
-            ],
-            'sosial_emosional' => [
-                'title' => '5. Sosial Emosional',
-                'default' => 'Sangat ramah, mudah berbagi alat bermain, dan mampu mengantre giliran dengan tertib bersama teman sekelas.',
-            ],
+            'nilai_agama_moral' => ['title' => '1. Nilai Agama dan Moral'],
+            'fisik_motorik' => ['title' => '2. Fisik Motorik'],
+            'kognitif' => ['title' => '3. Kognitif'],
+            'bahasa' => ['title' => '4. Bahasa'],
+            'sosial_emosional' => ['title' => '5. Sosial Emosional'],
         ];
     @endphp
 
@@ -179,7 +166,7 @@
             $bsb = $counts['BSB'] ?? 0;
             $mb = $counts['MB'] ?? 0;
             $bb = $counts['BB'] ?? 0;
-            $narrative = !empty($report['narratives'][$key]) ? implode(' ', $report['narratives'][$key]) : $info['default'];
+            $narrative = !empty($report['narratives'][$key]) ? implode(' ', $report['narratives'][$key]) : 'Belum ada data penilaian pada periode ini.';
         @endphp
         <div class="aspect-box">
             <div class="aspect-title">{{ $info['title'] }}</div>
@@ -226,5 +213,6 @@
             </td>
         </tr>
     </table>
+@include('exports.partials.pdf-footer')
 </body>
 </html>

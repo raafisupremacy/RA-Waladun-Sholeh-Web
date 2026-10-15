@@ -125,9 +125,9 @@ export default function Dashboard({
                         </BigNumber>
 
                         {/* Progress Bar */}
-                        <div className="w-full max-w-md h-2 bg-[#E5E5EA] rounded-full overflow-hidden mt-4">
+                        <div className="w-full max-w-md h-2 bg-[var(--border)] rounded-full overflow-hidden mt-4">
                             <div
-                                className="h-full bg-[var(--accent,#0071E3)] rounded-full transition-all duration-300"
+                                className="h-full bg-[var(--accent,var(--primary))] rounded-full transition-all duration-300"
                                 style={{ width: `${progress_percentage}%` }}
                             />
                         </div>
@@ -169,7 +169,7 @@ export default function Dashboard({
                                 {filteredStudents.map((student) => (
                                     <div
                                         key={student.id}
-                                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl hover:bg-[#F5F5F7] transition-colors border border-[var(--border)] sm:border-transparent sm:hover:border-[var(--border)]"
+                                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl hover:bg-[var(--background)] transition-colors border border-[var(--border)] sm:border-transparent sm:hover:border-[var(--border)]"
                                     >
                                         <div className="flex items-center gap-3.5 min-w-0">
                                             <div className="w-11 h-11 rounded-full bg-[#EBF4FE] text-[var(--accent)] font-semibold text-sm flex items-center justify-center shrink-0">

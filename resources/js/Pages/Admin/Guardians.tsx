@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { getAdminLayout } from '@/Layouts/AdminLayout';
@@ -13,6 +13,7 @@ type Guardian = {
     name: string;
     email: string;
     phone: string;
+    address?: string;
     is_active: boolean;
     account_status?: string;
     students: Student[];
@@ -40,6 +41,15 @@ export default function Guardians({
     const [search, setSearch] = useState(filters.search ?? '');
     const [selected, setSelected] = useState<Guardian | null>(null);
     const [busy, setBusy] = useState(false);
+    const [editing, setEditing] = useState<Guardian | null>(null);
+    const [accountAction, setAccountAction] = useState<Guardian | null>(null);
+    const editForm = useForm({ name: '', email: '', phone: '', address: '' });
+
+    const openEdit = (guardian: Guardian) => {
+        setEditing(guardian);
+        editForm.setData({ name: guardian.name, email: guardian.email, phone: guardian.phone ?? '', address: guardian.address ?? '' });
+        editForm.clearErrors();
+    };
 
     const filter = (change: Record<string, string>) => {
         router.get('/admin/orang-tua', { ...filters, ...change }, { preserveState: true, replace: true });
@@ -104,7 +114,7 @@ export default function Guardians({
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Cari nama, email, atau nama anak"
-                                className="w-full pl-10 pr-20 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400"
+                                className="w-full pl-10 pr-20 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white transition-all text-stone-900 placeholder:text-stone-400"
                             />
                             {search && (
                                 <button
@@ -160,7 +170,7 @@ export default function Guardians({
                                 <button
                                     type="button"
                                     onClick={handleClearFilters}
-                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[#0071E3] hover:underline"
+                                    className="mt-4 inline-flex items-center text-sm font-semibold text-[var(--primary)] hover:underline"
                                 >
                                     Hapus pencarian
                                 </button>
@@ -208,13 +218,17 @@ export default function Guardians({
                                                     )}
                                                 </td>
                                                 <td className="py-4 px-3 text-right">
+                                                    <div className="flex justify-end gap-3">
+                                                    <button type="button" onClick={() => openEdit(guardian)} className="text-sm font-semibold text-[var(--primary)] hover:underline">Ubah</button>
+                                                    <button type="button" onClick={() => setAccountAction(guardian)} className="text-sm font-semibold text-stone-600 hover:underline">{guardian.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button>
                                                     <button
                                                         type="button"
                                                         onClick={() => setSelected(guardian)}
-                                                        className="text-sm font-semibold text-[#0071E3] hover:underline"
+                                                        className="text-sm font-semibold text-[var(--primary)] hover:underline"
                                                     >
                                                         Reset kata sandi
                                                     </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );
@@ -259,10 +273,12 @@ export default function Guardians({
                                         </div>
 
                                         <div className="flex justify-end pt-1">
+                                            <button type="button" onClick={() => openEdit(guardian)} className="text-xs font-semibold text-[var(--primary)] hover:underline">Ubah</button>
+                                            <button type="button" onClick={() => setAccountAction(guardian)} className="ml-3 text-xs font-semibold text-stone-600 hover:underline">{guardian.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button>
                                             <button
                                                 type="button"
                                                 onClick={() => setSelected(guardian)}
-                                                className="text-xs font-semibold text-[#0071E3] hover:underline"
+                                                className="text-xs font-semibold text-[var(--primary)] hover:underline"
                                             >
                                                 Reset kata sandi
                                             </button>
@@ -302,7 +318,7 @@ export default function Guardians({
                                             replace
                                             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                                                 link.active
-                                                    ? 'bg-[#0071E3] text-white shadow-sm'
+                                                    ? 'bg-[var(--primary)] text-white shadow-sm'
                                                     : 'text-stone-700 hover:bg-stone-100'
                                             }`}
                                         >
@@ -343,6 +359,23 @@ export default function Guardians({
                     }
                 }}
             />
+            <ConfirmDialog
+                open={!!accountAction}
+                title={`${accountAction?.is_active ? 'Nonaktifkan' : 'Aktifkan kembali'} akun ${accountAction?.name}?`}
+                description={accountAction?.is_active ? 'Akun tidak dapat masuk dan tidak akan menerima tagihan baru.' : 'Akun dapat masuk kembali setelah diaktifkan.'}
+                confirmLabel={accountAction?.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                onCancel={() => setAccountAction(null)}
+                onConfirm={() => { if (accountAction) router.post(`/admin/orang-tua/${accountAction.id}/${accountAction.is_active ? 'nonaktifkan' : 'aktifkan'}`, {}, { onSuccess: () => setAccountAction(null) }); }}
+            />
+            {editing && (
+                <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+                    <form className="w-full max-w-lg rounded-3xl bg-white p-6 space-y-4" onSubmit={(event) => { event.preventDefault(); editForm.put(`/admin/orang-tua/${editing.id}`, { onSuccess: () => setEditing(null) }); }}>
+                        <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Ubah data orang tua</h2><button type="button" onClick={() => setEditing(null)}><X /></button></div>
+                        {(['name', 'email', 'phone', 'address'] as const).map((field) => <div key={field}><label className="block text-sm font-medium mb-1" htmlFor={`guardian-${field}`}>{field === 'name' ? 'Nama' : field === 'email' ? 'Email' : field === 'phone' ? 'Nomor HP' : 'Alamat'}</label><input id={`guardian-${field}`} value={editForm.data[field]} onChange={(event) => editForm.setData(field, event.target.value)} className="w-full rounded-xl border border-stone-200 px-4 py-3" required={field !== 'address'} />{editForm.errors[field] && <p className="text-sm text-red-600 mt-1">{editForm.errors[field]}</p>}</div>)}
+                        <div className="flex justify-end gap-3"><button type="button" className="button-secondary" onClick={() => setEditing(null)}>Batal</button><button className="button-primary" disabled={editForm.processing}>Simpan</button></div>
+                    </form>
+                </div>
+            )}
         </>
     );
 }

@@ -164,7 +164,7 @@ function formatHumanValue(key: string, val: unknown): React.ReactNode {
 
     if (key === 'role' && typeof val === 'string' && roleLabels[val]) {
         return (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200/60">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold bg-sky-50 text-sky-700 border border-sky-200/60">
                 {roleLabels[val]}
             </span>
         );
@@ -173,7 +173,7 @@ function formatHumanValue(key: string, val: unknown): React.ReactNode {
     if (key === 'status' && typeof val === 'string' && statusLabels[val]) {
         const st = statusLabels[val];
         return (
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${st.color}`}>
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold border ${st.color}`}>
                 {st.label}
             </span>
         );
@@ -258,28 +258,28 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
         return {
             id: log.id,
             waktu: (
-                <div className="flex flex-col text-xs font-mono">
+                <div className="flex flex-col text-sm font-mono">
                     <span className="font-medium text-stone-900">{formatDateTime(log.created_at)}</span>
-                    <span className="text-stone-400 text-[10px]">ID Log #{log.id}</span>
+                    <span className="text-stone-400 text-[14px]">ID Log #{log.id}</span>
                 </div>
             ),
             pengguna: log.user ? (
                 <div className="flex flex-col">
-                    <span className="font-semibold text-stone-900 text-xs sm:text-sm">{log.user.name}</span>
-                    <span className="text-stone-400 text-xs">{log.user.email}</span>
+                    <span className="font-semibold text-stone-900 text-sm sm:text-sm">{log.user.name}</span>
+                    <span className="text-stone-400 text-sm">{log.user.email}</span>
                 </div>
             ) : (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium bg-stone-100 text-stone-600">
                     Sistem Otomatis
                 </span>
             ),
             aksi: (
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${badge.bg} ${badge.text} ${badge.border}`}>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold border ${badge.bg} ${badge.text} ${badge.border}`}>
                     {badge.label}
                 </span>
             ),
             entitas: (
-                <div className="flex flex-col text-xs">
+                <div className="flex flex-col text-sm">
                     <span className="font-semibold text-stone-800">{log.entity_type}</span>
                     <span className="text-stone-400">Ref ID: {log.entity_id ?? '—'}</span>
                 </div>
@@ -289,7 +289,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                     type="button"
                     onClick={() => setSelectedLog(log)}
                     disabled={!hasDiff}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors ${
                         hasDiff
                             ? 'bg-stone-100 text-stone-800 hover:bg-stone-200 hover:text-stone-900'
                             : 'bg-transparent text-stone-300 cursor-not-allowed'
@@ -309,7 +309,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                 <div>
-                    <span className="block text-xs font-bold uppercase tracking-wider text-stone-400">
+                    <span className="block text-sm font-bold uppercase tracking-wider text-stone-400">
                         Keamanan & Akuntabilitas
                     </span>
                     <h1 className="text-3xl md:text-4xl font-bold text-stone-900 tracking-tight mt-1">
@@ -325,11 +325,11 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                 <Tile title="Total Riwayat Log">
                     <BigNumber label="Log Tercatat">{stats.total.toLocaleString('id-ID')}</BigNumber>
-                    <p className="text-xs text-stone-500 mt-2">Seluruh transaksi dan aktivitas administratif tersimpan aman.</p>
+                    <p className="text-sm text-stone-500 mt-2">Seluruh transaksi dan aktivitas administratif tersimpan aman.</p>
                 </Tile>
                 <Tile title="Aktivitas Hari Ini">
                     <BigNumber label="Entri Baru">{stats.today.toLocaleString('id-ID')}</BigNumber>
-                    <p className="text-xs text-stone-500 mt-2">Aktivitas sistem yang tercatat pada hari kalender ini.</p>
+                    <p className="text-sm text-stone-500 mt-2">Aktivitas sistem yang tercatat pada hari kalender ini.</p>
                 </Tile>
             </div>
 
@@ -348,14 +348,14 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Cari aksi, entitas, staf..."
-                                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-stone-200 text-xs sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[#0071E3] focus:border-transparent transition-all"
+                                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-stone-200 text-sm sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
                             />
                         </div>
 
                         {/* Action Filter */}
                         <CustomSelect
                             className="w-full"
-                            buttonClassName="h-[42px] rounded-[16px] text-xs sm:text-sm"
+                            buttonClassName="h-[42px] rounded-[16px] text-sm sm:text-sm"
                             value={actionFilter}
                             onChange={(val) => setActionFilter(String(val))}
                             options={[
@@ -370,7 +370,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                         {/* Entity Filter */}
                         <CustomSelect
                             className="w-full"
-                            buttonClassName="h-[42px] rounded-[16px] text-xs sm:text-sm"
+                            buttonClassName="h-[42px] rounded-[16px] text-sm sm:text-sm"
                             value={entityFilter}
                             onChange={(val) => setEntityFilter(String(val))}
                             options={[
@@ -389,15 +389,15 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                                 title="Mulai tanggal"
-                                className="w-full px-3 py-2 rounded-2xl border border-stone-200 text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#0071E3] transition-all"
+                                className="w-full px-3 py-2 rounded-2xl border border-stone-200 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
                             />
-                            <span className="text-stone-400 text-xs">s/d</span>
+                            <span className="text-stone-400 text-sm">s/d</span>
                             <input
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                                 title="Sampai tanggal"
-                                className="w-full px-3 py-2 rounded-2xl border border-stone-200 text-xs text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#0071E3] transition-all"
+                                className="w-full px-3 py-2 rounded-2xl border border-stone-200 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
                             />
                         </div>
                     </div>
@@ -406,14 +406,14 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                         <button
                             type="button"
                             onClick={handleResetFilters}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors"
                         >
                             <RotateCcw size={13} />
                             <span>Reset Filter</span>
                         </button>
                         <button
                             type="submit"
-                            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold text-white bg-[#0071E3] hover:bg-[#0077ED] shadow-sm transition-all"
+                            className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] shadow-sm transition-all"
                         >
                             <Filter size={13} />
                             <span>Terapkan</span>
@@ -425,7 +425,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                 {logs.data.length === 0 ? (
                     <EmptyState>Tidak ada entri log yang cocok dengan filter pencarian.</EmptyState>
                 ) : (
-                    <>
+                    <div className="audit-log-table text-[15px] sm:text-base">
                         <ResponsiveTable
                             rows={rows}
                             columns={[
@@ -437,7 +437,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                             ]}
                         />
                         <Pagination page={logs} />
-                    </>
+                    </div>
                 )}
             </section>
 
@@ -462,11 +462,11 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                                     <h2 id="audit-detail-title" className="text-xl font-bold text-stone-900 tracking-tight">
                                         Rincian Log #{selectedLog.id}
                                     </h2>
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${formatActionLabel(selectedLog.action).bg} ${formatActionLabel(selectedLog.action).text} ${formatActionLabel(selectedLog.action).border}`}>
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold border ${formatActionLabel(selectedLog.action).bg} ${formatActionLabel(selectedLog.action).text} ${formatActionLabel(selectedLog.action).border}`}>
                                         {formatActionLabel(selectedLog.action).label}
                                     </span>
                                 </div>
-                                <p className="text-xs text-stone-500 mt-1">
+                                <p className="text-sm text-stone-500 mt-1">
                                     Tercatat pada {formatDateTime(selectedLog.created_at)}
                                 </p>
                             </div>
@@ -483,7 +483,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                         {/* Body */}
                         <div className="p-6 space-y-6 overflow-y-auto overscroll-contain flex-1">
                             {/* Metadata Summary */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100 text-xs">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-stone-50 border border-stone-100 text-sm">
                                 <div>
                                     <span className="text-stone-400 block mb-0.5">Pengguna</span>
                                     <span className="font-semibold text-stone-800">
@@ -508,26 +508,26 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                             {selectedLog.old_values && selectedLog.new_values ? (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-stone-500">
                                             Perubahan Data (Sebelum &amp; Sesudah)
                                         </h3>
                                         <button
                                             type="button"
                                             onClick={() => setShowRawPayload(!showRawPayload)}
-                                            className="text-[11px] text-stone-400 hover:text-stone-700 transition-colors underline cursor-pointer"
+                                            className="text-[14px] text-stone-400 hover:text-stone-700 transition-colors underline cursor-pointer"
                                         >
                                             {showRawPayload ? 'Sembunyikan data mentah' : 'Lihat format teknis (JSON)'}
                                         </button>
                                     </div>
 
                                     {showRawPayload ? (
-                                        <div className="p-4 rounded-2xl bg-stone-900 text-stone-100 font-mono text-xs overflow-x-auto space-y-3">
+                                        <div className="p-4 rounded-2xl bg-stone-900 text-stone-100 font-mono text-sm overflow-x-auto space-y-3">
                                             <div>
-                                                <span className="text-stone-400 block mb-1 uppercase text-[10px]">Sebelum:</span>
+                                                <span className="text-stone-400 block mb-1 uppercase text-[14px]">Sebelum:</span>
                                                 <pre className="whitespace-pre-wrap">{JSON.stringify(selectedLog.old_values, null, 2)}</pre>
                                             </div>
                                             <div className="border-t border-stone-800 pt-3">
-                                                <span className="text-stone-400 block mb-1 uppercase text-[10px]">Sesudah:</span>
+                                                <span className="text-stone-400 block mb-1 uppercase text-[14px]">Sesudah:</span>
                                                 <pre className="whitespace-pre-wrap">{JSON.stringify(selectedLog.new_values, null, 2)}</pre>
                                             </div>
                                         </div>
@@ -541,27 +541,27 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                                                 return (
                                                     <div
                                                         key={key}
-                                                        className={`p-3.5 rounded-2xl border text-xs sm:text-sm transition-all ${
+                                                        className={`p-3.5 rounded-2xl border text-sm sm:text-sm transition-all ${
                                                             isChanged ? 'bg-amber-50/40 border-amber-200' : 'bg-stone-50/50 border-stone-100'
                                                         }`}
                                                     >
                                                         <div className="flex items-center justify-between mb-2">
                                                             <span className="font-semibold text-stone-800">{formatFieldKey(key)}</span>
                                                             {isChanged && (
-                                                                <span className="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-200">
+                                                                <span className="text-[14px] font-bold uppercase tracking-wide text-amber-700 bg-amber-100/90 px-2 py-0.5 rounded-full border border-amber-200">
                                                                     Diubah
                                                                 </span>
                                                             )}
                                                         </div>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                                             <div className="bg-white/90 p-2.5 rounded-xl border border-stone-200/60">
-                                                                <span className="text-stone-400 block text-[10px] uppercase font-semibold mb-0.5">Semula:</span>
+                                                                <span className="text-stone-400 block text-[14px] uppercase font-semibold mb-0.5">Semula:</span>
                                                                 <div className="text-stone-700 font-medium">
                                                                     {formatHumanValue(key, oldVal)}
                                                                 </div>
                                                             </div>
                                                             <div className="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/60">
-                                                                <span className="text-emerald-700 block text-[10px] uppercase font-semibold mb-0.5">Menjadi:</span>
+                                                                <span className="text-emerald-700 block text-[14px] uppercase font-semibold mb-0.5">Menjadi:</span>
                                                                 <div className="text-emerald-900 font-semibold">
                                                                     {formatHumanValue(key, newVal)}
                                                                 </div>
@@ -576,20 +576,20 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                             ) : selectedLog.new_values || selectedLog.old_values ? (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-stone-500">
                                             {selectedLog.new_values ? 'Rincian Data Aktivitas' : 'Rincian Data Sebelum Dihapus'}
                                         </h3>
                                         <button
                                             type="button"
                                             onClick={() => setShowRawPayload(!showRawPayload)}
-                                            className="text-[11px] text-stone-400 hover:text-stone-700 transition-colors underline cursor-pointer"
+                                            className="text-[14px] text-stone-400 hover:text-stone-700 transition-colors underline cursor-pointer"
                                         >
                                             {showRawPayload ? 'Sembunyikan data mentah' : 'Lihat format teknis (JSON)'}
                                         </button>
                                     </div>
 
                                     {showRawPayload ? (
-                                        <div className="p-4 rounded-2xl bg-stone-900 text-stone-100 font-mono text-xs overflow-x-auto">
+                                        <div className="p-4 rounded-2xl bg-stone-900 text-stone-100 font-mono text-sm overflow-x-auto">
                                             <pre className="whitespace-pre-wrap">
                                                 {JSON.stringify(selectedLog.new_values ?? selectedLog.old_values, null, 2)}
                                             </pre>
@@ -601,10 +601,10 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                                                     key={key}
                                                     className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:px-4 gap-1 sm:gap-4 hover:bg-stone-50/50 transition-colors"
                                                 >
-                                                    <span className="text-stone-500 text-xs sm:text-sm font-medium">
+                                                    <span className="text-stone-500 text-sm sm:text-sm font-medium">
                                                         {formatFieldKey(key)}
                                                     </span>
-                                                    <span className="text-stone-900 text-xs sm:text-sm font-medium sm:text-right">
+                                                    <span className="text-stone-900 text-sm sm:text-sm font-medium sm:text-right">
                                                         {formatHumanValue(key, val)}
                                                     </span>
                                                 </div>
@@ -613,7 +613,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                                     )}
                                 </div>
                             ) : (
-                                <p className="text-xs text-stone-400 italic">Tidak ada payload data tersimpan pada log ini.</p>
+                                <p className="text-sm text-stone-400 italic">Tidak ada payload data tersimpan pada log ini.</p>
                             )}
                         </div>
 
@@ -622,7 +622,7 @@ export default function AuditLog({ logs, filters, availableActions, availableEnt
                             <button
                                 type="button"
                                 onClick={() => setSelectedLog(null)}
-                                className="px-5 py-2.5 rounded-full text-xs font-semibold text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 shadow-xs transition-colors"
+                                className="px-5 py-2.5 rounded-full text-sm font-semibold text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 shadow-xs transition-colors"
                             >
                                 Tutup
                             </button>

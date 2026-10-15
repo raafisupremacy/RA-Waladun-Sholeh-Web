@@ -34,7 +34,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
             <form onSubmit={submit} className="auth-form">
                 <div>
                     <label htmlFor="email" className="input-label">Email</label>
-                    <TextInput id="email" type="email" name="email" value={data.email} placeholder="nama@sekolah.sch.id" onChange={(e) => setData('email', e.target.value)} />
+                    <TextInput id="email" type="email" name="email" value={data.email} placeholder="nama@email.com" onChange={(e) => setData('email', e.target.value)} />
                 </div>
 
                 <InputError message={errors.email} className="mt-2" />
