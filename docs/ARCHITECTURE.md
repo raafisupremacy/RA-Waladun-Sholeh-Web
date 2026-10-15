@@ -1,5 +1,7 @@
 # Arsitektur — SKMS
 
+Keputusan pemilik D1–D5 berlaku untuk desain akses, laporan, kalender jurnal, identitas, dan shared props; lihat `docs/DECISIONS.md`. Rute/middleware yang ada harus dibaca bersama status bukti di `docs/TASKS.md` dan `docs/TEST-AUDIT.md`.
+
 ## 1. Stack
 
 | Lapisan | Pilihan |
@@ -13,7 +15,7 @@
 | PDF dan Excel | barryvdh/laravel-dompdf, maatwebsite/excel |
 | File | Disk privat Laravel (`storage/app/private`) untuk bukti bayar dan lampiran |
 | Tes | Pest atau PHPUnit (feature test untuk RBAC dan alur SPP) |
-| Lokal | Laragon (Windows) atau Herd (Mac) |
+| Lokal | XAMPP (Windows), Laragon, atau Herd (Mac) |
 
 ## 2. Struktur folder
 
@@ -76,8 +78,8 @@ Setelah login, pengguna diarahkan ke beranda sesuai rolenya. Orang tua dengan be
 | Unggah bukti bayar | tidak | tidak | tidak | anaknya |
 | Setujui atau tolak pembayaran | ya | tidak | tidak | tidak |
 | Buku kas | ya | tidak | baca | tidak |
-| Jurnal harian: isi dan ubah | tidak | kelasnya | tidak | tidak |
-| Jurnal dan anekdot: baca | baca | kelasnya | semua | anaknya |
+| Jurnal harian: isi dan ubah | tidak | kelasnya (wali/pendamping aktif) | tidak | tidak |
+| Jurnal dan anekdot: baca | baca | kelasnya (wali/pendamping aktif) | semua | anaknya |
 | Catatan anekdot: isi dan ubah | tidak | kelasnya | tidak | tidak |
 | Pengumuman: kelola | ya | tidak | tidak | tidak |
 | Pengumuman: baca | ya | ya | ya | yang relevan |
@@ -87,6 +89,8 @@ Setelah login, pengguna diarahkan ke beranda sesuai rolenya. Orang tua dengan be
 | Audit log | baca | tidak | baca | tidak |
 
 Tegakkan lewat Policy dan query scope (misalnya `Student::visibleTo($user)`), bukan hanya menyembunyikan menu.
+
+Aturan guru: setiap kelas memiliki satu `homeroom_teacher_id` opsional dan pivot `classroom_teacher` dengan satu wali serta maksimal dua pendamping. Keduanya boleh baca/tulis jurnal dan anekdot pada enrollment aktif/tahun ajaran aktif. Penggantian wali menghapus guru lama dari pivot; penugasan pendamping baru adalah aksi admin terpisah. `daily_journals.teacher_id` dan `anecdotal_notes.teacher_id` tetap menyimpan penulis historis.
 
 ## 5. Komponen UI bersama
 
@@ -98,5 +102,9 @@ Tegakkan lewat Policy dan query scope (misalnya `Student::visibleTo($user)`), bu
 - **File bukti bayar:** disimpan di disk privat dan diunduh lewat route yang dicek Policy.
 - **Ekspor:** PDF dengan DomPDF (laporan keuangan, rapor bayangan), Excel dengan Laravel Excel.
 - **Zona waktu:** `Asia/Jakarta`; format tanggal Indonesia (8 Okt 2026), rupiah `Rp 350.000`.
+- **Laporan tunggakan:** `belum_bayar`/`ditolak` dengan jatuh tempo lebih dari 30 hari; pending dikecualikan. Query layar, PDF, dan Excel harus sama.
+- **Kalender jurnal:** hitung weekday dikurangi JSON `school_settings.school_holidays`; bulan berjalan sampai hari ini; penyebut keterisian adalah hari sekolah × siswa aktif.
+- **Tren siswa:** gunakan enrollment aktif yang dibuat sebelum akhir bulan dan status siswa terkini; tidak mengklaim histori nonaktif.
+- **Shared props identitas:** publik boleh `school_name`, `school_phone`, `school_address`; rekening bank hanya role terautentikasi yang membutuhkan.
 - **Notifikasi email:** opsional, dikerjakan setelah semua modul inti selesai (antrean `database` queue).
 - **Deploy:** cukup VPS atau hosting PHP dengan MySQL; langkah deploy ditulis di `README.md` pada milestone terakhir.

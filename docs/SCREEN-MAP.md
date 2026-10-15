@@ -1,5 +1,7 @@
 # Peta Layar (Mockup → Route → Halaman → Data)
 
+Keputusan pemilik D1–D5 berlaku untuk semua layar; lihat `docs/DECISIONS.md`. Kelas demo yang tersedia adalah A-1, A-2, B-1, dan B-2 dari data dinamis, bukan label tetap di komponen.
+
 Mockup aktual disimpan di `design/stitch/` sebagai folder tanpa penggantian nama; setiap folder layar biasanya berisi `screen.png` dan `code.html`. Karena nama folder berasal dari sumber mockup, pemetaan ke ID layar, versi, dan kondisi dicatat di `docs/MOCKUP-INDEX.md`. Untuk layar dengan beberapa kondisi, gunakan satu ID layar dengan kondisi yang berbeda.
 
 HTML dari Stitch hanya acuan visual dan struktur. Bangun ulang sebagai komponen React memakai komponen bersama (lihat `docs/ARCHITECTURE.md`).
@@ -16,12 +18,12 @@ HTML dari Stitch hanya acuan visual dan struktur. Bangun ulang sebagai komponen 
 | ID | Layar | Route | Halaman Inertia | Data dan aksi |
 |---|---|---|---|---|
 | 02 | Beranda admin | `/admin` | `Admin/Dashboard` | Jumlah menunggu verifikasi, siswa aktif per kelas, masuk bulan ini, belum bayar, pengumuman aktif, 6 pembayaran terbaru |
-| 03 | Verifikasi pembayaran | `/admin/verifikasi` | `Admin/Payments/Verification` | Antrean `payments.menunggu`; detail bukti, nominal tagihan vs transfer; setujui, tolak (alasan wajib); dialog tolak; state kosong |
-| 04 | Data siswa | `/admin/siswa` | `Admin/Students/Index` | Cari (nama, NIS), filter kelas dan status, pagination, nonaktifkan |
+| 03 | Verifikasi pembayaran | `/admin/verifikasi` | `Admin/Payments/Verification` | Antrean `payments.menunggu`; detail bukti, nominal tagihan vs transfer, selisih; setujui, tolak (alasan wajib); dialog tolak; state kosong |
+| 04 | Data siswa | `/admin/siswa`, `/admin/siswa/{student}` | `Admin/Students/Index`, `Admin/StudentShow` | Cari (nama, NIS), filter kelas dan status, pagination, lihat rincian, ubah, nonaktifkan |
 | 05 | Tambah siswa | `/admin/siswa/create` | `Admin/Students/Create` | Form siswa + orang tua (baru atau pilih yang sudah ada); validasi email unik; dialog "Akun berhasil dibuat" (kata sandi sementara sekali tampil) |
-| 06A | Data orang tua | `/admin/orang-tua` | `Admin/Guardians/Index` | Daftar, filter status akun, reset kata sandi (dialog 06B) |
-| 06C | Data guru | `/admin/guru` | `Admin/Teachers/Index` | Daftar guru, drawer tambah guru (06D) dengan wali kelas opsional |
-| 07 | Kelas dan penugasan | `/admin/kelas` | `Admin/Classrooms/Index` | Dua kelompok, wali kelas, pindahkan siswa (checkbox), dialog ganti wali kelas |
+| 06A | Data orang tua | `/admin/orang-tua`, `/admin/orang-tua/{guardian}` | `Admin/Guardians/Index` | Daftar, ubah nama/HP/alamat/email, aktif/nonaktif, filter status akun, reset kata sandi (dialog 06B) |
+| 06C | Data guru | `/admin/guru`, `/admin/guru/{teacher}` | `Admin/Teachers/Index` | Daftar guru, ubah nama/NIP/HP/email, aktif/nonaktif, drawer tambah guru (06D) dengan wali kelas opsional |
+| 07 | Kelas dan penugasan | `/admin/kelas` | `Admin/Classrooms/Index` | Empat kelas (A-1, A-2, B-1, B-2), satu wali + hingga dua pendamping dari pivot `classroom_teacher`, pindahkan siswa (checkbox), dialog ganti wali kelas |
 | 08 | Tagihan SPP | `/admin/tagihan` | `Admin/Invoices/Index` | Panel generate massal + dialog konfirmasi (jumlah dibuat dan dilewati); tabel tagihan, filter, ubah nominal, label terlambat |
 | 09 | Buku kas | `/admin/buku-kas` | `Admin/CashLedger/Index` | Rentang tanggal, total, tabel ledger saldo berjalan, ekspor PDF dan Excel, hanya baca |
 | 10 | Pengumuman | `/admin/pengumuman` | `Admin/Announcements/Index`, `Form` | Daftar, buat dan ubah, tujuan, sematkan, kedaluwarsa, pratinjau tampilan orang tua |
@@ -40,7 +42,7 @@ HTML dari Stitch hanya acuan visual dan struktur. Bangun ulang sebagai komponen 
 
 | ID | Layar | Route | Halaman Inertia | Data dan aksi |
 |---|---|---|---|---|
-| 16 | Dashboard | `/kepsek` | `Kepsek/Dashboard` | % SPP lunas dan komposisi, tren siswa aktif, keterisian jurnal per guru, tunggakan >30 hari; filter bulan dan tahun ajaran |
+| 16 | Dashboard | `/kepsek` | `Kepsek/Dashboard` | % SPP lunas dan komposisi, tren enrollment aktif, keterisian jurnal final per guru (hari sekolah × siswa aktif), tunggakan >30 hari hanya belum_bayar/ditolak; filter bulan dan tahun ajaran |
 | 17 | Laporan keuangan | `/kepsek/laporan-keuangan` | `Kepsek/FinanceReport` | Total diterima dan belum diterima, grafik bulanan, tabel, ekspor PDF dan Excel |
 | 18 | Laporan evaluasi siswa | `/kepsek/laporan-evaluasi` | `Kepsek/StudentReport` | Pilih kelas dan siswa, pratinjau rapor bayangan (A4), ekspor PDF |
 
@@ -60,3 +62,10 @@ HTML dari Stitch hanya acuan visual dan struktur. Bangun ulang sebagai komponen 
 - **Kondisi wajib** yang ada di mockup: state kosong, galat validasi, dialog konfirmasi, status Ditolak beserta alasan, pemilih anak.
 - **Mobile:** tabel menjadi daftar bertumpuk, dialog menjadi bottom sheet, tombol utama selebar layar.
 - Bila mockup dan `docs/PRD.md` atau `docs/ERD.md` berbeda, tanyakan; jangan menebak.
+
+## Kontrak data lintas layar
+
+- Keterisian jurnal memakai weekday dikurangi tanggal JSON `school_settings.school_holidays`; untuk bulan berjalan berhenti pada hari ini. Dokumentasi/seeder lama yang menyebut 17 hari Oktober adalah ketidaksesuaian yang harus diselaraskan pada pekerjaan seeder, bukan angka UI.
+- Laporan tunggakan layar 16, laporan admin/kepsek, PDF, dan Excel memakai query yang sama: invoice `belum_bayar` atau `ditolak`, jatuh tempo lebih dari 30 hari; `menunggu_verifikasi` tidak termasuk.
+- Halaman publik boleh menerima `school_name`, `school_phone`, dan `school_address`; rekening bank tetap hanya untuk halaman terautentikasi yang memerlukannya.
+- Guru wali dan pendamping yang ditugaskan dapat membaca/menulis jurnal dan anekdot kelas aktif. Ganti wali melepas guru lama sepenuhnya; akses historis baca/tulis tidak diberikan kembali secara otomatis.

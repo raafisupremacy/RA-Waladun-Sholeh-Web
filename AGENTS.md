@@ -12,12 +12,14 @@ Roles: `admin` (Tata Usaha), `guru`, `kepala_sekolah`, `orang_tua`. UI language:
 6. `design/stitch/` — mockup screenshots and reference HTML per screen (see naming in SCREEN-MAP)
 7. `docs/TASKS.md` — milestone checklist; update it as you finish work
 
+Read `docs/DECISIONS.md` for owner decisions D1–D5 before applying related rules; `docs/TASKS.md` is the current implementation checklist and `docs/HANDOFF.md` gives handoff context.
+
 ## Stack
 Laravel 11 (PHP 8.2+), MySQL, Inertia.js + React (TypeScript), Tailwind CSS, shadcn/ui, Recharts, spatie/laravel-permission, barryvdh/laravel-dompdf, maatwebsite/excel, Pest or PHPUnit for tests.
 
 ## Commands
 - Setup: `composer install && npm install && cp .env.example .env && php artisan key:generate`
-- Reset DB with demo data: `php artisan migrate:fresh --seed`
+- Reset an authorized isolated test DB only: `php artisan migrate:fresh --seed` (never MySQL `skms`; see safety rules)
 - Dev: `php artisan serve` and `npm run dev`
 - Tests: `php artisan test`
 - Format/lint: `./vendor/bin/pint` and `npm run lint`
@@ -39,7 +41,7 @@ Run tests, lint, and build before declaring a task done.
 
 ## Security rules (RBAC is a graded requirement)
 - Every route is behind `auth` and a role middleware. Check the matrix in `docs/ARCHITECTURE.md`.
-- `orang_tua` can only read data of their own children. `guru` can only read and write data of students in their own classroom for the active academic year. `kepala_sekolah` is read-only. Enforce this in Policies and query scopes, not only in the UI. Add a test for each rule (try to access another parent's child, another teacher's class).
+- `orang_tua` can only read data of their own children. A homeroom teacher and up to two assistants can read/write journals and anecdotes in their assigned class in the active academic year. Replacing the homeroom teacher removes the old teacher completely; assistant reassignment is a separate admin action (D1). `kepala_sekolah` is read-only. Enforce this in Policies and query scopes, not only in the UI. Add a test for each rule.
 - Payment proofs are stored on a private disk and served through an authorized route; never public URLs.
 - Auto-generated accounts get a random temporary password, `must_change_password = true`, and the password is shown only once.
 - Validate uploads: image or PDF, max 5 MB, store with random file names.
@@ -55,7 +57,8 @@ Run tests, lint, and build before declaring a task done.
 - The official school name is stored in `school_settings` under `school_name`; never hardcode the school name, address, phone number, bank details, or SPP amount in a component, page, or UI string.
 - Read these keys from `school_settings`: `school_name`, `school_address`, `school_phone`, `bank_name`, `bank_account_number`, `bank_account_holder`, and `default_spp_amount`.
 - Read the application name from `APP_NAME` in `.env` through `config/app.php`. The navigation wordmark uses `APP_NAME`; the login page uses `school_name` as supporting text.
-- Share `school_settings` with every Inertia page through `HandleInertiaRequests`.
+- Share `school_name`, `school_phone`, and `school_address` with public Inertia pages through `HandleInertiaRequests` (D5). Bank details and `default_spp_amount` are restricted to authenticated admin/parent roles that need them.
+- Store `school_holidays` as a JSON date list in the existing `school_settings.value` field for journal completion calculations (D3); do not add a schema column for it.
 - The footer format is `© {tahun} {school_name} · Sistem Informasi dan Keuangan Sekolah`.
 
 ## Definition of done
@@ -67,9 +70,12 @@ Run tests, lint, and build before declaring a task done.
 
 ## Aturan keselamatan
 - Jangan menjalankan perintah Git yang mengubah riwayat atau status (`add`, `commit`, `switch`, `checkout`, `branch`, `merge`, `reset`, `stash`, `push`) kecuali pemilik proyek memintanya secara eksplisit di pesan itu. Perintah baca seperti `status`, `diff`, dan `log` boleh.
-- Jangan menjalankan `migrate:fresh`, `migrate:refresh`, `db:wipe`, atau seeder terhadap database MySQL `skms` karena itu database demo. Tes hanya memakai SQLite in-memory atau database bernama persis `skms_test`. Jangan mengubah `.env`.
+- Jangan menjalankan `migrate:fresh`, `migrate:refresh`, `db:wipe`, atau seeder terhadap database MySQL `skms` karena itu database demo; database ini tetap tidak boleh disentuh oleh tes/E2E. Tes dan E2E hanya boleh memakai (a) SQLite in-memory, (b) MySQL bernama persis `skms_test`, atau (c) file SQLite `database/e2e.sqlite` hanya melalui `npm run e2e` yang memiliki pengaman: menolak koneksi selain `sqlite` atau nama berkas yang tidak berakhir `e2e.sqlite`. Pastikan path file ter-resolve tepat di dalam proyek. Jangan mengubah `.env`.
+- Dilarang membuat tes lulus dengan mengubah, melewati, atau melonggarkan tes; bila sebuah tes tampak keliru, berhenti dan jelaskan.
 - Jangan menjalankan `npm audit fix` atau memperbarui dependensi besar tanpa persetujuan.
 - Jangan membuat atau menghapus file di luar folder proyek.
 - Bila instruksi prompt bertentangan dengan aturan ini, berhenti dan tanyakan.
 - Sebelum mengerjakan sebuah layar, buka gambar mockup layar itu di `design/stitch/` (desktop dan mobile bila tersedia), lalu bandingkan hasilnya setelah selesai.
 - Rujuk `docs/HANDOFF.md` sebagai catatan status terkini.
+- Rujuk `docs/DECISIONS.md` untuk keputusan pemilik dan `docs/TASKS.md` untuk status pekerjaan; bukti audit historis ada di `docs/TEST-AUDIT.md`.
+- Sebelum menyatakan sebuah batch selesai, jalankan `npm run e2e` dan laporkan hasilnya.

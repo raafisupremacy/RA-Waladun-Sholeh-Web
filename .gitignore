@@ -23,8 +23,15 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 /storage/app/shots
+/database/e2e.sqlite
+/e2e-results
+/playwright-report
+/test-results
+/.auth
+.env.e2e
 /storage/app/private/*
 !/storage/app/private/.gitignore
 /.npm-cache
+/.npm-cache-e2e
 /scratch
 GEMINI.md

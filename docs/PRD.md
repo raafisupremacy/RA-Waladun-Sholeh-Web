@@ -1,5 +1,7 @@
 # PRD — Smart Kindergarten Management System (SKMS)
 
+Keputusan pemilik D1–D5 pada 14 Oktober 2026 adalah sumber kebenaran tambahan; lihat `docs/DECISIONS.md`. PRD menjelaskan perilaku produk, sedangkan `docs/ERD.md` menjelaskan skema migration aktual.
+
 Versi 1.0 · Proyek capstone · RA Waladun Sholeh
 
 ## 1. Latar belakang dan masalah
@@ -46,8 +48,9 @@ TK memiliki sekitar 80 siswa tetapi hanya 1 staf Tata Usaha (TU). Tiga masalah u
   - Sistem membuat akun dengan kata sandi sementara acak, ditampilkan sekali di dialog "Akun berhasil dibuat" dengan tombol Salin dan Cetak kartu akun.
   - Pengguna wajib mengganti kata sandi pada login pertama.
   - Admin dapat mereset kata sandi.
-- **US-1.3** Sebagai admin, saya membagi siswa ke Kelompok A dan B serta menugaskan wali kelas.
+- **US-1.3** Sebagai admin, saya membagi siswa ke A-1, A-2, B-1, dan B-2 serta menugaskan satu wali kelas dan hingga dua guru pendamping per kelas.
   - Pindah kelas massal lewat pilihan checkbox; ganti wali kelas menampilkan peringatan bahwa guru lama tidak lagi dapat mengisi jurnal kelas tersebut.
+  - Wali dan pendamping yang sedang ditugaskan boleh membaca dan menulis jurnal/anekdot kelas pada tahun ajaran aktif. Penggantian wali melepas guru lama sepenuhnya; penugasan sebagai pendamping harus menjadi aksi terpisah.
 - **US-1.4** Sebagai admin, saya menonaktifkan siswa tanpa menghapus riwayatnya.
 - **US-1.5** Sebagai pengguna, saya login, logout, dan mereset kata sandi.
 
@@ -70,7 +73,7 @@ TK memiliki sekitar 80 siswa tetapi hanya 1 staf Tata Usaha (TU). Tiga masalah u
 - **US-3.1** Sebagai guru, saya mengisi jurnal harian per siswa.
   - 5 aspek: Nilai Agama dan Moral, Fisik Motorik, Kognitif, Bahasa, Sosial Emosional. Tiap aspek memiliki penilaian BB, MB, BSH, atau BSB dan catatan.
   - Draf dapat disimpan; jurnal final dapat diubah sampai akhir hari berikutnya, setelah itu terkunci.
-  - Guru hanya dapat mengisi jurnal siswa di kelasnya.
+  - Wali dan pendamping hanya dapat membaca/menulis siswa pada kelas yang sedang ditugaskan kepadanya pada tahun ajaran aktif. Guru yang dilepas dari kelas kehilangan baca/tulis; jurnal lama tetap menyimpan nama penulisnya.
 - **US-3.2** Sebagai guru, saya mencatat catatan anekdot (perilaku teramati, interpretasi, tindak lanjut, foto opsional).
 - **US-3.3** Sebagai guru, saya melihat riwayat jurnal per siswa per bulan dalam bentuk grid.
 - **US-3.4** Sebagai orang tua, saya membaca jurnal dan catatan anekdot anak saya.
@@ -82,6 +85,9 @@ TK memiliki sekitar 80 siswa tetapi hanya 1 staf Tata Usaha (TU). Tiga masalah u
 
 ### Modul 5 — Dashboard dan laporan
 - **US-5.1** Sebagai kepala sekolah, saya melihat persentase SPP lunas bulan berjalan, tren siswa aktif, keterisian jurnal per guru, dan daftar tunggakan lebih dari 30 hari.
+  - Tunggakan lebih dari 30 hari hanya invoice `belum_bayar` atau `ditolak`; `menunggu_verifikasi` tidak dihitung. PDF dan Excel memakai query yang sama.
+  - Keterisian jurnal memakai jurnal final / (hari sekolah × siswa aktif), dengan Senin–Jumat dikurangi JSON `school_settings.school_holidays`; bulan berjalan berhenti pada hari ini.
+  - Tren memakai enrollment aktif yang dibuat sebelum akhir bulan dan siswa yang saat ini aktif; status siswa kini tidak direkonstruksi mundur.
 - **US-5.2** Sebagai kepala sekolah dan admin, saya mengekspor laporan keuangan (rentang tanggal) ke PDF dan Excel.
 - **US-5.3** Sebagai kepala sekolah, saya mengekspor laporan evaluasi siswa (rapor bayangan) per anak ke PDF, berisi ringkasan penilaian per aspek dan catatan anekdot terpilih.
 - **US-5.4** Sebagai admin, saya melihat beranda kerja: jumlah pembayaran menunggu verifikasi, ringkasan siswa dan kas, pembayaran terbaru.
@@ -89,10 +95,18 @@ TK memiliki sekitar 80 siswa tetapi hanya 1 staf Tata Usaha (TU). Tiga masalah u
 ## 6. Kebutuhan non-fungsional
 
 - **Keamanan:** RBAC ketat (orang tua hanya melihat anaknya, guru hanya kelasnya, kepala sekolah hanya baca); bukti bayar tidak dapat diakses publik; kata sandi di-hash; audit log aksi admin.
+- **D7 Nominal transfer:** saat mengunggah bukti, orang tua wajib mengisi nominal transfer dan tanggal transfer yang tidak boleh di masa depan. Nama pengirim opsional dan default ke nama wali; nominal tidak diisi otomatis dari tagihan. Verifikasi menampilkan “Sesuai” hanya bila nominal transfer sama dengan nominal akhir tagihan, atau selisih nominal bila berbeda.
 - **Integritas data:** foreign key ketat, uang dalam integer rupiah, transaksi database untuk perubahan berantai.
 - **Kinerja:** halaman daftar memakai pagination; laporan 80 siswa selesai dalam beberapa detik.
 - **Kegunaan:** responsif di 390px, 834px, dan 1440px; tap target minimal 44px; kontras teks minimal 4.5:1.
 - **Bahasa:** seluruh UI Bahasa Indonesia.
+
+## 6.1 Keputusan data dan identitas (D1–D5)
+
+- `school_name`, `school_phone`, dan `school_address` boleh dibagikan pada halaman publik. Rekening bank tidak boleh dibagikan kepada tamu; semua nilai berasal dari `school_settings`.
+- Skema nyata memiliki pivot `classroom_teacher` dengan `role` string, maksimal tiga penugasan per kelas sebagai aturan aplikasi, serta `classrooms.level` dan `announcements.target_level` enum A/B nullable.
+- Seeder saat ini menargetkan kelas A-1, A-2, B-1, dan B-2. Klaim lama tentang 17 hari sekolah Oktober adalah ketidaksesuaian dokumentasi/seeder yang harus diselaraskan pada pekerjaan seeder berikutnya; jangan memakai angka tersebut sebagai konstanta.
+- Detail alasan dan dampak implementasi ada di `docs/DECISIONS.md`.
 
 ## 7. Risiko dan asumsi
 

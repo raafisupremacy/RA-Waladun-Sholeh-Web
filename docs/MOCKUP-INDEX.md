@@ -51,6 +51,10 @@ Nama folder dan file mockup dipertahankan seperti sumbernya. File layar biasanya
 | `tambah_siswa_desktop/{screen.png,code.html}` | 05 | desktop | formulir | Tambah siswa |
 | `verifikasi_pembayaran_desktop/{screen.png,code.html}` | 03 | desktop | default | Verifikasi pembayaran |
 
+Catatan unggah bukti: implementasi memakai satu tombol **Pilih dari galeri** yang membuka file picker. Tombol Kamera dan atribut `capture` tidak digunakan.
+
+Catatan D7: form unggah bukti kini meminta **nominal transfer** dan **tanggal transfer**. Kedua field ini belum terlihat pada mockup 20A, tetapi wajib menurut keputusan D7 dan validasi backend.
+
 ## Layar tanpa mockup yang teridentifikasi
 
 | Layar atau route | Catatan |
@@ -62,3 +66,5 @@ Nama folder dan file mockup dipertahankan seperti sumbernya. File layar biasanya
 
 - Tiga varian beranda orang tua dipertahankan sebagai referensi; belum ada keputusan varian visual utama.
 - `06B` dan `06D` memiliki mockup, tetapi perlu ditambahkan sebagai baris eksplisit di `SCREEN-MAP.md` bila ingin semua ID berdiri sendiri.
+
+Catatan kelas: mockup lama menampilkan dua kelompok; teks kelas pada UI kini harus berasal dari data classrooms secara dinamis (A-1, A-2, B-1, B-2).

@@ -56,6 +56,8 @@ How layouts adapt:
 
 ## 4. Color
 
+Logo sekolah menggunakan palet biru `#1C3C84` dengan turunan biru yang lebih terang untuk aksen, tautan, dan state aktif. Palet aksen UI tetap mengikuti token di bawah dan tidak menggantikan warna status.
+
 ```
 --bg:            #F5F5F7   alternate section background
 --surface:       #FFFFFF   tiles, panels, sheets, tables
@@ -171,6 +173,8 @@ Subtle and quick: 150-250ms ease-out, sheet slide-up, button press scale, gentle
 ## 13. Never use
 
 Gradients, neon/glow, heavy drop shadows, glassmorphism beyond the translucent bars, purple/violet, teal+orange pairing, emoji, cartoon or stock illustrations, mascots, photos of people, hero banners with imagery, repeated identical stat-card rows with big icons, icons beside every heading, handwriting fonts, textures, rotated elements, Material Design components, Android/iOS device chrome (status bar, notch, home indicator), text below 14px in main content, buttons or status rendered as plain text, lorem ipsum, round placeholder numbers, generic names like John Doe.
+
+Foto hanya diizinkan pada halaman login dan hero beranda orang tua. Layar lain menggunakan warna, logo, dan komponen data tanpa foto.
 
 ## 14. Implementation notes (Laravel + Inertia + React)
 

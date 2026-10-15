@@ -10,7 +10,7 @@
 ## 1. Pendahuluan dan Latar Belakang Masalah
 
 ### 1.1. Profil Organisasi dan Konteks Operasional
-RA (Raudhatul Athfal) Waladun Sholeh merupakan institusi pendidikan anak usia dini yang melayani sekitar 78–80 siswa aktif yang terbagi dalam dua kelompok belajar (Kelompok A dan Kelompok B). Seluruh tata kelola manajerial, pencatatan keuangan, dan administrasi sekolah dikelola oleh **1 orang staf Tata Usaha (TU)**, didampingi oleh dewan pendidik dan dipimpin oleh Kepala Sekolah.
+RA (Raudhatul Athfal) Waladun Sholeh merupakan institusi pendidikan anak usia dini yang melayani sekitar 78–80 siswa aktif yang terbagi dalam empat kelas belajar (A-1, A-2, B-1, B-2). Seluruh tata kelola manajerial, pencatatan keuangan, dan administrasi sekolah dikelola oleh **1 orang staf Tata Usaha (TU)**, didampingi oleh dewan pendidik dan dipimpin oleh Kepala Sekolah.
 
 ### 1.2. Identifikasi Masalah Utama (*Problem Statement*)
 Melalui observasi dan wawancara lapangan, ditemukan tiga kendala krusial dalam operasional harian:

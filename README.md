@@ -146,11 +146,14 @@ Semua akun demo di lingkungan pengembangan lokal menggunakan kata sandi yang sam
 Proyek ini dilengkapi dengan suite pengujian otomatis, validasi kontras aksesibilitas, dan linter ketat:
 
 ```powershell
-# Jalankan test suite backend otomatis (107 tests passed, 1022 assertions)
+# Jalankan test suite backend otomatis (216 tests passed, 3002 assertions)
 php artisan test
 
 # Jalankan pengujian frontend & WCAG contrast check (6 tests passed)
 npm run test:js
+
+# Jalankan pengujian E2E smoke tests lintas peran & perangkat (21 tests passed)
+npm run e2e
 
 # Periksa formatting & code style PHP (Pint)
 .\vendor\bin\pint --test
