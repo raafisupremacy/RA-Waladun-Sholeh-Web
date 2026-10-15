@@ -6,6 +6,7 @@ use App\Models\AcademicYear;
 use App\Models\AuditLog;
 use App\Models\Classroom;
 use App\Models\Guardian;
+use App\Models\Invoice;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
@@ -233,6 +234,82 @@ class MasterDataTest extends TestCase
             'action' => 'teacher_classroom_assigned',
             'entity_id' => $teacher->id,
         ]);
+    }
+
+    public function test_admin_can_edit_teacher_and_guardian_and_audits_changes(): void
+    {
+        $teacher = Teacher::factory()->create(['nip' => 'OLD-NIP']);
+        $guardian = Guardian::factory()->create(['phone' => '0800', 'address' => 'Alamat lama']);
+
+        $this->actingAs($this->admin)->put("/admin/guru/{$teacher->id}", [
+            'name' => 'Guru Baru', 'nip' => 'NEW-NIP', 'email' => 'guru-baru@example.test', 'phone' => '0811',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAs($this->admin)->put("/admin/orang-tua/{$guardian->id}", [
+            'name' => 'Wali Baru', 'email' => 'wali-baru@example.test', 'phone' => '0812', 'address' => 'Alamat baru',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('teachers', ['id' => $teacher->id, 'name' => 'Guru Baru', 'nip' => 'NEW-NIP']);
+        $this->assertDatabaseHas('users', ['id' => $teacher->user_id, 'email' => 'guru-baru@example.test']);
+        $this->assertDatabaseHas('guardians', ['id' => $guardian->id, 'name' => 'Wali Baru', 'address' => 'Alamat baru']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'teacher_updated', 'entity_id' => $teacher->id]);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'guardian_updated', 'entity_id' => $guardian->id]);
+    }
+
+    public function test_edit_rejects_duplicate_email_and_nip_and_non_admin(): void
+    {
+        $teacher = Teacher::factory()->create(['nip' => 'NIP-1']);
+        $otherTeacher = Teacher::factory()->create(['nip' => 'NIP-2']);
+        $guardian = Guardian::factory()->create();
+        $this->actingAs($this->admin)->put("/admin/guru/{$teacher->id}", [
+            'name' => $teacher->name, 'nip' => $otherTeacher->nip, 'email' => $teacher->user->email, 'phone' => '0812',
+        ])->assertSessionHasErrors('nip');
+        $this->actingAs($this->admin)->put("/admin/orang-tua/{$guardian->id}", [
+            'name' => $guardian->name, 'email' => $otherTeacher->user->email, 'phone' => '0812', 'address' => 'Alamat',
+        ])->assertSessionHasErrors(['email' => 'Email sudah dipakai akun lain.']);
+        $user = User::factory()->create(['must_change_password' => false]);
+        $user->assignRole('guru');
+        $this->actingAs($user)->put("/admin/guru/{$teacher->id}", [])->assertForbidden();
+    }
+
+    public function test_teacher_deactivation_detaches_class_and_can_be_reactivated(): void
+    {
+        $teacher = Teacher::factory()->create();
+        $this->actingAs($this->admin)->post("/admin/guru/{$teacher->id}/kelas", ['classroom_id' => $this->classroom->id, 'role' => 'wali_kelas']);
+        $this->actingAs($this->admin)->post("/admin/guru/{$teacher->id}/nonaktifkan")->assertRedirect();
+        $this->assertFalse($teacher->user->fresh()->is_active);
+        $this->assertNull($this->classroom->fresh()->homeroom_teacher_id);
+        $this->assertDatabaseMissing('classroom_teacher', ['teacher_id' => $teacher->id, 'classroom_id' => $this->classroom->id]);
+        $this->actingAs($this->admin)->post("/admin/guru/{$teacher->id}/aktifkan")->assertRedirect();
+        $this->assertTrue($teacher->user->fresh()->is_active);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'deactivated', 'entity_type' => 'Teacher']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'activated', 'entity_type' => 'Teacher']);
+    }
+
+    public function test_inactive_guardian_is_excluded_from_new_invoices_but_history_remains(): void
+    {
+        $guardian = Guardian::factory()->create();
+        $student = Student::factory()->create();
+        $guardian->students()->attach($student->id, ['relationship' => 'wali', 'is_primary' => true]);
+        $existing = Invoice::factory()->create(['student_id' => $student->id, 'academic_year_id' => $this->classroom->academic_year_id]);
+        $guardian->user->update(['is_active' => false]);
+        app(InvoiceService::class)->generate(11, 2026, $this->classroom->academic_year_id, 100000);
+        $this->assertDatabaseHas('invoices', ['id' => $existing->id]);
+        $this->assertDatabaseMissing('invoices', ['student_id' => $student->id, 'period_month' => 11]);
+    }
+
+    public function test_admin_can_view_student_detail_and_other_roles_cannot(): void
+    {
+        $student = Student::factory()->create();
+        $student->enrollments()->create(['classroom_id' => $this->classroom->id, 'academic_year_id' => $this->classroom->academic_year_id, 'status' => 'aktif']);
+        $this->actingAs($this->admin)->get("/admin/siswa/{$student->id}")->assertInertia(fn (Assert $page) => $page->component('Admin/StudentShow')->where('student.id', $student->id));
+        $principal = User::factory()->create(['must_change_password' => false]);
+        $principal->assignRole('kepala_sekolah');
+        $this->actingAs($principal)->get("/kepsek/siswa/{$student->id}")->assertInertia(fn (Assert $page) => $page->component('Kepsek/StudentShow')->where('student.id', $student->id));
+        foreach (['guru', 'kepala_sekolah', 'orang_tua'] as $role) {
+            $user = User::factory()->create(['must_change_password' => false]);
+            $user->assignRole($role);
+            $this->actingAs($user)->get("/admin/siswa/{$student->id}")->assertForbidden();
+        }
     }
 
     public function test_classroom_can_have_up_to_3_teachers_and_rejects_fourth(): void

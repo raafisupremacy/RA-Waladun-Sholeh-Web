@@ -20,6 +20,7 @@ use App\Services\AnecdotalNoteService;
 use App\Services\JournalService;
 use App\Services\PaymentVerificationService;
 use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\SchoolSettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -48,11 +49,11 @@ class SecurityFixesTest extends TestCase
         [$parent, $invoice] = $this->parentInvoice(InvoiceStatus::Unpaid);
         $service = app(PaymentVerificationService::class);
 
-        $first = $service->submitProof($invoice, $parent, UploadedFile::fake()->create('first.pdf', 10, 'application/pdf'));
+        $first = $service->submitProof($invoice, $parent, UploadedFile::fake()->create('first.pdf', 10, 'application/pdf'), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01']);
         $this->assertSame(InvoiceStatus::Pending, $invoice->fresh()->status);
         $this->assertSame(PaymentStatus::Pending, $first->status);
         $this->expectException(ValidationException::class);
-        $service->submitProof($invoice->fresh(), $parent, UploadedFile::fake()->create('second.pdf', 10, 'application/pdf'));
+        $service->submitProof($invoice->fresh(), $parent, UploadedFile::fake()->create('second.pdf', 10, 'application/pdf'), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01']);
     }
 
     public function test_reject_requires_a_reason_and_paid_invoice_is_final(): void
@@ -159,10 +160,10 @@ class SecurityFixesTest extends TestCase
 
     public function test_shared_settings_and_invoice_props_do_not_expose_sensitive_fields(): void
     {
-        SchoolSetting::create(['key' => 'school_name', 'value' => 'TK Tunas Harapan']);
+        SchoolSetting::create(['key' => 'school_name', 'value' => 'Sekolah Uji QA']);
         SchoolSetting::create(['key' => 'bank_account_number', 'value' => '123']);
         $this->get('/login')->assertInertia(fn (Assert $page) => $page
-            ->where('schoolName', 'TK Tunas Harapan')
+            ->where('schoolName', 'Sekolah Uji QA')
             ->where('schoolSettings', [])
         );
 
@@ -175,6 +176,60 @@ class SecurityFixesTest extends TestCase
         $admin = User::factory()->create(['must_change_password' => false]);
         $admin->assignRole('admin');
         $this->actingAs($admin)->get('/admin')->assertInertia(fn (Assert $page) => $page->where('schoolSettings.bank_account_number', '123'));
+    }
+
+    public function test_csrf_mismatch_returns_friendly_message_and_valid_token_still_works(): void
+    {
+        $this->app->instance('env', 'production');
+        $admin = User::factory()->create(['must_change_password' => false]);
+        $admin->assignRole('admin');
+        $payload = ['month' => 10, 'year' => 2026, 'academic_year_id' => 1, 'amount' => 350000, 'due_date' => '2026-10-10'];
+        $this->actingAs($admin)->withHeader('Accept', 'application/json')->post('/admin/tagihan/generate', $payload)
+            ->assertStatus(419)
+            ->assertJsonPath('message', 'Sesi Anda berakhir. Muat ulang halaman lalu coba lagi.');
+
+        $token = csrf_token();
+        $this->actingAs($admin)->withHeader('Accept', 'application/json')->withHeader('X-CSRF-TOKEN', $token)->post('/admin/tagihan/generate', $payload)
+            ->assertStatus(422);
+    }
+
+    public function test_school_identity_has_no_forbidden_literals_and_is_shared_from_settings(): void
+    {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(base_path('resources'))) as $entry) {
+            $file = $entry->getPathname();
+            if ($entry->isFile()) {
+                $contents = file_get_contents($file);
+                $this->assertStringNotContainsString('tatausaha@sekolah.sch.id', $contents, $file);
+                $this->assertStringNotContainsString('[ISI:', $contents, $file);
+                $this->assertStringNotContainsString('TK Tunas Harapan', $contents, $file);
+            }
+        }
+
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(base_path('app'))) as $entry) {
+            $file = $entry->getPathname();
+            if ($entry->isFile()) {
+                $contents = file_get_contents($file);
+                $this->assertStringNotContainsString('tatausaha@sekolah.sch.id', $contents, $file);
+                $this->assertStringNotContainsString('[ISI:', $contents, $file);
+                $this->assertStringNotContainsString('TK Tunas Harapan', $contents, $file);
+            }
+        }
+
+        SchoolSetting::updateOrCreate(['key' => 'school_name'], ['value' => 'Sekolah Uji QA']);
+        $this->get('/login')->assertInertia(fn (Assert $page) => $page->where('schoolName', 'Sekolah Uji QA'));
+    }
+
+    public function test_school_settings_seeder_runs_in_any_environment(): void
+    {
+        config(['app.env' => 'production']);
+        app(SchoolSettingsSeeder::class)->run();
+
+        $this->assertSame('RA Waladun Sholeh', SchoolSetting::where('key', 'school_name')->value('value'));
+        $this->assertSame('Jl. Mawar A No.5 13, RT.13/RW.6, Tugu Utara, Kec. Koja, Jkt Utara, Daerah Khusus Ibukota Jakarta 14230', SchoolSetting::where('key', 'school_address')->value('value'));
+        $this->assertSame('0831123456789', SchoolSetting::where('key', 'school_phone')->value('value'));
+        $this->assertSame('BRI', SchoolSetting::where('key', 'bank_name')->value('value'));
+        $this->assertSame('1234567890', SchoolSetting::where('key', 'bank_account_number')->value('value'));
+        $this->assertSame('RA Waladun Sholeh', SchoolSetting::where('key', 'bank_account_holder')->value('value'));
     }
 
     public function test_production_seed_does_not_use_demo_passwords(): void

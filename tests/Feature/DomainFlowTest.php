@@ -93,7 +93,7 @@ class DomainFlowTest extends TestCase
         $guardian->students()->attach($student->id, ['relationship' => 'wali', 'is_primary' => true]);
         $invoice = Invoice::factory()->create(['student_id' => $student->id, 'status' => InvoiceStatus::Rejected]);
 
-        $payment = app(PaymentVerificationService::class)->submitProof($invoice, $parent, UploadedFile::fake()->create('bukti.pdf', 100, 'application/pdf'));
+        $payment = app(PaymentVerificationService::class)->submitProof($invoice, $parent, UploadedFile::fake()->create('bukti.pdf', 100, 'application/pdf'), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01']);
 
         $this->assertSame(PaymentStatus::Pending, $payment->status);
         Storage::disk('private')->assertExists($payment->proof_path);
@@ -130,7 +130,7 @@ class DomainFlowTest extends TestCase
         $fixture = $this->billingFixture();
         Storage::fake('private');
         $this->expectException(ValidationException::class);
-        app(PaymentVerificationService::class)->submitProof($fixture['invoice'], $fixture['parent'], UploadedFile::fake()->create('bukti.pdf', 10, 'application/pdf'));
+        app(PaymentVerificationService::class)->submitProof($fixture['invoice'], $fixture['parent'], UploadedFile::fake()->create('bukti.pdf', 10, 'application/pdf'), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01']);
     }
 
     public function test_admin_can_review_only_payments_for_verification_state(): void
@@ -188,7 +188,7 @@ class DomainFlowTest extends TestCase
         $fixture = $this->billingFixture();
         $fixture['invoice']->update(['status' => InvoiceStatus::Unpaid]);
         $fixture['payment']->update(['status' => PaymentStatus::Rejected]);
-        $payment = app(PaymentVerificationService::class)->submitProof($fixture['invoice'], $fixture['parent'], UploadedFile::fake()->create('bukti.pdf', 10, 'application/pdf'));
+        $payment = app(PaymentVerificationService::class)->submitProof($fixture['invoice'], $fixture['parent'], UploadedFile::fake()->create('bukti.pdf', 10, 'application/pdf'), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01']);
         $other = User::factory()->create();
         $other->assignRole('orang_tua');
 

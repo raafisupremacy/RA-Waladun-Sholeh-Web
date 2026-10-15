@@ -41,11 +41,32 @@ class ParentInvoiceUiTest extends TestCase
         Storage::fake('private');
         [$parent, $student] = $this->fixture();
         $invoice = Invoice::factory()->create(['student_id' => $student->id, 'status' => InvoiceStatus::Unpaid]);
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['proof' => UploadedFile::fake()->create('proof.txt', 10, 'text/plain')])->assertSessionHasErrors('proof');
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['proof' => UploadedFile::fake()->create('large.pdf', 5121, 'application/pdf')])->assertSessionHasErrors('proof');
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['proof' => UploadedFile::fake()->image('proof.jpg')])->assertRedirect();
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => UploadedFile::fake()->create('proof.txt', 10, 'text/plain')])->assertSessionHasErrors('proof');
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => UploadedFile::fake()->create('large.pdf', 5121, 'application/pdf')])->assertSessionHasErrors('proof');
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => UploadedFile::fake()->image('proof.jpg')])->assertRedirect();
         $this->assertSame('menunggu_verifikasi', $invoice->fresh()->status->value);
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['proof' => UploadedFile::fake()->image('proof-2.jpg')])->assertSessionHasErrors('invoice');
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => UploadedFile::fake()->image('proof-2.jpg')])->assertSessionHasErrors('invoice');
+    }
+
+    public function test_parent_upload_requires_transfer_amount_and_non_future_date(): void
+    {
+        Storage::fake('private');
+        [$parent, $student] = $this->fixture();
+        $invoice = Invoice::factory()->create(['student_id' => $student->id, 'status' => InvoiceStatus::Unpaid]);
+
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), [
+            'transfer_date' => '2026-10-01',
+            'proof' => UploadedFile::fake()->image('proof.jpg'),
+        ])->assertSessionHasErrors('amount_transferred');
+
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), [
+            'amount_transferred' => 350000,
+            'transfer_date' => now()->addDay()->toDateString(),
+            'proof' => UploadedFile::fake()->image('proof-future.jpg'),
+        ])->assertSessionHasErrors('transfer_date');
+
+        $this->assertSame(InvoiceStatus::Unpaid, $invoice->fresh()->status);
+        $this->assertDatabaseCount('payments', 0);
     }
 
     public function test_payment_proof_upload_boundary_and_storage_security(): void
@@ -57,7 +78,7 @@ class ParentInvoiceUiTest extends TestCase
 
         // 1. Berkas 5.120 KB (maksimal diizinkan) diterima dan valid PDF
         $validPdf = UploadedFile::fake()->create('valid_receipt.pdf', 5120, 'application/pdf');
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['proof' => $validPdf])
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => $validPdf])
             ->assertRedirect()
             ->assertSessionHasNoErrors();
         $this->assertSame(InvoiceStatus::Pending, $invoice->fresh()->status);
@@ -79,20 +100,20 @@ class ParentInvoiceUiTest extends TestCase
             'status' => InvoiceStatus::Unpaid,
         ]);
         $oversizedPdf = UploadedFile::fake()->create('oversized.pdf', 5121, 'application/pdf');
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice2), ['proof' => $oversizedPdf])
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice2), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => $oversizedPdf])
             ->assertSessionHasErrors('proof');
         $this->assertSame(InvoiceStatus::Unpaid, $invoice2->fresh()->status);
 
         // 4. Ekstensi terlarang ditolak
         foreach (['exploit.exe', 'shell.php', 'script.sh', 'vector.svg', 'document.docx'] as $badName) {
             $badFile = UploadedFile::fake()->create($badName, 100);
-            $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice2), ['proof' => $badFile])
+            $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice2), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => $badFile])
                 ->assertSessionHasErrors('proof');
         }
 
         // 5. Gambar JPG/PNG valid diterima
         $validJpg = UploadedFile::fake()->image('bukti_transfer.jpg');
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice2), ['proof' => $validJpg])
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice2), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => $validJpg])
             ->assertRedirect()
             ->assertSessionHasNoErrors();
         $this->assertSame(InvoiceStatus::Pending, $invoice2->fresh()->status);
@@ -103,7 +124,7 @@ class ParentInvoiceUiTest extends TestCase
         Storage::fake('private');
         [$parent, $student] = $this->fixture();
         $invoice = Invoice::factory()->create(['student_id' => $student->id, 'status' => InvoiceStatus::Rejected]);
-        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['proof' => UploadedFile::fake()->image('proof.jpg')])->assertRedirect();
+        $this->actingAs($parent)->post(route('ortu.invoices.upload', $invoice), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01', 'sender_name' => 'Orang Tua', 'proof' => UploadedFile::fake()->image('proof.jpg')])->assertRedirect();
         $this->assertSame('menunggu_verifikasi', $invoice->fresh()->status->value);
         $other = User::factory()->create(['must_change_password' => false]);
         $other->assignRole('orang_tua');
@@ -142,11 +163,11 @@ class ParentInvoiceUiTest extends TestCase
 
         foreach (['belum_bayar', 'menunggu_verifikasi', 'ditolak', 'lunas'] as $state) {
             if ($state === 'menunggu_verifikasi') {
-                $payment = $service->submitProof($invoice, $parent, UploadedFile::fake()->image('proof.png'), ['note' => 'Bukti pembayaran SPP']);
+                $payment = $service->submitProof($invoice, $parent, UploadedFile::fake()->image('proof.png'), ['note' => 'Bukti pembayaran SPP', 'amount_transferred' => 350000, 'transfer_date' => '2026-10-01']);
             } elseif ($state === 'ditolak') {
                 $service->reject($payment, $admin, 'Bukti tidak terbaca');
             } elseif ($state === 'lunas') {
-                $payment = $service->submitProof($invoice, $parent, UploadedFile::fake()->image('proof.png'));
+                $payment = $service->submitProof($invoice, $parent, UploadedFile::fake()->image('proof.png'), ['amount_transferred' => 350000, 'transfer_date' => '2026-10-01']);
                 $service->approve($payment, $admin);
             }
             $response = $this->actingAs($parent)->get(route('ortu.invoices.show', $invoice));

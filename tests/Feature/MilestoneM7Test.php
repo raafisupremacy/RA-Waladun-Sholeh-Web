@@ -15,6 +15,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
 use App\Services\ReportService;
+use Carbon\CarbonPeriod;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Role;
@@ -84,8 +85,10 @@ class MilestoneM7Test extends TestCase
         $this->assertNotEmpty($completion);
         $this->assertSame('Kelompok A', $completion[0]['classroom_name']);
         $this->assertSame('Ibu Guru', $completion[0]['teacher_name']);
-        $this->assertSame(1, $completion[0]['possible']);
-        $this->assertSame(100.0, $completion[0]['percentage']);
+        $days = collect(CarbonPeriod::create(now()->startOfMonth(), today()))
+            ->filter(fn ($date) => $date->isWeekday())->count();
+        $this->assertSame($days, $completion[0]['possible']);
+        $this->assertSame(round(100 / $days, 1), $completion[0]['percentage']);
 
         // Test overdue > 30 days
         $overdueInvoice = Invoice::factory()->create([
@@ -143,17 +146,19 @@ class MilestoneM7Test extends TestCase
         ]);
 
         // Principal exports
-        $this->actingAs($principal)->get('/kepsek/laporan-keuangan/pdf')->assertOk()->assertDownload('laporan-keuangan-kepsek.pdf');
-        $this->actingAs($principal)->get('/kepsek/laporan-keuangan/excel')->assertOk()->assertDownload('laporan-keuangan-kepsek.xlsx');
-        $this->actingAs($principal)->get('/kepsek/laporan-evaluasi/pdf?student_id='.$student->id.'&academic_year_id='.$year->id)->assertOk()->assertDownload('rapor-12345.pdf');
+        $this->actingAs($principal)->get('/kepsek/laporan-keuangan/pdf')->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertDownload('laporan-keuangan-kepsek.pdf');
+        $this->actingAs($principal)->get('/kepsek/laporan-keuangan/excel')->assertOk()->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')->assertDownload('laporan-keuangan-kepsek.xlsx');
+        $this->actingAs($principal)->get('/kepsek/laporan-evaluasi/pdf?student_id='.$student->id.'&academic_year_id='.$year->id)->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertDownload('rapor-12345.pdf');
 
         // Admin exports
-        $this->actingAs($admin)->get('/admin/laporan/pdf?tab=rekap')->assertOk()->assertDownload('laporan-rekap-spp.pdf');
-        $this->actingAs($admin)->get('/admin/laporan/excel?tab=rekap')->assertOk()->assertDownload('laporan-admin-rekap.xlsx');
-        $this->actingAs($admin)->get('/admin/laporan/pdf?tab=tunggakan')->assertOk()->assertDownload('laporan-tunggakan-spp.pdf');
-        $this->actingAs($admin)->get('/admin/laporan/excel?tab=tunggakan')->assertOk()->assertDownload('laporan-admin-tunggakan.xlsx');
-        $this->actingAs($admin)->get('/admin/laporan/pdf?tab=ringkasan_kelas')->assertOk()->assertDownload('laporan-ringkasan-kelas.pdf');
-        $this->actingAs($admin)->get('/admin/laporan/excel?tab=ringkasan_kelas')->assertOk()->assertDownload('laporan-admin-ringkasan_kelas.xlsx');
+        $this->actingAs($admin)->get('/admin/laporan/pdf?tab=rekap')->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertDownload('laporan-rekap-spp.pdf');
+        $this->actingAs($admin)->get('/admin/laporan/excel?tab=rekap')->assertOk()->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')->assertDownload('laporan-admin-rekap.xlsx');
+        $this->actingAs($admin)->get('/admin/laporan/pdf?tab=tunggakan')->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertDownload('laporan-tunggakan-spp.pdf');
+        $this->actingAs($admin)->get('/admin/laporan/excel?tab=tunggakan')->assertOk()->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')->assertDownload('laporan-admin-tunggakan.xlsx');
+        $this->actingAs($admin)->get('/admin/laporan/pdf?tab=ringkasan_kelas')->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertDownload('laporan-ringkasan-kelas.pdf');
+        $this->actingAs($admin)->get('/admin/laporan/excel?tab=ringkasan_kelas')->assertOk()->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')->assertDownload('laporan-admin-ringkasan_kelas.xlsx');
+        $this->actingAs($admin)->get('/admin/buku-kas/pdf')->assertOk()->assertHeader('Content-Type', 'application/pdf')->assertDownload('buku-kas.pdf');
+        $this->actingAs($admin)->get('/admin/buku-kas/excel')->assertOk()->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')->assertDownload('buku-kas.xlsx');
     }
 
     public function test_parent_can_download_only_own_student_report(): void
@@ -169,5 +174,42 @@ class MilestoneM7Test extends TestCase
 
         $this->actingAs($parent)->get('/ortu/perkembangan/'.$child->id.'/laporan')->assertOk();
         $this->actingAs($parent)->get('/ortu/perkembangan/'.$other->id.'/laporan')->assertForbidden();
+    }
+
+    public function test_parent_student_report_download_renders_when_narratives_exist(): void
+    {
+        Role::findOrCreate('orang_tua', 'web');
+        $parent = User::factory()->create();
+        $parent->assignRole('orang_tua');
+        $guardian = Guardian::create(['user_id' => $parent->id, 'name' => 'Wali', 'phone' => '0812', 'address' => 'Alamat']);
+        $year = AcademicYear::factory()->create(['is_active' => true]);
+        $child = Student::factory()->create();
+        $guardian->students()->attach($child->id, ['relationship' => 'ibu', 'is_primary' => true]);
+        $classroom = Classroom::factory()->create(['academic_year_id' => $year->id]);
+        $child->enrollments()->create(['classroom_id' => $classroom->id, 'academic_year_id' => $year->id, 'status' => 'aktif']);
+        $teacher = Teacher::factory()->create();
+        $journal = DailyJournal::create([
+            'student_id' => $child->id,
+            'teacher_id' => $teacher->id,
+            'classroom_id' => $classroom->id,
+            'journal_date' => $year->start_date->copy()->addMonths(2)->toDateString(),
+            'activity_summary' => 'Kegiatan belajar',
+            'status' => JournalStatus::Final,
+        ]);
+        $journal->assessments()->create([
+            'aspect' => JournalAspect::Moral,
+            'level' => AssessmentLevel::BSH,
+            'note' => 'Anak mengikuti kegiatan dengan baik.',
+        ]);
+        $this->assertDatabaseHas('journal_assessments', ['daily_journal_id' => $journal->id, 'note' => 'Anak mengikuti kegiatan dengan baik.']);
+        $this->assertDatabaseHas('daily_journals', ['id' => $journal->id, 'status' => 'final']);
+
+        $report = app(ReportService::class)->studentReport($child, $year, 'semester_1');
+        $this->assertIsArray($report['narratives']['nilai_agama_moral']);
+
+        $this->actingAs($parent)
+            ->get('/ortu/perkembangan/'.$child->id.'/laporan')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
     }
 }

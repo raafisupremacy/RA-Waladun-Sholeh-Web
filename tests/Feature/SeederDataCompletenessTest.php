@@ -8,9 +8,11 @@ use App\Enums\PaymentStatus;
 use App\Models\AnecdotalNote;
 use App\Models\Announcement;
 use App\Models\CashLedgerEntry;
+use App\Models\Classroom;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Student;
+use App\Models\User;
 use App\Services\ReportService;
 use Carbon\Carbon;
 use Database\Seeders\DatabaseSeeder;
@@ -31,6 +33,8 @@ class SeederDataCompletenessTest extends TestCase
     public function test_seeder_creates_expected_students_and_accounts(): void
     {
         $this->assertSame(78, Student::where('status', 'aktif')->count());
+        $this->assertSame(['A-1', 'A-2', 'B-1', 'B-2'], Classroom::whereHas('academicYear', fn ($q) => $q->where('is_active', true))->orderBy('name')->pluck('name')->all());
+        $this->assertSame([20, 19, 20, 19], Classroom::whereHas('academicYear', fn ($q) => $q->where('is_active', true))->orderBy('name')->withCount(['enrollments' => fn ($q) => $q->where('status', 'aktif')])->pluck('enrollments_count')->all());
         $this->assertDatabaseHas('users', ['email' => 'admin@skms.test']);
         $this->assertDatabaseHas('users', ['email' => 'guru@skms.test']);
         $this->assertDatabaseHas('users', ['email' => 'kepsek@skms.test']);
@@ -65,7 +69,7 @@ class SeederDataCompletenessTest extends TestCase
         Carbon::setTestNow(Carbon::create(2026, 10, 15));
         $overdueStudents = app(ReportService::class)->overdueStudents(30);
         Carbon::setTestNow();
-        $this->assertSame(6, count($overdueStudents), 'Harus ada tepat 6 siswa menunggak >30 hari');
+        $this->assertSame(9, count($overdueStudents), 'D2 menghitung enam siswa belum bayar dan tiga siswa dengan tagihan ditolak >30 hari');
 
         // 5. Setiap tagihan lunas memiliki tepat satu entri cash ledger
         $allPaid = Invoice::where('status', InvoiceStatus::Paid->value)->get();
@@ -105,5 +109,21 @@ class SeederDataCompletenessTest extends TestCase
         $this->assertTrue($announcements->contains(fn ($a) => $a->expires_at !== null && Carbon::parse($a->expires_at)->isPast()), 'Harus ada pengumuman kedaluwarsa');
         $this->assertTrue($announcements->contains(fn ($a) => $a->classroom_id !== null), 'Harus ada pengumuman target kelas');
         $this->assertTrue($announcements->contains(fn ($a) => $a->classroom_id === null), 'Harus ada pengumuman target semua');
+    }
+
+    public function test_level_and_classroom_targets_are_scoped_to_matching_students(): void
+    {
+        $a1 = Classroom::where('name', 'A-1')->firstOrFail();
+        $a2 = Classroom::where('name', 'A-2')->firstOrFail();
+        $b1 = Classroom::where('name', 'B-1')->firstOrFail();
+        $admin = User::where('email', 'admin@skms.test')->firstOrFail();
+        Announcement::create(['created_by' => $admin->id, 'target_level' => 'A', 'title' => 'A level', 'body' => 'x', 'status' => AnnouncementStatus::Published, 'published_at' => now()]);
+        Announcement::create(['created_by' => $admin->id, 'classroom_id' => $a2->id, 'title' => 'A2', 'body' => 'x', 'status' => AnnouncementStatus::Published, 'published_at' => now()]);
+        $a1Student = Student::whereHas('enrollments', fn ($q) => $q->where('classroom_id', $a1->id))->firstOrFail();
+        $a2Student = Student::whereHas('enrollments', fn ($q) => $q->where('classroom_id', $a2->id))->firstOrFail();
+        $b1Student = Student::whereHas('enrollments', fn ($q) => $q->where('classroom_id', $b1->id))->firstOrFail();
+        $this->assertCount(1, Announcement::visibleToStudent($a1Student)->whereIn('title', ['A level', 'A2'])->get());
+        $this->assertCount(2, Announcement::visibleToStudent($a2Student)->whereIn('title', ['A level', 'A2'])->get());
+        $this->assertCount(0, Announcement::visibleToStudent($b1Student)->whereIn('title', ['A level', 'A2'])->get());
     }
 }
