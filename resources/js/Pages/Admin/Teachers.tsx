@@ -189,7 +189,8 @@ export default function Teachers({
                                 <button
                                     type="button"
                                     onClick={handleClearSearch}
-                                    className="absolute right-14 top-1/2 -translate-y-1/2 !min-h-0 h-5 w-5 flex items-center justify-center text-xs text-stone-400 hover:text-stone-600"
+                                    aria-label="Hapus pencarian"
+                                    className="absolute right-14 top-1/2 -translate-y-1/2 h-11 w-11 flex items-center justify-center text-xs text-stone-400 hover:text-stone-600"
                                 >
                                     <X size={13} strokeWidth={2} />
                                 </button>

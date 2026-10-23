@@ -20,8 +20,12 @@ export default function ConfirmDialog({
     busy?: boolean;
     danger?: boolean;
 }) {
+    const cancelRef = React.useRef<HTMLButtonElement>(null);
+    const returnFocusRef = React.useRef<HTMLElement | null>(null);
     React.useEffect(() => {
         if (!open) return;
+        returnFocusRef.current = document.activeElement as HTMLElement | null;
+        cancelRef.current?.focus();
         const prevOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
 
@@ -34,6 +38,7 @@ export default function ConfirmDialog({
         return () => {
             document.body.style.overflow = prevOverflow;
             window.removeEventListener('keydown', handleKeyDown);
+            returnFocusRef.current?.focus();
         };
     }, [open, busy, onCancel]);
 
@@ -59,6 +64,7 @@ export default function ConfirmDialog({
                 </div>
                 <div className="flex items-center justify-end gap-3 pt-2">
                     <button
+                        ref={cancelRef}
                         type="button"
                         onClick={onCancel}
                         disabled={busy}

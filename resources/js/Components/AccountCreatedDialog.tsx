@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 type Account = { name: string; email: string; password: string };
@@ -9,6 +9,8 @@ export default function AccountCreatedDialog() {
     const [account, setAccount] = useState<Account | null>(null);
     const [copiedEmail, setCopiedEmail] = useState(false);
     const [copiedPassword, setCopiedPassword] = useState(false);
+    const doneRef = useRef<HTMLButtonElement>(null);
+    const returnFocusRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         if (props.temporaryAccount) {
@@ -20,10 +22,18 @@ export default function AccountCreatedDialog() {
 
     useEffect(() => {
         if (!account) return;
+        returnFocusRef.current = document.activeElement as HTMLElement | null;
+        doneRef.current?.focus();
         const prevOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') setAccount(null);
+        };
+        window.addEventListener('keydown', handleKeyDown);
         return () => {
             document.body.style.overflow = prevOverflow;
+            window.removeEventListener('keydown', handleKeyDown);
+            returnFocusRef.current?.focus();
         };
     }, [account]);
 
@@ -105,6 +115,7 @@ export default function AccountCreatedDialog() {
                         Cetak kartu akun
                     </button>
                     <button
+                        ref={doneRef}
                         type="button"
                         onClick={() => setAccount(null)}
                         className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[var(--primary-hover)] transition-all duration-150 active:scale-[0.98]"

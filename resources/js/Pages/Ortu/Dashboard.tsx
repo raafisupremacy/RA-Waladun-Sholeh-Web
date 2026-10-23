@@ -100,7 +100,7 @@ export default function Dashboard({ students, activeStudentId, invoice, journal,
                                 </p>
                             </div>
                         </div>
-                        <span className="text-xs text-stone-400 font-medium shrink-0 whitespace-nowrap self-start sm:self-center pl-8 sm:pl-0">
+                        <span className="text-xs text-stone-600 font-medium shrink-0 whitespace-nowrap self-start sm:self-center pl-8 sm:pl-0">
                             {new Date(item.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                     </div>

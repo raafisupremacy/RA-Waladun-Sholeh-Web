@@ -505,7 +505,7 @@ input[type=checkbox] { width:20px; height:20px; accent-color:var(--accent); flex
 .status-nonaktif, .status-belum_pernah_masuk { color: var(--muted); background: #EEEEF1; }
 .status-bb { color: #31547A; background: #EEF2F8; }
 .status-mb { color: #235D9C; background: #DCEAFE; }
-.status-bsh { color: #0B6BC5; background: #C9E2FC; }
+.status-bsh { color: #07539A; background: #C9E2FC; }
 .status-bsb { color: #FFFFFF; background: var(--primary); }
 
 /* M4 finance surfaces: align the three finance screens with the Stitch layout. */

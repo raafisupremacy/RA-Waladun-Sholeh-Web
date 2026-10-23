@@ -260,7 +260,7 @@ export default function Invoices({ invoices, academicYears, classrooms, filters,
                             {previewing ? 'Menghitung…' : 'Generate untuk semua siswa aktif'}
                         </button>
                         <div className="text-xs text-stone-500 bg-stone-50 border border-stone-200/80 rounded-full px-4 py-2 w-fit">
-                            Tarif SPP otomatis: <strong className="text-stone-800 font-semibold">{rupiah(Number(form.amount || page.schoolSettings?.default_spp_amount || 350000))}</strong> / siswa
+                            Tarif SPP otomatis: <strong className="text-stone-800 font-semibold">{form.amount || page.schoolSettings?.default_spp_amount ? rupiah(Number(form.amount || page.schoolSettings?.default_spp_amount)) : '—'}</strong> / siswa
                         </div>
                     </div>
                 </form>
@@ -328,8 +328,8 @@ export default function Invoices({ invoices, academicYears, classrooms, filters,
                 title={preview ? `${preview.created} tagihan akan dibuat` : `Generate tagihan ${selectedMonthName} ${form.year}?`}
                 description={
                     preview
-                        ? `Tagihan ${selectedMonthName} ${form.year} (${rupiah(Number(form.amount || page.schoolSettings?.default_spp_amount || 350000))}/siswa). ${preview.skipped} siswa dilewati karena sudah memiliki tagihan periode ini.`
-                        : `Tagihan SPP ${selectedMonthName} ${form.year} (${rupiah(Number(form.amount || page.schoolSettings?.default_spp_amount || 350000))}/siswa) akan dibuat untuk seluruh siswa aktif pada tahun ajaran terpilih.`
+                        ? `Tagihan ${selectedMonthName} ${form.year} (${form.amount || page.schoolSettings?.default_spp_amount ? rupiah(Number(form.amount || page.schoolSettings?.default_spp_amount)) : 'nominal mengikuti konfigurasi sekolah'}/siswa). ${preview.skipped} siswa dilewati karena sudah memiliki tagihan periode ini.`
+                        : `Tagihan SPP ${selectedMonthName} ${form.year} (${form.amount || page.schoolSettings?.default_spp_amount ? rupiah(Number(form.amount || page.schoolSettings?.default_spp_amount)) : 'nominal mengikuti konfigurasi sekolah'}/siswa) akan dibuat untuk seluruh siswa aktif pada tahun ajaran terpilih.`
                 }
                 confirmLabel="Generate"
                 busy={submitting}
