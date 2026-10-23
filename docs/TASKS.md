@@ -4,9 +4,9 @@ Diperbarui 15 Oktober 2026 (Asia/Jakarta). Keputusan D1–D7 ada di `docs/DECISI
 
 ## Hasil tes terakhir
 
-`php artisan test --no-ansi`: **216 lulus, 0 gagal, 0 dilewati, 3.002 assertion**.
+`php artisan test --no-ansi`: **219 lulus, 0 gagal, 0 dilewati, 3.012 assertion**.
 
-`npm run test:js`: 6 lulus. `./vendor/bin/pint --test`, `npm run lint`, dan `npm run build` lulus pada verifikasi terakhir. `npm run e2e` belum dijalankan.
+`npm run test:js`: 6 lulus. `./vendor/bin/pint --test`, `npm run lint`, dan `npm run build` lulus. `npm run e2e`: **21 lulus** (safety dan smoke login/home pada 390/834/1440 px).
 
 ## Status batch
 

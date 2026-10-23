@@ -4,7 +4,7 @@ Diperbarui 15 Oktober 2026 (Asia/Jakarta). Catatan ini berdasarkan kode dan veri
 
 ## Status audit terkini
 
-Run penuh terbaru: **216 kasus, 216 lulus, 0 gagal, 0 dilewati, 3.002 assertion**. Rincian bukti ada di [docs/TEST-AUDIT.md](TEST-AUDIT.md).
+Run penuh terbaru: **219 kasus, 219 lulus, 0 gagal, 0 dilewati, 3.012 assertion**. E2E smoke/safety: **21 lulus** pada 390/834/1440 px. Rincian bukti ada di [docs/TEST-AUDIT.md](TEST-AUDIT.md).
 
 | Batch | Status | Bukti utama |
 |---|---|---|
