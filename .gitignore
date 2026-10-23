@@ -27,6 +27,7 @@ yarn-error.log
 /e2e-results
 /playwright-report
 /test-results
+/outputs
 /.auth
 .env.e2e
 /storage/app/private/*
