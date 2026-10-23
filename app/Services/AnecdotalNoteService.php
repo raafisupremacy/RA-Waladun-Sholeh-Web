@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class AnecdotalNoteService
 {
@@ -35,12 +36,16 @@ class AnecdotalNoteService
                 ->whereHas('academicYear', fn ($year) => $year->where('is_active', true));
         })->exists(), 403);
 
+        $oldPhotoPath = $note->photo_path;
         if ($photo) {
             $data['photo_path'] = $photo->store('anecdotes', 'private');
         }
 
         $old = $note->getAttributes();
         $note->update($data);
+        if ($photo && $oldPhotoPath && $oldPhotoPath !== $note->photo_path) {
+            Storage::disk('private')->delete($oldPhotoPath);
+        }
         AuditLog::create(['user_id' => $teacher->id, 'action' => 'anecdotal_note_updated', 'entity_type' => 'AnecdotalNote', 'entity_id' => $note->id, 'old_values' => $old, 'new_values' => $note->fresh()->getAttributes()]);
 
         return $note->fresh();

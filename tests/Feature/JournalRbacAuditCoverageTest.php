@@ -443,6 +443,18 @@ class JournalRbacAuditCoverageTest extends TestCase
         $this->assertFalse(Student::visibleTo($user)->whereKey($student->id)->exists());
     }
 
+    public function test_deactivated_student_is_not_visible_or_writable_but_history_remains_readable(): void
+    {
+        [$user, $teacher, $classroom, $student] = $this->classroomFixture();
+        $journal = $this->journal($teacher, $classroom, $student);
+        $student->update(['status' => 'nonaktif']);
+
+        $this->assertFalse(Student::visibleTo($user)->whereKey($student->id)->exists());
+        $this->actingAs($user)->get(route('guru.journals.show', $student))->assertForbidden();
+        $this->assertTrue($journal->fresh()->exists());
+        $this->assertSame('Private learning summary', $journal->fresh()->activity_summary);
+    }
+
     private function userWithRole(string $role): User
     {
         $user = User::factory()->create(['must_change_password' => false, 'is_active' => true]);

@@ -51,6 +51,10 @@ class ClassroomController extends Controller
 
         $teacherId = ! empty($data['teacher_id']) ? (int) $data['teacher_id'] : null;
 
+        if ($teacherId && ! Teacher::whereKey($teacherId)->whereHas('user', fn ($q) => $q->where('is_active', true))->exists()) {
+            throw ValidationException::withMessages(['teacher_id' => 'Pilih guru yang berstatus aktif.']);
+        }
+
         $classroom = DB::transaction(function () use ($data, $activeYear, $teacherId, $r) {
             $classroom = Classroom::create([
                 'academic_year_id' => $activeYear->id,
@@ -58,6 +62,10 @@ class ClassroomController extends Controller
                 'age_range' => $data['age_range'],
                 'homeroom_teacher_id' => $teacherId,
             ]);
+
+            if ($teacherId) {
+                $classroom->teachers()->attach($teacherId, ['role' => 'wali_kelas']);
+            }
 
             AuditLog::create([
                 'user_id' => $r->user()->id,

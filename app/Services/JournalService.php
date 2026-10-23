@@ -72,7 +72,7 @@ class JournalService
 
     private function ownsStudent(int $studentId, int $classroomId): void
     {
-        abort_unless(Student::whereKey($studentId)->whereHas('enrollments', fn ($q) => $q->where('classroom_id', $classroomId)->where('status', 'aktif')->whereHas('academicYear', fn ($y) => $y->where('is_active', true)))->exists(), 403);
+        abort_unless(Student::whereKey($studentId)->where('status', 'aktif')->whereHas('enrollments', fn ($q) => $q->where('classroom_id', $classroomId)->where('status', 'aktif')->whereHas('academicYear', fn ($y) => $y->where('is_active', true)))->exists(), 403);
     }
 
     private function locked(DailyJournal $journal): bool

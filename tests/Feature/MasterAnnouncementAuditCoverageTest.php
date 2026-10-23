@@ -194,6 +194,32 @@ class MasterAnnouncementAuditCoverageTest extends TestCase
         $this->assertDatabaseCount('audit_logs', 0);
     }
 
+    public function test_new_classroom_assigns_homeroom_in_pivot(): void
+    {
+        $teacher = Teacher::factory()->create();
+
+        $this->actingAs($this->admin)->post('/admin/kelas', [
+            'name' => 'A-2', 'age_range' => '4–5 tahun', 'teacher_id' => $teacher->id,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $classroom = Classroom::where('name', 'A-2')->sole();
+        $this->assertDatabaseHas('classroom_teacher', [
+            'classroom_id' => $classroom->id, 'teacher_id' => $teacher->id, 'role' => 'wali_kelas',
+        ]);
+    }
+
+    public function test_new_classroom_rejects_inactive_teacher(): void
+    {
+        $teacher = Teacher::factory()->create();
+        $teacher->user->update(['is_active' => false]);
+
+        $this->actingAs($this->admin)->post('/admin/kelas', [
+            'name' => 'A-2', 'age_range' => '4–5 tahun', 'teacher_id' => $teacher->id,
+        ])->assertSessionHasErrors('teacher_id');
+
+        $this->assertDatabaseMissing('classrooms', ['name' => 'A-2', 'academic_year_id' => $this->year->id]);
+    }
+
     public function test_teacher_reset_password_is_shown_once_and_hash_and_audit_exclude_plaintext(): void
     {
         $teacher = Teacher::factory()->create();
