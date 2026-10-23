@@ -22,7 +22,6 @@ createInertiaApp({
 
         root.render(React.createElement(App, props));
     },
-    progress: {
-        color: '#4B5563',
-    },
+    // Inertia's built-in progress markup uses the invalid ARIA role "bar".
+    progress: false,
 });
