@@ -141,4 +141,21 @@ test.describe('E2E-BUSINESS alur inti', () => {
         const [pdfDownload] = await Promise.all([page.waitForEvent('download'), pdf.click()]);
         expect(pdfDownload.suggestedFilename()).toMatch(/\.pdf$/i);
     });
+
+    test('semua halaman baca utama dapat dibuka oleh role yang berwenang', async ({ page }) => {
+        const routes: Array<['admin' | 'guru' | 'kepsek' | 'ortu', string[]]> = [
+            ['admin', ['/admin', '/admin/siswa', '/admin/orang-tua', '/admin/guru', '/admin/kelas', '/admin/tagihan', '/admin/verifikasi', '/admin/buku-kas', '/admin/pengumuman', '/admin/laporan', '/admin/audit-log']],
+            ['guru', ['/guru', '/guru/jurnal', '/guru/riwayat', '/guru/anekdot']],
+            ['kepsek', ['/kepsek', '/kepsek/laporan-keuangan', '/kepsek/laporan-evaluasi']],
+            ['ortu', ['/ortu', '/ortu/tagihan', '/ortu/perkembangan', '/ortu/profil']],
+        ];
+        for (const [role, paths] of routes) {
+            await switchRole(page, role);
+            for (const path of paths) {
+                const response = await page.goto(path, { waitUntil: 'networkidle' });
+                expect(response?.status(), `${role} ${path}`).toBeLessThan(400);
+                await expect(page.locator('body')).not.toContainText(/Internal Server Error|CSRF token mismatch|Page Expired|undefined|NaN/);
+            }
+        }
+    });
 });
