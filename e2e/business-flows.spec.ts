@@ -7,6 +7,8 @@ test.describe('E2E-BUSINESS alur inti', () => {
     test.setTimeout(180_000);
 
     let invoiceHref = '';
+    let journalDate = '';
+    let journalUrl = '';
     const proof = {
         name: 'bukti-transfer.png',
         mimeType: 'image/png',
@@ -109,6 +111,8 @@ test.describe('E2E-BUSINESS alur inti', () => {
         await switchRole(page, 'guru');
         await page.goto('/guru/jurnal', { waitUntil: 'networkidle' });
         await page.getByRole('link', { name: 'Isi Jurnal Hari Ini', exact: true }).click();
+        journalUrl = new URL(page.url()).pathname;
+        journalDate = await page.locator('input[type="date"]').inputValue();
         await page.locator('#activity-summary').fill('Kegiatan pengujian jurnal browser.');
         await page.getByRole('button', { name: 'Simpan jurnal', exact: true }).click();
         await expect(page.getByText('Mohon lengkapi penilaian wajib', { exact: true })).toBeVisible();
@@ -254,4 +258,36 @@ test.describe('E2E-BUSINESS alur inti', () => {
         await waitForPost(page, '/bukti', () => page.getByRole('button', { name: /Kirim bukti|Unggah ulang/ }).click());
         await expect(page.getByText(/Bukti sudah diterima|Sedang diperiksa sekolah/i)).toBeVisible();
     });
+
+    test('admin menambah siswa dan orang tua baru', async ({ page }) => {
+        await switchRole(page, 'admin');
+        await page.goto('/admin/siswa/create', { waitUntil: 'networkidle' });
+        const suffix = Date.now();
+        await page.locator('#name').fill(`Siswa Browser ${suffix}`);
+        await page.locator('#nis').fill(`E2E-${suffix}`);
+        await page.locator('#entry_year').fill('2026');
+        await page.locator('#birth_date').fill('2021-01-01');
+        await page.locator('[aria-haspopup="listbox"]').first().click();
+        await page.getByRole('option', { name: /A-1/ }).first().click();
+        await page.locator('#guardian_name').fill(`Wali Browser ${suffix}`);
+        await page.locator('#guardian_phone').fill('081234567890');
+        await page.locator('#guardian_email').fill(`wali.browser.${suffix}@example.test`);
+        await page.locator('#guardian_address').fill('Alamat pengujian browser');
+        await waitForPost(page, '/admin/siswa', () => page.getByRole('button', { name: 'Simpan', exact: true }).click());
+        await expect(page.getByRole('heading', { name: 'Akun berhasil dibuat', exact: true })).toBeVisible();
+    });
+
+    test('pengumuman kedaluwarsa tidak tampil di beranda orang tua', async ({ page }) => {
+        const title = `Kedaluwarsa browser ${Date.now()}`;
+        await switchRole(page, 'admin');
+        await page.goto('/admin/pengumuman/create', { waitUntil: 'networkidle' });
+        await page.locator('#title').fill(title);
+        await page.locator('#body').fill('Pengumuman yang sudah kedaluwarsa.');
+        await page.locator('#expires_at').fill('2020-01-01T00:00');
+        await waitForPost(page, '/admin/pengumuman', () => page.getByRole('button', { name: 'Terbitkan', exact: true }).click());
+        await switchRole(page, 'ortu');
+        await page.goto('/ortu', { waitUntil: 'networkidle' });
+        await expect(page.getByText(title, { exact: true })).toHaveCount(0);
+    });
+
 });
