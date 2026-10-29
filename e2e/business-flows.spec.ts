@@ -1,6 +1,7 @@
 import { test, expect, Page } from 'playwright/test';
 import { login } from './helpers/auth';
 
+test.describe.configure({ mode: 'serial' });
 test.describe('E2E-BUSINESS alur inti', () => {
     test.skip(({ page }) => page.viewportSize()?.width !== 1440, 'Alur mutasi dijalankan serial pada desktop');
     test.setTimeout(180_000);
@@ -86,7 +87,10 @@ test.describe('E2E-BUSINESS alur inti', () => {
         await switchRole(page, 'ortu');
         await page.goto(invoiceHref, { waitUntil: 'networkidle' });
         await expect(page.locator('span.status-lunas')).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Unduh bukti pembayaran', exact: true })).toBeVisible();
+        const receipt = page.getByRole('link', { name: 'Unduh bukti pembayaran', exact: true });
+        await expect(receipt).toBeVisible();
+        const [receiptDownload] = await Promise.all([page.waitForEvent('download'), receipt.click()]);
+        expect(receiptDownload.suggestedFilename()).toMatch(/\.pdf$/i);
     });
 
     test('admin menerbitkan pengumuman dan orang tua melihatnya', async ({ page }) => {
@@ -157,5 +161,41 @@ test.describe('E2E-BUSINESS alur inti', () => {
                 await expect(page.locator('body')).not.toContainText(/Internal Server Error|CSRF token mismatch|Page Expired|undefined|NaN/);
             }
         }
+    });
+
+    test('orang tua mengganti anak dan mengunduh laporan perkembangan', async ({ page }) => {
+        await switchRole(page, 'ortu');
+        await page.goto('/ortu/perkembangan', { waitUntil: 'networkidle' });
+        await page.getByRole('button', { name: 'Pilih profil anak', exact: true }).click();
+        const children = page.locator('.child-option-card');
+        await expect(children).toHaveCount(2);
+        await children.nth(1).click();
+        await expect(page).toHaveURL(/student_id=/);
+        const report = page.getByRole('link', { name: 'Unduh laporan', exact: true });
+        const [download] = await Promise.all([page.waitForEvent('download'), report.click()]);
+        expect(download.suggestedFilename()).toMatch(/\.pdf$/i);
+    });
+
+    test('admin dapat mengekspor buku kas', async ({ page }) => {
+        await switchRole(page, 'admin');
+        await page.goto('/admin/buku-kas', { waitUntil: 'networkidle' });
+        const [excel] = await Promise.all([page.waitForEvent('download'), page.getByRole('link', { name: 'Export Excel', exact: true }).click()]);
+        expect(excel.suggestedFilename()).toMatch(/\.xlsx$/i);
+        const [pdf] = await Promise.all([page.waitForEvent('download'), page.getByRole('link', { name: 'Export PDF', exact: true }).click()]);
+        expect(pdf.suggestedFilename()).toMatch(/\.pdf$/i);
+    });
+
+    test('kepala sekolah mengekspor laporan evaluasi siswa', async ({ page }) => {
+        await switchRole(page, 'kepsek');
+        await page.goto('/kepsek/laporan-evaluasi', { waitUntil: 'networkidle' });
+        const selects = page.locator('main [aria-haspopup="listbox"]');
+        await selects.nth(0).click();
+        await page.getByRole('option').first().click();
+        await selects.nth(1).click();
+        await page.getByRole('option').first().click();
+        const exportPdf = page.getByRole('link', { name: 'Export PDF', exact: true });
+        await expect(exportPdf).toBeVisible();
+        const [download] = await Promise.all([page.waitForEvent('download'), exportPdf.click()]);
+        expect(download.suggestedFilename()).toMatch(/\.pdf$/i);
     });
 });
