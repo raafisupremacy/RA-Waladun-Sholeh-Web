@@ -15,7 +15,7 @@ test.describe('E2E-BUSINESS alur inti', () => {
 
     async function waitForPost(page: Page, path: string, action: () => Promise<void>) {
         const [response] = await Promise.all([
-            page.waitForResponse(response => response.url().includes(path) && ['POST', 'PUT'].includes(response.request().method())),
+            page.waitForResponse(response => response.url().includes(path) && ['POST', 'PUT', 'PATCH'].includes(response.request().method())),
             action(),
         ]);
         expect(response.status(), response.status() >= 400 ? `${path}: ${await response.text()}` : path).toBeLessThan(400);
@@ -197,5 +197,57 @@ test.describe('E2E-BUSINESS alur inti', () => {
         await expect(exportPdf).toBeVisible();
         const [download] = await Promise.all([page.waitForEvent('download'), exportPdf.click()]);
         expect(download.suggestedFilename()).toMatch(/\.pdf$/i);
+    });
+
+    test('admin menyimpan pengumuman sebagai draf', async ({ page }) => {
+        await switchRole(page, 'admin');
+        await page.goto('/admin/pengumuman/create', { waitUntil: 'networkidle' });
+        await page.locator('#title').fill(`Draf browser ${Date.now()}`);
+        await page.locator('#body').fill('Isi draf pengujian browser.');
+        await waitForPost(page, '/admin/pengumuman', () => page.getByRole('button', { name: 'Simpan draf', exact: true }).click());
+        await expect(page).toHaveURL(/\/admin\/pengumuman$/);
+    });
+
+    test('admin mengubah nominal invoice yang belum lunas', async ({ page }) => {
+        await switchRole(page, 'admin');
+        await page.goto('/admin/tagihan', { waitUntil: 'networkidle' });
+        await page.getByRole('button', { name: 'Ubah nominal', exact: true }).first().click();
+        const amount = page.locator('input[type="number"]').last();
+        await amount.fill('340000');
+        await waitForPost(page, '/nominal', () => page.getByRole('button', { name: 'Simpan Perubahan', exact: true }).click());
+        await expect(page.getByText('Rp 340.000', { exact: true })).toBeVisible();
+    });
+
+    test('admin reset akun wali dan menonaktifkan siswa', async ({ page }) => {
+        await switchRole(page, 'admin');
+        await page.goto('/admin/orang-tua', { waitUntil: 'networkidle' });
+        await page.getByRole('button', { name: /Reset kata sandi/ }).first().click();
+        await expect(page.getByRole('button', { name: 'Reset', exact: true })).toBeVisible();
+        await waitForPost(page, '/reset-kata-sandi', () => page.getByRole('button', { name: 'Reset', exact: true }).click());
+        await page.goto('/admin/siswa', { waitUntil: 'networkidle' });
+        await page.getByRole('button', { name: 'Menu tindakan' }).first().click();
+        await page.getByRole('button', { name: 'Nonaktifkan', exact: true }).click();
+        await waitForPost(page, '/nonaktifkan', () => page.getByRole('button', { name: 'Nonaktifkan', exact: true }).last().click());
+        await expect(page.getByText('Siswa dinonaktifkan. Riwayat tetap tersimpan.', { exact: true })).toBeVisible();
+    });
+
+    test('orang tua memvalidasi file PDF, file invalid, dan tanggal transfer masa depan', async ({ page }) => {
+        await switchRole(page, 'ortu');
+        await page.goto('/ortu/tagihan', { waitUntil: 'networkidle' });
+        const hrefs = await page.locator('a[href^="/ortu/tagihan/"]').evaluateAll(links => links.map(link => link.getAttribute('href') ?? '').filter(href => /^\/ortu\/tagihan\/\d+$/.test(href)));
+        let uploadHref = '';
+        for (const href of hrefs) {
+            await page.goto(href, { waitUntil: 'networkidle' });
+            if (await page.locator('input[type="file"]').count()) { uploadHref = href; break; }
+        }
+        expect(uploadHref).toBeTruthy();
+        const upload = page.locator('input[type="file"]');
+        await upload.setInputFiles({ name: 'invalid.txt', mimeType: 'text/plain', buffer: Buffer.from('invalid') });
+        await expect(page.getByText('Pilih file JPG, PNG, atau PDF.', { exact: true })).toBeVisible();
+        await upload.setInputFiles({ name: 'bukti.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 test') });
+        await page.locator('input[type="number"]').fill('350000');
+        const transferDate = page.locator('input[type="date"]');
+        await transferDate.fill('2999-01-01');
+        await expect(transferDate).toHaveAttribute('max', /\d{4}-\d{2}-\d{2}/);
     });
 });
