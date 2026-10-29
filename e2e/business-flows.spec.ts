@@ -131,6 +131,7 @@ test.describe('E2E-BUSINESS alur inti', () => {
         await page.locator('#observed-behavior').fill('Anak mengikuti kegiatan dengan tertib.');
         await page.locator('#interpretation').fill('Perkembangan sosial emosional sesuai harapan.');
         await page.locator('#follow-up').fill('Lanjutkan penguatan kebiasaan positif.');
+        await page.locator('#photo-file').setInputFiles({ name: 'observasi.jpg', mimeType: 'image/jpeg', buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) });
         await waitForPost(page, '/guru/anekdot', () => page.getByRole('button', { name: 'Simpan', exact: true }).click());
         await expect(page.getByText('Anak mengikuti kegiatan dengan tertib.', { exact: true })).toBeVisible();
     });
@@ -249,5 +250,8 @@ test.describe('E2E-BUSINESS alur inti', () => {
         const transferDate = page.locator('input[type="date"]');
         await transferDate.fill('2999-01-01');
         await expect(transferDate).toHaveAttribute('max', /\d{4}-\d{2}-\d{2}/);
+        await transferDate.fill('2026-10-01');
+        await waitForPost(page, '/bukti', () => page.getByRole('button', { name: /Kirim bukti|Unggah ulang/ }).click());
+        await expect(page.getByText(/Bukti sudah diterima|Sedang diperiksa sekolah/i)).toBeVisible();
     });
 });
