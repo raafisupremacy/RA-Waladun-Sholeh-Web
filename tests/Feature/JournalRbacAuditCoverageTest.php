@@ -221,7 +221,10 @@ class JournalRbacAuditCoverageTest extends TestCase
             $this->journal(Teacher::factory()->create(), $classroom, $student);
             $this->fail('A student must have only one journal per day, regardless of teacher.');
         } catch (QueryException $exception) {
-            $this->assertStringContainsString('UNIQUE constraint failed', $exception->getMessage());
+            $this->assertMatchesRegularExpression(
+                '/UNIQUE constraint failed|Integrity constraint violation: 1062 Duplicate entry/',
+                $exception->getMessage(),
+            );
         }
         $this->assertDatabaseCount('daily_journals', 1);
         $this->assertDatabaseHas('daily_journals', ['id' => $first->id, 'teacher_id' => $teacher->id]);
